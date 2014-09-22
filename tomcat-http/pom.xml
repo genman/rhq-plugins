@@ -1,0 +1,60 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>com.apple.iad</groupId>
+      <artifactId>iad-plugins-parent</artifactId>
+      <version>5.0.5-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
+
+   <artifactId>rhq-tomcat-http</artifactId>
+   <packaging>jar</packaging>
+
+   <name>Apple iAd RHQ Tomcat HTTP page monitoring</name>
+   <description>Classes for monitoring HTTP pages available from a Tomcat server. Not a plugin.</description>
+
+   <!-- override, disable stuff -->
+   <build>
+    <plugins>
+        <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>packaging</id>
+                    <phase>none</phase>
+                </execution>
+            </executions>
+            <configuration combine.self="override" />
+        </plugin>
+        <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>deps</id>
+                    <phase>none</phase>
+                </execution>
+            </executions>
+            <configuration combine.self="override" />
+        </plugin>
+    </plugins>
+   </build>
+
+   <dependencies>
+      <dependency>
+         <groupId>org.jboss.on</groupId>
+         <artifactId>jopr-tomcat-plugin</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-jmx-plugin</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>com.apple.iad</groupId>
+         <artifactId>rhq-http-plugin</artifactId>
+         <classifier>classes</classifier>
+         <scope>compile</scope>
+      </dependency>
+   </dependencies>
+</project>

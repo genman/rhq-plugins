@@ -1,0 +1,6 @@
+rel=5.0.5
+dev=5.0.6-SNAPSHOT
+mvn release:prepare -DignoreSnapshots=true -DreleaseVersion=$rel \
+    -DdevelopmentVersion=$dev -DautoVersionSubmodules=true \
+    -Dtag=$rel
+mvn release:perform

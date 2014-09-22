@@ -1,0 +1,98 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>com.apple.iad</groupId>
+      <artifactId>iad-plugins-parent</artifactId>
+      <version>5.0.5-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
+
+   <groupId>com.apple.iad</groupId>
+   <artifactId>rhq-snmp-plugin</artifactId>
+   <packaging>jar</packaging>
+
+   <name>Apple iAd SNMP Plugin</name>
+   <description>Monitor SNMP Server</description>
+
+   <properties>
+      <skipTests>false</skipTests>
+   </properties>
+
+   <build>
+      <plugins>
+         <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+               <execution>
+                  <phase>process-resources</phase>
+                  <goals>
+                     <goal>copy-dependencies</goal>
+                  </goals>
+                  <configuration>
+                     <outputDirectory>${project.build.outputDirectory}/lib</outputDirectory>
+                     <includeScope>runtime</includeScope>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+
+         <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+               <useSystemClassLoader>true</useSystemClassLoader>
+               <systemPropertyVariables>
+                  <org.hyperic.sigar.path>${basedir}/target/itest/lib</org.hyperic.sigar.path>
+               </systemPropertyVariables>
+            </configuration>
+         </plugin>
+      </plugins>
+
+   </build>
+
+   <profiles>
+      <profile>
+      </profile>
+   </profiles>
+
+   <dependencies>
+      <dependency>
+         <groupId>com.apple.iad</groupId>
+         <artifactId>rhq-plugin-testing</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.snmp4j</groupId>
+         <artifactId>snmp4j</artifactId>
+         <version>2.1.0</version>
+         <exclusions>
+            <exclusion>
+               <artifactId>log4j</artifactId>
+               <groupId>log4j</groupId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency>
+         <groupId>org.snmp4j</groupId>
+         <artifactId>snmp4j-agent</artifactId>
+         <version>2.0.6</version>
+         <scope>test</scope>
+         <exclusions>
+            <exclusion>
+               <artifactId>log4j</artifactId>
+               <groupId>log4j</groupId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency>
+         <groupId>net.percederberg</groupId>
+         <artifactId>mibble-parser</artifactId>
+         <version>2.9.3</version>
+      </dependency>
+      <dependency>
+         <groupId>net.percederberg</groupId>
+         <artifactId>mibble-mibs</artifactId>
+         <version>2.9.3</version>
+      </dependency>
+   </dependencies>
+</project>

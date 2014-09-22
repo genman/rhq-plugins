@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<plugin name="splunk"
+        displayName="Splunk and Forwarder Monitoring Plugin"
+        description="Splunk Monitoring Plugin"
+        package="com.apple.iad.rhq.splunk"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+   <server name="Splunk"
+           discovery="SplunkDiscovery"
+           class="SplunkComponent"
+           description="Monitors Splunk Forwarder and Metrics."
+           singleton="true"
+           supportsManualAdd="true">
+
+      <plugin-configuration>
+        <c:simple-property name="port" required="false" default="8089"
+            description="Connection port for Splunk administration"/>
+        <c:simple-property name="user" required="false" default="admin"
+            description="User for Splunk administration"/>
+        <c:simple-property name="password" required="false" default="changeme"
+            description="Password for Splunk administration" type="password"/>
+        <c:simple-property name="host" required="false" default="localhost"
+            description="Host for Splunk administration"/>
+        <c:simple-property name="home" required="false" default="/opt/splunk" description="Splunk home directory"/>
+        <c:simple-property name="metricsLog" required="false" default="var/log/splunk/metrics.log"
+            description="Metrics log file; if no leading /, path is relative to home dir"/>
+      </plugin-configuration>
+
+      <process-scan name="ScanIdentifier" query="process|basename|match=^splunkd.*,arg|-p|match=.*"/>
+
+      <metric property="guid" dataType="trait" displayType="detail" defaultOn="true" description="Unique GUID for this instance"/>
+      <metric property="mode" dataType="trait" displayType="detail" defaultOn="true" description="Server mode"/>
+      <metric property="licenseState" dataType="trait" displayType="summary" defaultOn="true" description="License state"/>
+<!--
+Property is x.y.z, value is 'v', where:
+
+group=x.name=y.z=v
+-->
+      <metric property="queue.tcpout_ssl_group.current_size"
+              dataType="measurement"
+              displayName="TCP Out SSL Queue current size"
+              displayType="summary"
+              category="performance"
+              defaultInterval="1200000"
+              />
+      <metric property="queue.tcpin_queue.current_size_kb"
+              dataType="measurement"
+              displayName="TCP In SSL Queue current size"
+              displayType="detail"
+              units="kilobytes"
+              category="performance"
+              />
+      <metric property="thruput.thruput.total_k_processed"
+              dataType="measurement"
+              displayName="Total data throughput"
+              displayType="summary"
+              units="kilobytes"
+              measurementType="trendsup"
+              defaultInterval="1200000"
+              category="performance" />
+      <metric property="queue.parsingqueue.current_size_kb"
+              dataType="measurement"
+              displayName="Parsing queue current size"
+              displayType="summary"
+              units="kilobytes"
+              category="performance"
+              defaultInterval="1200000"
+              />
+      <metric property="recency"
+              dataType="measurement"
+              displayName="How recent the metrics data file is"
+              displayType="summary"
+              units="milliseconds"
+              category="performance"
+              defaultInterval="1200000"
+              />
+      <metric property="thruput.index_thruput.total_k_processed"
+              dataType="measurement"
+              displayName="Total number of kilobytes processed by indexer"
+              displayType="detail"
+              units="milliseconds"
+              category="performance"
+              measurementType="trendsup"
+              defaultInterval="1200000"
+              />
+      <metric property="events"
+              dataType="measurement"
+              displayName="Total number of events, including connect and disconnect, etc."
+              displayType="detail"
+              units="none"
+              category="performance"
+              measurementType="trendsup"
+              defaultInterval="1200000"
+              />
+    </server>
+
+</plugin>

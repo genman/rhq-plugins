@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<!-- tests configuration that only dumps WARN or higher messages due to appender threadhold -->
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+
+   <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+      <param name="Threshold" value="ERROR"/>
+      <param name="Target" value="System.out"/>
+
+      <layout class="org.apache.log4j.PatternLayout">
+         <param name="ConversionPattern" value="%d{ABSOLUTE} %-5p [%t] (%c{5}) - %m%n"/>
+      </layout>
+   </appender>
+
+   <appender name="FILE" class="org.apache.log4j.FileAppender">
+      <param name="File" value="target/test.log"/>
+      <param name="Append" value="false"/>
+      <layout class="org.apache.log4j.PatternLayout">
+         <param name="ConversionPattern" value="%-5p %d{mm:ss,SSS} [%t] (%c)  -%m%n"/>
+      </layout>
+   </appender>
+
+   <category name="org.jboss.on">
+      <priority value="DEBUG"/>
+   </category>
+
+   <category name="org.rhq.core.system">
+      <priority value="INFO"/>
+   </category>
+
+   <category name="org.apache.hadoop">
+      <priority value="INFO"/>
+   </category>
+
+   <root>
+      <appender-ref ref="CONSOLE"/>
+      <appender-ref ref="FILE"/>
+   </root>
+
+</log4j:configuration>

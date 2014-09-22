@@ -1,0 +1,26 @@
+#!/bin/sh
+
+case $1 in
+
+-s)
+cat <<EOF
+Tcp:
+    130847872 active connections openings
+    156842277 passive connection openings
+    393961 failed connection attempts
+    16658467 connection resets received
+    5 connections established
+    1991191017 segments received
+    3185535207 segments send out
+    850858195 segments retransmited
+    14 bad segments received.
+    21178991 resets sent
+EOF
+  ;;
+
+*)
+echo "unknown option"
+  ;;
+
+esac
+

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<plugin name="verdad"
+        displayName="Verdad Monitoring Plugin"
+        description="Monitor scripts as configured in Verdad to run periodically."
+        package="com.apple.iad.rhq.verdad"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+    <server name="Verdad" discovery="VerdadDiscovery" class="VerdadComponent" singleton="true">
+
+        <plugin-configuration>
+            <c:simple-property name="executable" description="Verdad executable, with full path." readOnly="false" default="/usr/local/bin/vd"/>
+            <c:simple-property name="timeout" description="Timeout value for obtaining Verdad information"
+                    readOnly="false" default="60" units="seconds" type="integer"/>
+            <c:simple-property name="refresh" description="How often to refresh Verdad information"
+                    readOnly="false" default="15" units="minutes" type="integer"/>
+
+        </plugin-configuration>
+
+        <metric property="elapsed" displayName="Elapsed time" description="Elapsed time to refresh Verdad the last time"
+                dataType="measurement" units="nanoseconds" defaultOn="false" displayType="detail"/>
+
+        <service name="Monitor" discovery="MonitorDiscovery" class="MonitorComponent"
+            description="Monitors a command on this machine similarly to Nagios"
+            createDeletePolicy="neither" singleton="false">
+
+            <operation name="invoke" description="Runs this command as a test, returning the results.">
+              <results>
+                 <c:simple-property name="exitCode" type="integer" description="The exit status returned." />
+                 <c:simple-property name="output" type="string" description="The command output." />
+              </results>
+            </operation>
+
+            <metric property="enabled" description="'true' if this is enabled, 'false' otherwise. If 'true' availability is always up, 'false' this resource should be removed."
+                    dataType="trait" defaultOn="true" displayType="summary" defaultInterval="300000"/>
+            <metric property="elapsed" displayName="Elapsed time" description="Elapsed time to execute this command the last time"
+                    dataType="measurement" units="nanoseconds" defaultOn="false" displayType="detail"/>
+            <metric property="group" description="Monitoring group; should be a single letter like p for production"
+                    dataType="trait" defaultOn="true" displayType="summary" defaultInterval="3600000"/>
+            <metric property="output" description="Command output. Note that this should not be tracked if the output varies every execution."
+                    dataType="trait" defaultOn="false" displayType="detail" defaultInterval="3600000"/>
+
+            <event name="vdmonitor" description="Verdad monitoring service event" />
+
+
+        </service>
+
+    </server>
+
+</plugin>

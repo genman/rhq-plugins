@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<plugin name="flume"
+        displayName="Flume NG Monitoring Plugin"
+        description="Monitor NG Flume"
+        package="org.rhq.plugins.jmx"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+    <depends plugin="JMX" useClasses="true"/>
+    <depends plugin="port" useClasses="false"/>
+
+    <server name="Flume" discovery="com.apple.iad.rhq.flume.FlumeDiscovery" class="JMXServerComponent" singleton="true">
+
+        <plugin-configuration>
+            <c:simple-property name="connectorAddress" default="service:jmx:rmi:///jndi/rmi://localhost:8013/jmxrmi"/>
+            <c:simple-property name="type" default="org.mc4j.ems.connection.support.metadata.JSR160ConnectionTypeDescriptor"/>
+        </plugin-configuration>
+
+        <!--
+        See: Bug 839080 - ProcessInfoQuery does not properly handle pidfile with line ending or whitespace
+        <process-scan name="FlumePid" query="process|pidfile|match=/var/run/flume-ng/flume-ng-agent.pid"/>
+        -->
+        <process-scan name="FlumePid" query="process|basename|match=^java.*,arg|-cp|match=.*/flume-ng/.*"/>
+
+        <server name="Flume JVM" description="JVM of Flume"
+              sourcePlugin="JMX" sourceType="JMX Server"
+              discovery="InternalJMXServerDiscoveryComponent" class="JMXServerComponent"
+              singleton="true"/>
+
+        <service name="Flume Avro Port" description="Monitors Avro port for Flume"
+              discovery="com.apple.iad.rhq.port.PortDiscovery"
+              class="com.apple.iad.rhq.port.PortComponent"
+              singleton="false">
+            <plugin-configuration>
+                <c:simple-property name="source" default="/etc/flume-ng/conf/flume.conf" readOnly="false"/>
+                <c:simple-property name="pattern" default=".*sources.*port\s*=\s*(\d+)" readOnly="false"/>
+            </plugin-configuration>
+        </service>
+
+        <service name="Flume Channel" discovery="MBeanResourceDiscoveryComponent" class="MBeanResourceComponent"
+            description="Information on flume channel activity"
+            createDeletePolicy="neither" singleton="false">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="org.apache.flume.channel:type=%chan%"/>
+                <c:simple-property name="nameTemplate" default="Flume Channel {chan}" readOnly="true"/>
+                <c:simple-property name="descriptionTemplate" default="Flume Channel {chan}" readOnly="true"/>
+            </plugin-configuration>
+            <metric property="StartTime" dataType="trait" units="epoch_milliseconds"/>
+            <metric property="StopTime"  dataType="trait" units="epoch_milliseconds"/>
+            <metric property="ChannelCapacity" dataType="measurement"/>
+            <metric property="ChannelSize" dataType="measurement"/>
+            <metric property="ChannelFillPercentage" displayType="summary" dataType="measurement"/>
+            <metric property="EventPutAttemptCount"  displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="EventPutSuccessCount"  displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="EventTakeAttemptCount" displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="EventTakeSuccessCount" displayType="summary" dataType="measurement" measurementType="trendsup"/>
+        </service>
+
+        <service name="Flume Sink" discovery="MBeanResourceDiscoveryComponent" class="MBeanResourceComponent"
+            description="Information on flume sink activity"
+            createDeletePolicy="neither" singleton="false">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="org.apache.flume.sink:type=%sink%"/>
+                <c:simple-property name="nameTemplate" default="Flume Sink {sink}" readOnly="true"/>
+                <c:simple-property name="descriptionTemplate" default="Flume Sink {sink}" readOnly="true"/>
+            </plugin-configuration>
+            <metric property="StartTime" dataType="trait" units="epoch_milliseconds"/>
+            <metric property="StopTime"  dataType="trait" units="epoch_milliseconds"/>
+            <metric property="ConnectionCreatedCount" displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="ConnectionClosedCount"  displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="ConnectionFailedCount"  displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="BatchEmptyCount"        displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="BatchUnderflowCount"    displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="BatchCompleteCount"     displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="EventDrainAttemptCount" displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="EventDrainSuccessCount" displayType="summary" dataType="measurement" measurementType="trendsup"/>
+        </service>
+
+        <service name="Flume Sink Group" discovery="com.apple.iad.rhq.flume.MBeanGroupDiscovery"
+            class="com.apple.iad.rhq.flume.MBeanGroupComponent"
+            description="Information on flume sink activity by group"
+            createDeletePolicy="neither" singleton="false">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="org.apache.flume.sink:type=%key%"/>
+                <c:simple-property name="nameTemplate" default="Flume Sink Group {key}" readOnly="true"/>
+                <c:simple-property name="descriptionTemplate" default="Flume Sink Group {key}" readOnly="true"/>
+            </plugin-configuration>
+            <metric property="ConnectionCreatedCount" displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="ConnectionClosedCount"  displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="ConnectionFailedCount"  displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="BatchEmptyCount"        displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="BatchUnderflowCount"    displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="BatchCompleteCount"     displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="EventDrainAttemptCount" displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="EventDrainSuccessCount" displayType="summary" dataType="measurement" measurementType="trendsup"/>
+        </service>
+
+        <service name="Flume Source" discovery="MBeanResourceDiscoveryComponent" class="MBeanResourceComponent"
+            description="Information on Flume Source activity"
+            createDeletePolicy="neither" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="org.apache.flume.source:type=collector-source"/>
+                <c:simple-property name="nameTemplate" default="Flume Channel Source" readOnly="true"/>
+                <c:simple-property name="descriptionTemplate" default="Flume Source" readOnly="true"/>
+            </plugin-configuration>
+            <metric property="StartTime" dataType="trait" units="epoch_milliseconds"/>
+            <metric property="StopTime"  dataType="trait" units="epoch_milliseconds"/>
+            <metric property="OpenConnectionCount"      displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="EventReceivedCount"       displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="EventAcceptedCount"       displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="AppendReceivedCount"      displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="AppendAcceptedCount"      displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="AppendBatchReceivedCount" displayType="summary" dataType="measurement" measurementType="trendsup"/>
+            <metric property="AppendBatchAcceptedCount" displayType="summary" dataType="measurement" measurementType="trendsup"/>
+        </service>
+    </server>
+
+</plugin>

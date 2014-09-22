@@ -1,0 +1,19 @@
+03-25-2013 23:47:56.236 +0000 INFO  Metrics - group=queue, name=tcpout_ssl_group, max_size=512000, current_size=42, largest_size=0, smallest_size=0
+03-25-2013 23:48:27.234 +0000 INFO  Metrics - group=thruput, name=thruput, instantaneous_kbps=0.137160, instantaneous_eps=0.000000, average_kbps=4.149166, total_k_processed=13976121, kb=4.251953, ev=3, load_average=1.720000
+03-25-2013 23:47:25.237 +0000 INFO  Metrics - group=queue, name=parsingqueue, max_size_kb=512, current_size_kb=2.1, current_size=33, largest_size=2, smallest_size=0
+03-25-2013 23:47:25.237 +0000 INFO  Metrics - group=queue, name=tcpin_queue, max_size_kb=500, current_size_kb=0, current_size=22, largest_size=0, smallest_size=0
+
+03-25-2013 23:48:27.235 +0000 INFO  Metrics - group=realtime_search_data, system total, drop_count=0
+03-25-2013 23:48:27.235 +0000 INFO  Metrics - group=search_concurrency, system total, active_hist_searches=0, active_realtime_searches=0
+11-15-2013 18:51:58.797 +0000 INFO  Metrics - group=tcpout_connections, ssl_group:17.178.72.35:9996:0, sourcePort=8089, destIp=17.178.72.35, destPort=9996, _tcp_Bps=62.59, _tcp_KBps=0.06, _tcp_avg_thruput=0.06, _tcp_Kprocessed=2, _tcp_eps=0.10, kb=1.77
+
+
+# From the server side
+11-23-2013 03:41:32.452 +0000 INFO  Metrics - group=thruput, name=index_thruput, instantaneous_kbps=9.886239, instantaneous_eps=50.096897, average_kbps=2.170819, total_k_processed=1568588, kb=306.472656, ev=1553, load_average=0.010000
+
+11-23-2013 03:54:27.458 +0000 INFO  Metrics - group=tcpin_connections, 17.178.74.95:38206:9996, connectionType=cookedSSL, sourcePort=38206, sourceHost=17.178.74.95, sourceIp=17.1
+78.74.95, destPort=9996, _tcp_Bps=81.26, _tcp_KBps=0.08, _tcp_avg_thruput=0.07, kb=2.46, _tcp_Kprocessed=5.12, _tcp_eps=0.13, build=179365, version=5.0.5, os=Linux, arch=x86_64, 
+hostname=mr11p01ad-app026.iad.apple.com, guid=2D55020A-D060-4AE4-811B-E7C6871F273C, fwdType=uf, ssl=true, lastIndexer=17.178.72.34:9996, ack=false
+
+11-23-2013 03:41:09.071 +0000 INFO  StatusMgr - destPort=9996, eventType=connect_close, sourceHost=17.178.75.208, sourceIp=17.178.75.208, sourcePort=34102, statusee=TcpInputProcessor
+11-23-2013 03:41:09.098 +0000 INFO  StatusMgr - destPort=9996, eventType=connect_done, sourceHost=17.178.72.154, sourceIp=17.178.72.154, sourcePort=47605, statusee=TcpInputProcessor

@@ -1,0 +1,576 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <groupId>com.apple.iad</groupId>
+   <artifactId>iad-plugins-parent</artifactId>
+   <packaging>pom</packaging>
+   <version>5.0.5-SNAPSHOT</version>
+
+   <name>Apple iAd RHQ Plugin Parent</name>
+   <url>http://rhq-project.org/</url>
+   <inceptionYear>2012</inceptionYear>
+
+  <organization>
+    <name>Apple, Inc.</name>
+    <url>http://apple.com/</url>
+  </organization>
+
+  <scm>
+  </scm>
+
+   <build>
+      <pluginManagement>
+         <plugins>
+            <plugin>
+               <artifactId>maven-antrun-plugin</artifactId>
+               <version>1.6</version>
+               <dependencies>
+             <!-- Just to have more tasks available
+             <dependency>
+                <groupId>ant</groupId>
+                <artifactId>ant-nodeps</artifactId>
+                <version>1.6.5</version>
+             </dependency>
+-->
+               </dependencies>
+            </plugin>
+            <plugin>
+               <artifactId>maven-assembly-plugin</artifactId>
+               <version>2.2</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-clean-plugin</artifactId>
+               <version>2.4.1</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-compiler-plugin</artifactId>
+               <version>2.3.2</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-dependency-plugin</artifactId>
+               <version>2.3</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-deploy-plugin</artifactId>
+               <version>2.5</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-enforcer-plugin</artifactId>
+               <version>1.0-beta-1</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-install-plugin</artifactId>
+               <version>2.3.1</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-jar-plugin</artifactId>
+               <version>2.3.1</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-javadoc-plugin</artifactId>
+               <version>2.8</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-plugin-plugin</artifactId>
+               <version>2.6</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-rar-plugin</artifactId>
+               <version>2.2</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-release-plugin</artifactId>
+               <version>2.2.2</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-resources-plugin</artifactId>
+               <version>2.4.3</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-site-plugin</artifactId>
+               <version>3.0</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-source-plugin</artifactId>
+               <version>2.1.2</version>
+            </plugin>
+            <plugin>
+               <artifactId>maven-surefire-plugin</artifactId>
+               <version>2.10</version>
+               <configuration>
+                  <argLine>-Xms16M -Xmx512M</argLine>
+               </configuration>
+            </plugin>
+            <plugin>
+               <artifactId>maven-war-plugin</artifactId>
+               <version>2.1</version>
+            </plugin>
+            <plugin>
+               <groupId>org.codehaus.mojo</groupId>
+               <artifactId>build-helper-maven-plugin</artifactId>
+               <version>1.5</version>
+            </plugin>
+            <plugin>
+               <groupId>org.codehaus.mojo</groupId>
+               <artifactId>buildnumber-maven-plugin</artifactId>
+               <version>1.0</version>
+            </plugin>
+            <plugin>
+               <groupId>org.codehaus.mojo</groupId>
+               <artifactId>exec-maven-plugin</artifactId>
+           <!-- NOTE: Version 1.2 of this plugin appears to be broken, so do not
+                      upgrade to that version. -->
+               <version>1.1</version>
+            </plugin>
+            <plugin>
+               <groupId>org.codehaus.mojo</groupId>
+               <artifactId>properties-maven-plugin</artifactId>
+               <version>1.0-alpha-2</version>
+            </plugin>
+            <plugin>
+               <groupId>org.codehaus.mojo</groupId>
+               <artifactId>findbugs-maven-plugin</artifactId>
+               <version>2.3.2</version>
+            </plugin>
+         </plugins>
+      </pluginManagement>
+      <plugins>
+         <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+               <execution>
+                  <id>deps</id>
+                  <phase>process-resources</phase>
+                  <goals>
+                     <goal>copy-dependencies</goal>
+                  </goals>
+                  <configuration>
+                     <outputDirectory>${project.build.outputDirectory}/lib</outputDirectory>
+                     <includeScope>runtime</includeScope>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+              <!-- Set the 'maven.version' property to the version of Maven being used,
+               so we can include the Maven version in the MANIFEST.MF files of all
+               build artifacts. -->
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+               <execution>
+                  <phase>initialize</phase>
+                  <goals>
+                     <goal>maven-version</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+
+         <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <configuration>
+                <!-- As of v2.4 of this plugin, the default delimiters are @*@ -
+                     we want the old default of ${*} instead. -->
+               <useDefaultDelimiters>false</useDefaultDelimiters>
+               <delimiters>
+                  <delimiter>${*}</delimiter>
+               </delimiters>
+            </configuration>
+         </plugin>
+
+          <!-- Ensure all code compiles and runs on Java 6 or later. -->
+         <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <!-- invocation options -->
+               <fork>true</fork>
+               <meminitial>64M</meminitial>
+               <maxmem>512M</maxmem>
+
+              <!-- compiler options -->
+               <source>1.6</source>
+               <target>1.6</target>
+               <optimize>false</optimize>
+               <verbose>true</verbose>
+               <proc>none</proc> <!-- disable annotation processing -->
+               <compilerArgument>-Xlint</compilerArgument>
+            </configuration>
+         </plugin>
+
+         <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+               <archive>
+                  <manifest>
+                     <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                     <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                  </manifest>
+                  <manifestEntries>
+                     <Maven-Version>${maven.version}</Maven-Version>
+                     <Java-Version>${java.version}</Java-Version>
+                     <Java-Vendor>${java.vendor}</Java-Vendor>
+                     <Os-Name>${os.name}</Os-Name>
+                     <Os-Arch>${os.arch}</Os-Arch>
+                     <Os-Version>${os.version}</Os-Version>
+                     <Build-Number>${buildNumber}</Build-Number>
+                     <Build-Time>${buildTime}</Build-Time>
+                  </manifestEntries>
+               </archive>
+            </configuration>
+
+            <!-- Create a .jar that contains only classes, not lib or plugin info -->
+            <!-- Useful for plugins which are used in other plugins -->
+            <executions>
+                <execution>
+                    <id>packaging</id>
+                    <phase>package</phase>
+                    <goals><goal>jar</goal></goals>
+                    <configuration>
+                        <classifier>classes</classifier>
+                        <excludes>
+                           <exclude>META-INF/rhq-plugin.xml</exclude>
+                           <exclude>**/*.jar</exclude>
+                        </excludes>
+                    </configuration>
+                </execution>
+            </executions>
+
+         </plugin>
+
+         <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+               <useSystemClassLoader>true</useSystemClassLoader>
+               <systemPropertyVariables>
+                  <org.hyperic.sigar.path>${basedir}/target/itest/lib</org.hyperic.sigar.path>
+               </systemPropertyVariables>
+            </configuration>
+         </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-release-plugin</artifactId>
+          </plugin>
+
+      </plugins>
+
+   </build>
+
+   <dependencyManagement>
+      <dependencies>
+         <dependency>
+            <groupId>com.apple.iad</groupId>
+            <artifactId>rhq-plugin-testing</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+         </dependency>
+         <dependency>
+            <groupId>com.apple.iad</groupId>
+            <artifactId>rhq-http-plugin</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+            <scope>provided</scope>
+         </dependency>
+         <dependency>
+            <groupId>com.apple.iad</groupId>
+            <artifactId>rhq-hadoop-plugin</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+         </dependency>
+         <dependency>
+            <groupId>com.apple.iad</groupId>
+            <artifactId>rhq-snmp-plugin</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+         </dependency>
+         <dependency>
+            <groupId>com.apple.iad</groupId>
+            <artifactId>rhq-tomcat-http</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>com.apple.iad</groupId>
+            <artifactId>rhq-jmx-app</artifactId>
+            <version>${project.version}</version>
+         </dependency>
+         <dependency>
+            <groupId>com.apple.iad</groupId>
+            <artifactId>rhq-silver-plugin</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+            <scope>provided</scope>
+         </dependency>
+         <dependency>
+            <groupId>com.apple.iad</groupId>
+            <artifactId>rhq-snmptrapd-plugin</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+         </dependency>
+         <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.1.1</version>
+            <scope>test</scope>
+         </dependency>
+         <dependency>
+            <groupId>org.rhq</groupId>
+            <artifactId>rhq-core-plugin-container</artifactId>
+            <version>${rhq.version}</version>
+            <scope>test</scope>
+         </dependency>
+         <dependency>
+            <groupId>org.rhq</groupId>
+            <artifactId>rhq-enterprise-server</artifactId>
+            <version>${rhq.version}</version>
+            <scope>provided</scope>
+         </dependency>
+         <dependency>
+            <groupId>org.rhq</groupId>
+            <artifactId>rhq-core-domain</artifactId>
+            <version>${rhq.version}</version>
+            <scope>provided</scope>
+         </dependency>
+         <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1</version>
+         </dependency>
+         <dependency>
+            <groupId>org.rhq</groupId>
+            <artifactId>rhq-database-plugin</artifactId>
+            <version>4.12.0</version>
+            <scope>provided</scope>
+         </dependency>
+         <dependency>
+            <groupId>org.rhq</groupId>
+            <artifactId>rhq-oracle-plugin</artifactId>
+            <version>${rhq.version}</version>
+            <scope>provided</scope>
+         </dependency>
+         <dependency>
+            <groupId>org.rhq</groupId>
+            <artifactId>rhq-mysql-plugin</artifactId>
+            <version>${rhq.version}</version>
+            <scope>test</scope>
+         </dependency>
+         <dependency>
+             <groupId>mysql</groupId>
+             <artifactId>mysql-connector-java</artifactId>
+             <version>${mysql.version}</version>
+             <scope>provided</scope> <!-- loaded through ClassLoaderFacet -->
+         </dependency>
+         <dependency>
+             <groupId>org.rhq</groupId>
+             <artifactId>rhq-jmx-plugin</artifactId>
+             <version>${rhq.version}</version>
+             <scope>provided</scope>
+         </dependency>
+         <dependency>
+             <groupId>org.jboss.on</groupId>
+             <artifactId>jopr-tomcat-plugin</artifactId>
+             <version>${rhq.version}</version>
+             <scope>provided</scope>
+         </dependency>
+      </dependencies>
+   </dependencyManagement>
+
+   <profiles>
+      <profile>
+         <id>publish</id>
+
+         <build>
+            <plugins>
+
+                <plugin>
+                  <artifactId>maven-source-plugin</artifactId>
+                  <executions>
+                    <execution>
+                      <id>attach-sources</id>
+                      <goals>
+                        <goal>jar</goal>
+                      </goals>
+                    </execution>
+                  </executions>
+                </plugin>
+
+                <plugin>
+                  <artifactId>maven-javadoc-plugin</artifactId>
+                  <executions>
+                    <execution>
+                      <id>attach-javadocs</id>
+                      <goals>
+                        <goal>jar</goal>
+                      </goals>
+                    </execution>
+                  </executions>
+                </plugin>
+
+            </plugins>
+         </build>
+      </profile>
+  </profiles>
+
+   <dependencies>
+      <dependency>
+         <groupId>commons-logging</groupId>
+         <artifactId>commons-logging</artifactId>
+         <version>${commons-logging.version}</version>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-core-domain</artifactId>
+         <version>${rhq.version}</version>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-core-client-api</artifactId>
+         <version>${rhq.version}</version>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-core-native-system</artifactId>
+         <version>${rhq.version}</version>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-core-plugin-api</artifactId>
+         <version>${rhq.version}</version>
+         <scope>provided</scope>
+      </dependency>
+
+        <!-- javac seems to need these to compile, though not referenced -->
+      <dependency>
+         <groupId>javax.persistence</groupId>
+         <artifactId>persistence-api</artifactId>
+         <version>1.0</version>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.hibernate</groupId>
+         <version>3.5.2-Final</version>
+         <artifactId>hibernate-annotations</artifactId>
+         <scope>provided</scope>
+         <exclusions>
+            <exclusion>
+               <groupId>xml-apis</groupId> <!-- built into Java -->
+               <artifactId>xml-apis</artifactId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+
+      <!-- For testing purpose -->
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-core-plugin-container</artifactId>
+         <version>${rhq.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.hyperic</groupId>
+         <artifactId>sigar</artifactId>
+         <version>${sigar.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.hyperic</groupId>
+         <artifactId>sigar-dist</artifactId>
+         <version>${sigar.version}</version>
+         <type>zip</type>
+         <scope>test</scope>
+      </dependency>
+
+      <dependency>
+         <groupId>xerces</groupId>
+         <artifactId>xercesImpl</artifactId>
+         <version>2.9.1</version>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>xalan</groupId>
+         <artifactId>xalan</artifactId>
+         <version>2.7.1</version>
+         <scope>provided</scope>
+         <exclusions>
+            <exclusion>
+               <groupId>xml-apis</groupId> <!-- built into Java -->
+               <artifactId>xml-apis</artifactId>
+            </exclusion>
+         </exclusions>
+      </dependency>
+      <dependency>
+         <groupId>org.jetbrains</groupId>
+         <artifactId>annotations</artifactId>
+         <version>7.0.2</version>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.testng</groupId>
+         <artifactId>testng</artifactId>
+         <version>6.1.1</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>log4j</groupId>
+         <artifactId>log4j</artifactId>
+         <version>${log4j.version}</version>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
+
+   <properties>
+      <rhq.version>4.12.0</rhq.version>
+      <commons-logging.version>1.1.1</commons-logging.version>
+      <sigar.version>1.6.5.132-5</sigar.version>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <hadoop.version>2.0.0-cdh4.6.0</hadoop.version>
+      <hadoop.core.version>2.0.0-mr1-cdh4.6.0</hadoop.core.version>
+      <mysql.version>5.1.18</mysql.version>
+      <log4j.version>1.2.16</log4j.version>
+   </properties>
+
+  <distributionManagement>
+
+  </distributionManagement>
+
+   <modules>
+      <!-- modules others depend on -->
+      <module>testing</module>
+      <module>http</module>
+      <module>jmx-app</module>
+      <module>tomcat-http</module>
+      <module>port</module>
+      <module>snmp</module>
+      <module>hadoop</module>
+
+      <!-- standalone modules -->
+      <module>dns</module>
+      <module>du</module>
+      <module>flume</module>
+      <module>fusionio</module>
+      <module>hive</module>
+      <!-- http -->
+      <module>datatorrent</module>
+      <module>hornetq</module>
+      <module>memcached</module>
+      <module>mongodb</module>
+      <module>netapp</module>
+      <module>netscaler</module>
+      <module>netstat</module>
+      <module>oozie</module>
+      <!-- port -->
+      <module>redis</module>
+      <!-- snmp -->
+      <module>snmptrapd</module>
+      <module>splunk</module>
+      <module>tten</module>
+      <module>uptime</module>
+   </modules>
+
+</project>
+

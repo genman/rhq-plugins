@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<plugin name="oozie"
+        displayName="Hadoop Oozie plugin"
+        package="com.apple.iad.rhq.oozie"
+        description="Supports obtaining Oozie data via a URL"
+        ampsVersion="2.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+    <depends plugin="HTTP" useClasses="true"/>
+
+    <server name="Oozie Server" discovery="OozieDiscovery" class="OozieComponent"
+           description="Monitors Oozie server via HTTP currently"
+           supportsManualAdd="false" createDeletePolicy="neither">
+
+        <plugin-configuration>
+            <c:simple-property name="url" required="true" default="http://localhost:11000/oozie" type="string"/>
+        </plugin-configuration>
+
+        <process-scan name="oozie boot" query="process|basename|match=^java.*,arg|/usr/lib/oozie/oozie-server/bin/bootstrap.jar|match=.*"/>
+        <process-scan name="oozie port" query="process|basename|match=^java.*,arg|-Doozie.http.port|match=.*"/>
+        <process-scan name="pid" query="process|pidfile|match=/var/run/oozie/oozie.pid"/>
+
+        <service name="Oozie Coordinator Jobs" discovery="JobsDiscovery" class="JobsComponent"
+            description="Latest Workflow Jobs for Oozie server, collapsed via HTTP by application name"
+            supportsManualAdd="false" createDeletePolicy="neither" singleton="true">
+
+            <plugin-configuration>
+                <!-- Filter length of 5000 is arbitrary. We want to find all jobs in history, but that may be too many in memory. -->
+                <c:simple-property name="url" required="true" default="/oozie/v1/jobs?jobtype=coord&amp;len=5000" type="string" description="Coordinator jobs query URL" />
+                <c:simple-property name="status" required="true" default="200" type="string" description="Expected HTTP status"/>
+                <c:simple-property name="format" type="string" default="json"/>
+            </plugin-configuration>
+
+            <service name="Coordinator Job" discovery="CoordinatorDiscovery" class="CoordinatorComponent"
+                description="Coordinator Job for Oozie server"
+                supportsManualAdd="false" createDeletePolicy="neither" singleton="true">
+
+                <metric property="status"    dataType="trait" displayType="summary"/>
+                <metric property="user"      dataType="trait" displayType="summary"/>
+                <metric property="startElapsed" dataType="measurement" units="milliseconds" displayType="summary" displayName="Start Elapsed Time" description="Elapsed Time since the job was started"/>
+                <!-- not important -->
+                <metric property="actionElapsed" dataType="measurement" units="milliseconds" displayType="detail" displayName="Next Action Time" description="Time until the next action" />
+                <metric property="lastActionRecency" dataType="measurement" displayType="summary"/>
+                <metric property="pauseTime" dataType="trait" displayType="detail"/>
+                <metric property="coordJobPath" dataType="trait" displayType="detail"/>
+                <metric property="timeZone" dataType="trait" displayType="detail"/>
+                <metric property="frequency" dataType="trait" displayType="detail"/>
+                <metric property="timeUnit" dataType="trait" displayType="detail"/>
+                <metric property="startTime" dataType="trait" displayType="detail"/>
+                <metric property="endTime" dataType="trait" displayType="detail"/>
+            </service>
+        </service>
+
+        <service name="Oozie Latest Job List" discovery="JobsDiscovery" class="JobsComponent"
+            description="Latest Workflow Jobs for Oozie server, collapsed via HTTP by application name"
+            supportsManualAdd="false" createDeletePolicy="neither" singleton="true">
+
+            <plugin-configuration>
+                <!-- Filter length of 5000 is arbitrary. We want to find all jobs in history, but that may be too many in memory. -->
+                <c:simple-property name="url" required="true" default="/oozie/v1/jobs?jobtype=wf&amp;len=5000" type="string"/>
+                <c:simple-property name="status" required="true" default="200" type="string" description="Expected HTTP status"/>
+                <c:simple-property name="format" type="string" default="json"/>
+            </plugin-configuration>
+
+            <metric property="total" dataType="measurement" displayName="Total" />
+
+            <service name="Oozie Job" discovery="JobDiscovery" class="WorkflowComponent"
+                description="Latest Workflow Job for Oozie server, by application name"
+                supportsManualAdd="false" createDeletePolicy="neither">
+
+                <metric property="status"    dataType="trait" displayName="Status" displayType="summary"/>
+                <metric property="createdTime" dataType="trait" displayName="Created Time" units="none"/>
+                <metric property="startTime" dataType="trait" displayName="Start Time" units="none"/>
+                <metric property="endTime"   dataType="trait" displayName="End Time" units="none"/>
+                <metric property="lastModTime"  dataType="trait" displayName="Last Modification Time" units="none"/>
+                <metric property="id"        dataType="trait" displayName="Job ID" />
+                <metric property="user"      dataType="trait" displayName="User" />
+                <metric property="elapsed"   dataType="measurement" displayType="summary" displayName="Elapsed Time" description="Elapsed Time since the job was created until now or its end time" units="milliseconds"/>
+                <metric property="recency"  dataType="measurement" displayType="summary" displayName="Recent Time Completed" description="Time since the job was last completed" units="milliseconds"/>
+            </service>
+
+        </service>
+
+        <service name="Oozie Instrumentation" discovery="InstrumentDiscovery" class="InstrumentComponent"
+            description="Monitors Instrumentation for Oozie server via HTTP"
+            supportsManualAdd="false" createDeletePolicy="neither" singleton="true">
+
+            <plugin-configuration>
+                <c:simple-property name="url" required="true" default="/oozie/v1/admin/instrumentation" type="string"/>
+                <c:simple-property name="status" required="true" default="200" type="string" description="Expected HTTP status"/>
+                <c:simple-property name="format" type="string" default="json"/>
+            </plugin-configuration>
+
+            <metric property="variables.jobstatus.PREP" dataType="measurement" displayName="Job Status Prep" />
+            <metric property="variables.jobstatus.SUSPENDED" dataType="measurement" displayName="Job Status Suspended" />
+            <metric property="variables.jobstatus.SUCCEEDED" dataType="measurement" displayName="Job Status Succeeded" />
+            <metric property="variables.jobstatus.RUNNING" dataType="measurement" displayName="Job Status Running" displayType="summary"/>
+            <metric property="variables.jobstatus.FAILED" dataType="measurement" displayName="Job Status Failed" displayType="summary"/>
+            <metric property="variables.jobstatus.KILLED" dataType="measurement" displayName="Job Status Killed" />
+
+            <metric property="variables.locks.locks" dataType="measurement" displayName="Locks count" displayType="summary"/>
+            <metric property="counters.jobs.succeeded" dataType="measurement" displayName="Job Succeeded" measurementType="trendsup" displayType="summary" />
+            <metric property="counters.jobs.submit" dataType="measurement" displayName="Job Submit" measurementType="trendsup" displayType="summary" />
+            <metric property="counters.jobs.start" dataType="measurement" displayName="Job Start" measurementType="trendsup" displayType="summary" />
+            <metric property="counters.jobs.coord_action_check" dataType="measurement" displayName="Job Coord Action Check" measurementType="trendsup" displayType="summary" />
+            <metric property="counters.jobs.coord_submit" dataType="measurement" displayName="Job Coord Submit" measurementType="trendsup" displayType="summary" />
+
+<!--
+            <service name="Oozie Timer" discovery="TimerDiscovery" class="TimerComponent"
+                description="Monitors Instrumentation for Oozie server via HTTP currently"
+                supportsManualAdd="false" createDeletePolicy="neither">
+                <metric property="ticks"       dataType="measurement" displayName="Ticks" measurementType="trendsup"/>
+                <metric property="ownTimeAvg"  dataType="measurement" displayName="Own Time Average" />
+            </service>
+  -->
+
+        </service>
+
+  </server>
+
+</plugin>

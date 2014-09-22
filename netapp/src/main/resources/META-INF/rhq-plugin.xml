@@ -1,0 +1,981 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns:rhq="urn:xmlns:rhq-plugin" xmlns:c="urn:xmlns:rhq-configuration" name="short name" displayName="Longer name" description="What this does" package="apple.iad.rhq.snmp">
+    <service name="NetApp Filer" discovery="MibDiscovery" class="MibComponent" singleton="true" classLoader="instance">
+        <depends plugin="snmp" useClasses="true" />
+        <runs-inside>
+            <parent-resource-type name="SNMP Component" plugin="snmp" />
+        </runs-inside>
+        <plugin-configuration>
+            <c:simple-property name="mibs" default="NETWORK-APPLIANCE-MIB.mib" />
+        </plugin-configuration>
+        <metric property="productType" description="The product type representing the target platform." displayType="summary" dataType="trait" />
+        <metric property="productVendor" description="The vendor id of this system, indicating the company that has supplied the product." displayType="summary" dataType="trait" />
+        <metric property="productCPUArch" description="The CPU architecture type of this appliance" displayType="detail" dataType="trait" />
+        <metric property="miscGlobalStatus" description="This indicates the overall status of the appliance. The algorithm to determine the value uses both hardware status (e.g. the number of failed fans) and volume status (e.g. number of volumes that are full). The algorithm is subject to change in future rele" displayType="summary" dataType="trait" />
+
+        <service name="NetApp Cluster" discovery="MibDiscovery" class="MibComponent" singleton="true">
+            <metric property="cfSettings" description="Clustered Failover configuration settings. The value notConfigured(1) indicates that the cluster is not licensed. The thisNodeDead(5) setting indicates that this node has been taken over." displayType="detail" dataType="trait" />
+            <metric property="cfState" description="Clustered Failover state." displayType="detail" dataType="trait" />
+            <metric property="cfCannotTakeoverCause" description="The reason this node cannot takeover its partner" displayType="detail" dataType="trait" />
+            <metric property="cfPartnerStatus" description="This is the status last returned by the Clustered Failover partner." displayType="detail" dataType="trait" />
+            <metric property="cfInterconnectStatus" description="The current status of the interconnect. The partialFailure(3) status indicates that one of the links in the interconnect hardware is down." displayType="detail" dataType="trait" />
+        </service>
+
+        <metric property="envOverTemperature" description="An indication of whether the hardware is currently operating outside of its recommended temperature range. The hardware will shutdown if the temperature exceeds critical thresholds." displayType="detail" dataType="trait" />
+        <metric property="nvramBatteryStatus" description="An indication of the current status of the NVRAM battery or batteries. Batteries which are fully or partially discharged may not fully protect the system during a crash. The end-of-life status values are based on the manufacturer's recommended life." displayType="detail" dataType="trait" />
+        <metric property="autosupportStatus" description="An indication of the current status of autosupport on the appliance. describes the success or failure of most recent attempts to send autosupports." displayType="detail" dataType="trait" />
+        <metric property="nfsIsLicensed" description="Whether the nfs protocol is licensed on the filer." displayType="detail" dataType="trait" />
+        <metric property="quotaState" description="Indicates whether the root volume's quotas are ON, OFF or initializing. This object is deprecated - use qvStateTable.qvStateStat instead." displayType="detail" dataType="trait" />
+        <metric property="fsOverallStatus" description="An indication of overall file system health. 'ok' indicates that all file systems have adequate space. 'nearlyFull' means that one or more is nearly full (more than 95% full). 'full' means that one or more are more than 98% full." displayType="detail" dataType="trait" />
+
+        <service name="NetApp CIFS" discovery="MibDiscovery" class="MibComponent" singleton="true">
+            <metric property="cifsIsEnabled" description="Whether the CIFS protocol is active on the filer." displayType="detail" dataType="measurement" />
+            <metric property="cifsIsLoginEnabled" description="Whether new CIFS connections to the filer are currently allowed." displayType="detail" dataType="measurement" />
+            <metric property="cifsDomainJoined" description="Has the filer joined an NT domain? If this value is true, cifsDomainName will contain the name of the domain. Otherwise, the filer may have joined a WorkGroup, and cifsWGName will contain the name of the WorkGroup. " displayType="detail" dataType="measurement" />
+            <metric property="cifsIsWinsEnabled" description="True if WINS name resolution is enabled on the filer." displayType="detail" dataType="measurement" />
+            <metric property="cifsSecurityModel" description="Which type of authentication semantics (Unix or PC) are in use for PC access to Unix files on the filer. If Unix semantics are in use, no ACL on a Unix file is ever checked. If PC semantics are in use, the share level ACL on the share containing the file " displayType="detail" dataType="trait" />
+            <metric property="cifsOplocksEnabled" description="Whether oplocks are enabled on the filer." displayType="detail" dataType="measurement" />
+            <metric property="cifsLevel2OplocksEnabled" description="Whether level 2 oplocks are enabled on the filer." displayType="detail" dataType="measurement" />
+            <metric property="cifsPreserveCase" description="If this option is set to preserve-case (the default), all filename references will be case preserving. Otherwise, they are forced to lowercase." displayType="detail" dataType="measurement" />
+            <metric property="cifsSymlinksEnabled" description="If this option is enabled, CIFS accesses will follow symbolic links using Unix semantics." displayType="detail" dataType="measurement" />
+            <metric property="cifsSymlinkCycleProtEnabled" description="If this option is enabled, CIFS accesses will through symbolic links will check for cycles in the link graph." displayType="detail" dataType="measurement" />
+            <metric property="cifsIsLicensed" description="Whether the CIFS protocol is licensed on the filer." displayType="detail" dataType="measurement" />
+            <metric property="cifsPerClientStatsEnabled" description="True when cifs.per_client_stats are being collected." displayType="detail" dataType="measurement" />
+            <metric property="cifsClearTextPasswd" description="This indicates whether the cifs clients are using clear text passwords when authenticating with the filer. If cifsDomainJoined is false and this variable is also false, then the filer is using NT Security from a local user list." displayType="detail" dataType="trait" />
+        </service>
+        <service name="Netscaler Features" discovery="MibDiscovery" class="MibComponent" singleton="true">
+            <metric property="ncIsEnabled" description="Whether Netcache is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncIsLicensed" description="Whether Netcache is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncDnsIsEnabled" description="Whether the Domain Name System (DNS) is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncHttpIsEnabled" description="Whether HTTP is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncNntpIsEnabled" description="Whether NNTP is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncNntpIsLicensed" description="Whether NNTP is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncStreamingMmsIsEnabled" description="Whether Microsoft Media Services (MMS) is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncStreamingMmsIsLicensed" description="Whether Microsoft Windows Media Service (MMS) is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncStreamingMmsProIsLicensed" description="Whether Microsoft Windows Media Service Pro (MMS) is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncStreamingRtspIsEnabled" description="Whether the Real Time Streaming Protocol (RTSP) is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncStreamingQuickTimeIsLicensed" description="Whether QuickTime is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncStreamingRealIsLicensed" description="Whether Real Media streaming is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncStreamingMmsUltraIsLicensed" description="Whether Microsoft Windows Media Service Ultra (MMS) is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncStreamingRealProIsLicensed" description="Whether Real Media Pro streaming is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncStreamingRealUltraIsLicensed" description="Whether Real Media Ultra streaming is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncIcapIsEnabled" description="Whether ICAP v0.95 is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncIcapIsLicensed" description="Whether ICAP is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncIcapv1IsEnabled" description="Whether ICAP v1.0 is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncGrmServerIsEnabled" description="Whether the Global Request Manager (GRM) Server is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncGrmServerIsLicensed" description="Whether the Global Request Manager (GRM) Server is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncGrmAgentIsEnabled" description="Whether the Global Request Manager (GRM) Agent enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncGrmAgentIsLicensed" description="Whether the Global Request Manager (GRM) Agent is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncCdIsEnabled" description="Whether Content Director is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncHttpsProxyIsEnabled" description="Whether HTTPS is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncHttpsProxyIsLicensed" description="Whether HTTPS is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncCmsIsEnabled" description="Whether CMS is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="ncDnsIresIsEnabled" description="Has Full Service Resolver been enabled" displayType="detail" dataType="measurement" />
+            <metric property="ncDnsIresIsInitialised" description="Has Full Service Resolver initalised" displayType="detail" dataType="measurement" />
+            <metric property="ncNtlmPossibleProblem" description="Whether a possible ntlm problem is detected in the appliance's domain environment." displayType="detail" dataType="measurement" />
+            <metric property="snapmirrorOn" description="Indicates whether snapmirror has been turned on or not." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorIsLicensed" description="Whether the snapmirror is licensed on the filer." displayType="detail" dataType="measurement" />
+            <metric property="svOn" description="Indicates whether snapvault has been turned on or not." displayType="detail" dataType="trait" />
+            <metric property="svPrimaryIsLicensed" description="Whether the snapvault_client(primary) is licensed on the filer." displayType="detail" dataType="measurement" />
+            <metric property="svSecondaryIsLicensed" description="Whether the snapvault_server(secondary) is licensed on the filer." displayType="detail" dataType="measurement" />
+            <metric property="svDrPrimaryIsLicensed" description="Whether the snapvault disaster recovery primary is licensed on the filer." displayType="detail" dataType="measurement" />
+            <metric property="ndmpOn" description="Indicates whether ndmpd has been turned on or not." displayType="detail" dataType="trait" />
+            <metric property="ftpdOn" description="Indicates whether ftpd has been turned on or not." displayType="detail" dataType="trait" />
+            <metric property="dafsUseChecksums" description="Server uses checksums" displayType="detail" dataType="measurement" />
+            <metric property="dafsAnonymousAuthentication" description="Allow the server to acception connections with authentication type NONE." displayType="detail" dataType="measurement" />
+            <metric property="dafsServerEnabled" description="Current status of the DAFS server. If true, the DAFS server is running." displayType="detail" dataType="trait" />
+            <metric property="vfilerIsLicensed" description="Whether vfiler is licensed on the filer." displayType="detail" dataType="measurement" />
+            <metric property="fcpIsLicensed" description="Whether FCP access protocols are licensed on the filer." displayType="detail" dataType="measurement" />
+            <metric property="iscsiIsLicensed" description="Whether iSCSI access protocols are licensed on the filer." displayType="detail" dataType="measurement" />
+            <metric property="fcpCfMode" description="Failover setting for the FCP target cluster." displayType="detail" dataType="measurement" />
+            <metric property="nfsCacheIsEnabled" description="Whether NFS caching is enabled on this system." displayType="detail" dataType="measurement" />
+            <metric property="nfsCacheIsLicensed" description="Whether NFS caching is licensed on this system." displayType="detail" dataType="measurement" />
+            <metric property="sisIsLicensed" description="Indicates whether Advanced SIS is licensed on the filer." displayType="detail" dataType="trait" />
+            <metric property="compressIsLicensed" description="Indicates whether compression is licensed on the filer." displayType="detail" dataType="trait" />
+        </service>
+
+        <metric property="amMonitor" description="Variable for user defined SNMP traps to monitor whether there has been a status change of any of the acceleration servers that netcache is probing." displayType="detail" dataType="trait" />
+        <metric property="ncLocalConfigChanged" description="Whether the local configuration file on NetCache was changed without using DFM configuration management." displayType="detail" dataType="measurement" />
+        <metric property="grmMonitorToggle" description="Variable for user defined SNMP traps to monitor whether there has been a status change of any of the GRM agents reporting to this GRM server." displayType="detail" dataType="trait" />
+        <metric property="takeoverMode" description="Indicates the current takeover mode of this appliance." displayType="detail" dataType="trait" />
+        <metric property="takeoverStatus" description="Indicates the current status of the takeover partner of this appliance. up(1) indicates that the takeover partner is reachable. unknown(2) indicates that an unknown error occured. failed(3) indicates that the partner has failed, takeoverAddrs indicates th" displayType="detail" dataType="trait" />
+
+        <service name="pclTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="pclIpAddr" description="The IP address of the referenced client." displayType="detail" dataType="trait" />
+            <metric property="pclRpcCalls" description="The total number of RPC calls received from the referenced client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclRpcBadCalls" description="The total number of calls received from the referenced client that were rejected by the RPC layer, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclRpcNullRecvs" description="The number of times an RPC call was not available when it was thought to be received from referenced client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclRpcBadLens" description="The number of RPC calls received from the referenced client with a length shorter than a minimum-sized RPC call, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclRpcServXDRCalls" description="The number of RPC calls received from the referenced client whose header could not be XDR decoded, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsCalls" description="The total number of NFS calls received from the referenced client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsServBadCalls" description="The total number of NFS calls received from the referenced client that were rejected, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2Nulls" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_NULL (Do Nothing) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Getattrs" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_GETATTR (Get File Attributes) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Setattrs" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_SETATTR (Set File Attributes) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Roots" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_ROOT (Get Filesystem Root) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Lookups" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_LOOKUP (Look Up File Name) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Readlinks" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_READLINK (Read From Symbolic Link) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Reads" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_READ (Read From File) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Wrcaches" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_WRITECACHE (Write to Cache) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Writes" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_WRITE (Write to File) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Creates" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_CREATE (Create File) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Removes" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_REMOVE (Remove File) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Renames" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_RENAME (Rename File) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Links" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_LINK (Create Link to File) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Symlinks" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_SYMLINK (Create Symbolic Link) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Mkdirs" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_MKDIR (Create Directory) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Rmdirs" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_RMDIR (Remove Directory) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Readdirs" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_READDIR (Read From Directory) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV2Statfss" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_STATFS (Get Filesystem Attributes) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Nulls" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_NULL (Do Nothing) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Getattrs" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_GETATTR (Get File Attributes) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Setattrs" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_SETATTR (Set File Attributes) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Lookups" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_LOOKUP (Lookup Filename) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Accesss" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_ACCESS (Check Access Permission) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Readlinks" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_READLINK (Read from Symbolic Link) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Reads" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_READ (Read From File) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Writes" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_WRITE (Write to File) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Creates" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_CREATE (Create a File) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Mkdirs" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_MKDIR (Create a Directory) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Symlinks" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_SYMLINK (Create a Symbolic Link) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Mknods" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_MKNOD (Create a Special Device) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Removes" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_REMOVE (Remove a File) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Rmdirs" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_RMDIR (Remove a Directory) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Renames" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_RENAME (Rename a File or Directory) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Links" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_LINK (Create Link to an Object) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Readdirs" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_READDIR (Read From Directory) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3ReaddirPluss" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_READDIRPLUS (Extended Read from Directory) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Fsstats" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_FSSTAT (Get Dynamic File System Information) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Fsinfos" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_FSINFO (Get Static File System Information) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Pathconfs" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_PATHCONF (Retrieve POSIX Information) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclNfsV3Commits" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_COMMIT (Commit Cached Data on a Server to Stable Storage) procedure, since the last time the statistics were cleared." displayType="detail" dataType="measurement" />
+            <metric property="pclPerCent" description="The number of the total NFS calls for the referenced client as a percentage of the total NFS calls received from all clients, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2NullPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_NULL (Do Nothing) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2GetattrPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_GETATTR (Get File Attributes) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2SetattrPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_SETATTR (Set File Attributes) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2RootPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_ROOT (Get Filesystem Root) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2LookupPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_LOOKUP (Look Up File Name) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2ReadlinkPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_READLINK (Read From Symbolic Link) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2ReadPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_READ (Read From File) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measuremenmeasurement" measurementType="trendsup" />
+            <metric property="pclNfsV2WrcachePerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_WRITECACHE (Write to Cache) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2WritePerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_WRITE (Write to File) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2CreatePerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_CREATE (Create File) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2RemovePerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_REMOVE (Remove File) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2RenamePerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_RENAME (Rename File) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2LinkPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_LINK (Create Link to File) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2SymlinkPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_SYMLINK (Create Symbolic Link) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2MkdirPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_MKDIR (Create Directory) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2RmdirPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_RMDIR (Remove Directory) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2ReaddirPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_READDIR (Read From Directory) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2StatfsPerCent" description="The number of NFS Version 2 calls received from the referenced client for the NFSPROC_STATFS (Get Filesystem Attributes) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3NullPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_NULL (Do Nothing) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3GetattrPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_GETATTR (Get File Attributes) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3SetattrPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_SETATTR (Set File Attributes) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3LookupPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_LOOKUP (Lookup Filename) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3AccessPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_ACCESS (Check Access Permission) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3ReadlinkPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_READLINK (Read from Symbolic Link) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3ReadPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_READ (Read From File) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3WritePerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_WRITE (Write to File) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3CreatePerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_CREATE (Create a File) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3MkdirPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_MKDIR (Create a Directory) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3SymlinkPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_SYMLINK (Create a Symbolic Link) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3MknodPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_MKNOD (Create a Special Device) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3RemovePerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_REMOVE (Remove a File) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3RmdirPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_RMDIR (Remove a Directory) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3RenamePerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_RENAME (Rename a File or Directory) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3LinkPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_LINK (Create Link to an Object) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3ReaddirPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_READDIR (Read From Directory) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3ReaddirPlusPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_READDIRPLUS (Extended Read from Directory) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3FsstatPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_FSSTAT (Get Dynamic File System Information) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3FsinfoPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_FSINFO (Get Static File System Information) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3PathconfPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_PATHCONF (Retrieve POSIX Information) procedure, as a percentage of the total calls received from this client, since the last time the statistics were cleared." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV3CommitPerCent" description="The number of NFS Version 3 calls received from the referenced client for the NFSPROC3_COMMIT (Commit Cached Data on a Server to Stable Storage) procedure, as a percentage of the total calls received from this client, since the last time the statistics we" displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="pclNfsV2Read512Calls" description="The number of NFS Version 2 read calls with request sizes between 0-511 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Read1KCalls" description="The number of NFS Version 2 read calls with request sizes between 512-1023 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Read2KCalls" description="The number of NFS Version 2 read calls with request sizes between 1K-2047 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Read4KCalls" description="The number of NFS Version 2 read calls with request sizes between 2K-4095 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Read8KCalls" description="The number of NFS Version 2 read calls with request sizes between 4K-8191 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Read16KCalls" description="The number of NFS Version 2 read calls with request sizes between 8K-16383 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Read32KCalls" description="The number of NFS Version 2 read calls with request sizes between 16K-32767 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Read64KCalls" description="The number of NFS Version 2 read calls with request sizes between 32K-65535 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Read128KCalls" description="The number of NFS Version 2 read calls with request sizes between 64K-131071 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Write512Calls" description="The number of NFS Version 2 write calls with request sizes between 0-511 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Write1KCalls" description="The number of NFS Version 2 write calls with request sizes between 512-1023 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Write2KCalls" description="The number of NFS Version 2 write calls with request sizes between 1K-2047 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Write4KCalls" description="The number of NFS Version 2 write calls with request sizes between 2K-4095 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Write8KCalls" description="The number of NFS Version 2 write calls with request sizes between 4K-8191 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Write16KCalls" description="The number of NFS Version 2 write calls with request sizes between 8K-16383 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Write32KCalls" description="The number of NFS Version 2 write calls with request sizes between 16K-32767 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Write64KCalls" description="The number of NFS Version 2 write calls with request sizes between 32K-65535 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV2Write128KCalls" description="The number of NFS Version 2 write calls with request sizes between 64K-131071 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Read512Calls" description="The number of NFS Version 3 read calls with request sizes between 0-511 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Read1KCalls" description="The number of NFS Version 3 read calls with request sizes between 512-1023 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Read2KCalls" description="The number of NFS Version 3 read calls with request sizes between 1K-2047 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Read4KCalls" description="The number of NFS Version 3 read calls with request sizes between 2K-4095 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Read8KCalls" description="The number of NFS Version 3 read calls with request sizes between 4K-8191 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Read16KCalls" description="The number of NFS Version 3 read calls with request sizes between 8K-16383 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Read32KCalls" description="The number of NFS Version 3 read calls with request sizes between 16K-32767 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Read64KCalls" description="The number of NFS Version 3 read calls with request sizes between 32K-65535 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Read128KCalls" description="The number of NFS Version 3 read calls with request sizes between 64K-131071 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Write512Calls" description="The number of NFS Version 3 write calls with request sizes between 0-511 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Write1KCalls" description="The number of NFS Version 3 write calls with request sizes between 512-1023 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Write2KCalls" description="The number of NFS Version 3 write calls with request sizes between 1K-2047 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Write4KCalls" description="The number of NFS Version 3 write calls with request sizes between 2K-4095 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Write8KCalls" description="The number of NFS Version 3 write calls with request sizes between 4K-8191 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Write16KCalls" description="The number of NFS Version 3 write calls with request sizes between 8K-16383 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Write32KCalls" description="The number of NFS Version 3 write calls with request sizes between 16K-32767 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Write64KCalls" description="The number of NFS Version 3 write calls with request sizes between 32K-65535 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="pclNfsV3Write128KCalls" description="The number of NFS Version 3 write calls with request sizes between 64K-131071 bytes received from this client." displayType="detail" dataType="trait" units="bytes" />
+        </service>
+        <service name="qrTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="qrIndex" description="A number that identifies this entry in the file /etc/quotas." displayType="detail" dataType="trait" />
+            <metric property="qrType" description="Identifies the kind of quota for this qrEntry." displayType="detail" dataType="trait" />
+            <metric property="qrId" description="The UID (user's numerical ID) or the GID (numerical ID of the group that a user belongs to), as applicable, associated with this qrEntry." displayType="detail" dataType="trait" />
+            <metric property="qrKBytesUsed" description="The current number of KBytes used for this qrEntry." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrKBytesLimit" description="The limit of KBytes that can be used for this qrEntry." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrFilesUsed" description="The current number of files used for this qrEntry." displayType="detail" dataType="measurement" />
+            <metric property="qrFileLimit" description="The limit of files that can be used for this qrEntry." displayType="detail" dataType="measurement" />
+            <metric property="qrPathName" description="A textual string that contains the path corresponding to this qrEntry." displayType="detail" dataType="trait" />
+        </service>
+        <service name="qvStateTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="qvStateVolume" description="A number that identifies this volume. The mapping of this number to actual volumes may change if volumes are added or deleted. Use qvStateName to unambiguously identify a volume. The mapping established by this object is the same as the mapping of qrVVolu" displayType="detail" dataType="trait" />
+            <metric property="qvStateName" description="Indicates the name of this volume." displayType="detail" dataType="trait" />
+            <metric property="qvStateStat" description="Indicates whether quotas are ON, OFF or initializing." displayType="detail" dataType="trait" />
+            <metric property="qvStateInitPercent" description="Indicates percentage of quota computation done while quotas are in initializing state." displayType="detail" dataType="trait" />
+        </service>
+        <service name="qrVTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="qrVIndex" description="A number that identifies this entry in the file /etc/quotas in the given volume." displayType="detail" dataType="trait" />
+            <metric property="qrVType" description="Identifies the kind of quota for this qrVEntry." displayType="detail" dataType="trait" />
+            <metric property="qrVId" description="The UID (user's numerical ID) or the GID (numerical ID of the group that a user belongs to), as applicable, associated with this qrVEntry. Check the qrVIdType field to see if this field is valid." displayType="detail" dataType="trait" />
+            <metric property="qrVKBytesUsed" description="The current number of KBytes used for this qrVEntry." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrVKBytesLimit" description="The limit of KBytes that can be used for this qrVEntry." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrVFilesUsed" description="The current number of files used for this qrVEntry." displayType="detail" dataType="measurement" />
+            <metric property="qrVFileLimit" description="The limit of files that can be used for this qrVEntry." displayType="detail" dataType="measurement" />
+            <metric property="qrVPathName" description="A textual string that contains the path corresponding to this qrVEntry." displayType="detail" dataType="trait" />
+            <metric property="qrVVolume" description="A number that identifies the volume for which this quota is in effect on. The volume that this value represents can be determined by checking the value of qvStateName (above) with qvStateVolume set to the value found here." displayType="detail" dataType="trait" />
+            <metric property="qrVTree" description="A string that indicates which qtree this quota belongs to." displayType="detail" dataType="trait" />
+            <metric property="qrVIdType" description="A value that indicates which ID field is valid." displayType="detail" dataType="trait" />
+            <metric property="qrVSid" description="The one or more IDs associated with this qrVEntry. If the qrVentry is associated with a Windows ID, the text form of the Windows ID (the SID) is here. If the qrVEntry is associated with more than one id, this contains a blank separated list of those IDs. " displayType="detail" dataType="trait" />
+            <metric property="qrVKBytesThreshold" description="A number of KBytes that when used by this entry produces a warning message." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrVKBytesLimitSoft" description="The limit of KBytes that can be used for this qrVEntry before a warning message and SNMP trap is produced." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrVFileLimitSoft" description="The limit of files that can be used for this qrVEntry before a warning message and SNMP trap is produced." displayType="detail" dataType="measurement" />
+        </service>
+        <service name="qrV2Table" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="qrV2Index" description="A number that identifies this entry in the file /etc/quotas in the given volume." displayType="detail" dataType="trait" />
+            <metric property="qrV2Type" description="Identifies the kind of quota for this qrV2Entry." displayType="detail" dataType="trait" />
+            <metric property="qrV2Id" description="The UID (user's numerical ID) or the GID (numerical ID of the group that a user belongs to), as applicable, associated with this qrV2Entry. Check the qrV2IdType field to see if this field is valid." displayType="detail" dataType="trait" />
+            <metric property="qrV2LowKBytesUsed^qrV2HighKBytesUsed" description="The current number of KBytes used for this qrV2Entry." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrV2QuotaUnlimited" description="This flag designates whether or not the size based quota limit for this qrV2Entry is unlimited. If false(1) then qrV2*KBytesLimit OID's are valid, if true(0) then qrV2*KBytesLimit OID's are unused and will return 0." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrV2LowKBytesLimit^qrV2HighKBytesLimit" description="The limit of KBytes that can be used for this qrV2Entry." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrV2FilesUsed" description="The current number of files used for this qrV2Entry." displayType="detail" dataType="measurement" />
+            <metric property="qrV2FileQuotaUnlimited" description="This flag designates whether or not the file based quota limit for this qrV2Entry is unlimited. If false(1) then qrV2FileLimit is valid, if true(0) qrV2FileLimit will return 0." displayType="detail" dataType="measurement" />
+            <metric property="qrV2FileLimit" description="The limit of files that can be used for this qrV2Entry." displayType="detail" dataType="measurement" />
+            <metric property="qrV2PathName" description="A textual string that contains the path corresponding to this qrV2Entry." displayType="detail" dataType="trait" />
+            <metric property="qrV2Volume" description="A number that identifies the volume for which this quota is in effect on. The volume that this value represents can be determined by checking the value of qvStateName (above) with qvStateVolume set to the value found here." displayType="detail" dataType="trait" />
+            <metric property="qrV2Tree" description="A string that indicates which qtree this quota belongs to." displayType="detail" dataType="trait" />
+            <metric property="qrV2IdType" description="A value that indicates which ID field is valid." displayType="detail" dataType="trait" />
+            <metric property="qrV2Sid" description="The one or more IDs associated with this qrV2Entry. If the qrV2entry is associated with a Windows ID, the text form of the Windows ID (the SID) is here. If the qrV2Entry is associated with more than one id, this contains a blank separated list of those ID" displayType="detail" dataType="trait" />
+            <metric property="qrV2ThresholdUnlimited" description="This flag designates whether or not the size based threshold limit for this qrV2Entry is unlimited. If false(1) then qrV2*KBytesThreshold OID's are valid, if true(0) then qrV2*KBytesThreshold OID's are unused and will return 0." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrV2LowKBytesThreshold^qrV2HighKBytesThreshold" description="A number of KBytes that when used by this entry produces a warning message." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrV2SoftQuotaUnlimited" description="This flag designates whether or not the size based soft quota limit for this qrV2Entry is unlimited. If false(1) then qrV2*KBytesSoftLimit OID's are valid, if true(0) the qrV2*KBytesSoftLimit OID's are unused and will return 0." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrV2LowKBytesSoftLimit^qrV2HighKBytesSoftLimit" description="The limit of KBytes that can be used for this qrV2Entry before a warning message and SNMP trap is produced." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrV2SoftFileQuotaUnlimited" description="This flag designates whether or not the file based soft quota limit for this qrV2Entry is unlimited. If false(1) then qrV2SoftFileLimit is valid, if true(0) qrV2SoftFileLimit is unused and will return 0." displayType="detail" dataType="measurement" />
+            <metric property="qrV2SoftFileLimit" description="The limit of files that can be used for this qrV2Entry before a warning message and SNMP trap is produced. This will return 0 if qrV2SoftFileQuotaUnlimited is true." displayType="detail" dataType="measurement" />
+            <metric property="qrV264KBytesUsed" description="The current number of KBytes used for this qrV2Entry." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrV264KBytesLimit" description="The limit of KBytes that can be used for this qrV2Entry." displayType="detail" dataType="trait" units="kilobytes" />
+            <metric property="qrV264KBytesThreshold" description="A number of KBytes that when used by this entry produces a warning message." displayType="detail" dataType="measurement" units="kilobytes" />
+            <metric property="qrV264KBytesSoftLimit" description="The limit of KBytes that can be used for this qrV2Entry before a warning message and SNMP trap is produced." displayType="detail" dataType="trait" units="kilobytes" />
+        </service>
+        <service name="dfTable" discovery="MibTableDiscovery" class="MibTableComponentExt" singleton="false">
+            <metric property="dfIndex" description="A number that identifies this entry for the referenced file system." displayType="detail" dataType="trait" />
+            <metric property="dfFileSys" description="The name for the referenced file system." displayType="detail" dataType="trait" />
+            <metric property="dfKBytesTotal" description="The total capacity in KBytes for the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="dfKBytesUsed" description="The total disk space in KBytes that is in use on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="dfKBytesAvail" description="The total disk space in KBytes that is free for use on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="dfPerCentKBytesCapacity" description="The percentage of disk space currently in use on the referenced file system." displayType="detail" dataType="measurement" />
+            <metric property="dfInodesUsed" description="The total number of inodes in use on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="dfInodesFree" description="The total number of inodes that are available for use on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="dfPerCentInodeCapacity" description="The percentage of disk space currently in use based on inode counts, on the referenced file system." displayType="detail" dataType="measurement" />
+            <metric property="dfMountedOn" description="The name of the file on which this file system is mounted." displayType="detail" dataType="trait" />
+            <metric property="dfMaxFilesAvail" description="The count of the maximum number of files allowable on the referenced file system." displayType="detail" dataType="measurement" />
+            <metric property="dfMaxFilesUsed" description="The count of the number of files currently in use on the referenced file system." displayType="detail" dataType="measurement" />
+            <metric property="dfMaxFilesPossible" description="The largest value to which the filesysMaxfilesAvail parameter above can be increased by reconfiguration on the referenced file system." displayType="detail" dataType="measurement" />
+            <metric property="dfLowTotalKBytes^dfHighTotalKBytes" description="The total capacity in KBytes for the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="dfLowUsedKBytes^dfHighUsedKBytes" description="The total disk space in KBytes that is in use on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="dfLowAvailKBytes^dfHighAvailKBytes" description="The total disk space in KBytes that is free for use on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="dfStatus" description="The status of the file system." displayType="detail" dataType="trait" />
+            <metric property="dfMirrorStatus" description="Overall mirror status of the file system." displayType="detail" dataType="trait" />
+            <metric property="dfPlexCount" description="Number of plexes in this file system." displayType="detail" dataType="measurement" />
+            <metric property="dfType" description="Indicates the type of container." displayType="detail" dataType="trait" />
+            <metric property="dfLowSisSharedKBytes^dfHighSisSharedKBytes" description="The total amount of data in KBytes that is shared by more that one instance on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="dfLowSisSavedKBytes^dfHighSisSavedKBytes" description="The total disk space in KBytes that is saved by storing only one copy of the duplicated blocks on the referenced file system. The object returns the most significant 32 bits of the 64 bit unsigned integer." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="dfPerCentSaved" description="The percentage of disk space saved by eliminating the duplicated blocks on the referenced file system." displayType="detail" dataType="measurement" />
+            <metric property="df64TotalKBytes" description="The total capacity in KBytes for the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="df64UsedKBytes" description="The total disk space in KBytes that is in use on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="df64AvailKBytes" description="The total disk space in KBytes that is free for use on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="df64SisSharedKBytes" description="The total amount of data in KBytes that is shared by more that one instance on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="df64SisSavedKBytes" description="The total disk space in KBytes that is saved by storing only one copy of the duplicated blocks on the referenced file system. The object returns all of the 64 bit unsigned integer." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+        </service>
+        <service name="slTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="slIndex" description="A number that identifies this entry for the referenced file system." displayType="detail" dataType="trait" />
+            <metric property="slMonth" description="The month in which the snapshot was created." displayType="detail" dataType="measurement" />
+            <metric property="slDay" description="The day on which the snapshot was created." displayType="detail" dataType="measurement" />
+            <metric property="slHour" description="The hour in which the snapshot was created." displayType="detail" dataType="measurement" />
+            <metric property="slMinutes" description="The minute in which the snapshot was created." displayType="detail" dataType="measurement" />
+            <metric property="slName" description="The name of the referenced snapshot." displayType="detail" dataType="trait" />
+        </service>
+        <service name="slVTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="slVIndex" description="A number that identifies this entry for the referenced file system." displayType="detail" dataType="trait" />
+            <metric property="slVMonth" description="The month in which the snapshot was created." displayType="detail" dataType="measurement" />
+            <metric property="slVDay" description="The day on which the snapshot was created." displayType="detail" dataType="measurement" />
+            <metric property="slVHour" description="The hour in which the snapshot was created." displayType="detail" dataType="measurement" />
+            <metric property="slVMinutes" description="The minute in which the snapshot was created." displayType="detail" dataType="measurement" />
+            <metric property="slVName" description="The name of the referenced snapshot." displayType="detail" dataType="trait" />
+            <metric property="slVVolume" description="A number that identifies the volume / aggregate that contains this snapshot." displayType="detail" dataType="trait" />
+            <metric property="slVNumber" description="Number of snapshots for this volume / aggregate." displayType="detail" dataType="measurement" />
+            <metric property="slVVolumeName" description="The name of the volume / aggregate. This does not have a /vol/ prefix." displayType="detail" dataType="trait" />
+            <metric property="slVType" description="Indicates the type of container for this snapshot." displayType="detail" dataType="trait" />
+        </service>
+        <service name="slQTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="slQIndex" description="A number that identifies this entry for the referenced file system." displayType="detail" dataType="trait" />
+            <metric property="slQVolume" description="A number that identifies the volume that contains this snapshot." displayType="detail" dataType="trait" />
+            <metric property="slQQtree" description="A number that identifies the qtree that contains this snapshot." displayType="detail" dataType="trait" />
+            <metric property="slQSnapshotName" description="The name of the referenced snapshot." displayType="detail" dataType="trait" />
+            <metric property="slQSnapshotTime" description="Time of the snapshot on the system. The time in seconds since January 1, 1970." displayType="detail" dataType="measurement" units="seconds" />
+            <metric property="slQQtreeName" description="A string that indicates which qtree is in this snapshot" displayType="detail" dataType="trait" />
+            <metric property="slQQtreeContent" description="The content of the qtree tree" displayType="detail" dataType="measurement" />
+            <metric property="slQSource" description="The source of this qtree for a replicated qtree. '-' for a original qtree." displayType="detail" dataType="trait" />
+            <metric property="slQSourceTime" description="Time of the source snapshot for a replicated qtree. Time of the current snapshot for an original qtree. The time in seconds since January 1, 1970. 0 if the qtree is in a transitioning stage" displayType="detail" dataType="measurement" units="seconds" />
+            <metric property="slQVolumeName" description="The name of the volume. This does not have a /vol/ prefix." displayType="detail" dataType="trait" />
+        </service>
+        <service name="volTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="volIndex" description="A number that identifies this volume. The volIndex is not related to any other table defined in this MIB, and may change as volumes are created and destroyed." displayType="detail" dataType="trait" />
+            <metric property="volName" description="Name of the volume. This includes no /vol/ prefix." displayType="detail" dataType="trait" />
+            <metric property="volFSID" description="Unique identifier for this volume." displayType="detail" dataType="trait" />
+            <metric property="volOwningHost" description="Indication of which host owns this volume." displayType="detail" dataType="trait" />
+            <metric property="volState" description="State of the volume, such as 'online' or 'offline'." displayType="detail" dataType="trait" />
+            <metric property="volStatus" description="Status of the volume, such as 'normal' or 'reconstructing'. May include several values separated by comma and space." displayType="detail" dataType="trait" />
+            <metric property="volOptions" description="Options associated with the volume, such as 'root' and 'nosnapdir=off'. May include several values separated by comma." displayType="detail" dataType="trait" />
+            <metric property="volUUID" description="A unique id associated with the volume." displayType="detail" dataType="trait" />
+            <metric property="volAggrName" description="Name of the aggregate this flexible volume is a part of." displayType="detail" dataType="trait" />
+            <metric property="volType" description="Type of this volume, older volumes are traditional while newer volumes contained in aggregates are flexible." displayType="detail" dataType="measurement" />
+            <metric property="volClone" description="True indicates flexible volume is a clone." displayType="detail" dataType="trait" />
+            <metric property="volCloneOf" description="Name of flexible volume this flexible volume is a clone of." displayType="detail" dataType="trait" />
+            <metric property="volCloneSnap" description="Name of original cloned snapshot." displayType="detail" dataType="trait" />
+        </service>
+        <service name="qtreeTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="qtreeIndex" description="Index into the qtree table." displayType="detail" dataType="measurement" />
+            <metric property="qtreeVolume" description="A number that identifies the volume that contains this qtree." displayType="detail" dataType="trait" />
+            <metric property="qtreeVolumeName" description="The name of the volume that contains this qtree. This includes no /vol/prefix." displayType="detail" dataType="trait" />
+            <metric property="qtreeId" description="The Id number of the qtree." displayType="detail" dataType="trait" />
+            <metric property="qtreeName" description="The name of the qtree." displayType="detail" dataType="trait" />
+            <metric property="qtreeStyle" description="The security style of the qtree." displayType="detail" dataType="measurement" />
+            <metric property="qtreeStatus" description="The status of the qtree." displayType="detail" dataType="trait" />
+            <metric property="qtreeOplock" description="An indication of whether the oplocks is enabled or not for this qtree." displayType="detail" dataType="trait" />
+        </service>
+        <service name="aggrTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="aggrIndex" description="A number that identifies this aggregate. The aggrIndex is not related to any other table defined in this MIB, and may change as aggregates are created and destroyed." displayType="detail" dataType="trait" />
+            <metric property="aggrName" description="Name of the aggregate. This includes no /vol/ prefix." displayType="detail" dataType="trait" />
+            <metric property="aggrFSID" description="Unique identifier for this aggregate." displayType="detail" dataType="trait" />
+            <metric property="aggrOwningHost" description="Indication of which host owns this aggregate." displayType="detail" dataType="trait" />
+            <metric property="aggrState" description="State of the aggregate, such as 'online' or 'offline'." displayType="detail" dataType="trait" />
+            <metric property="aggrStatus" description="Status of the aggregate, such as 'normal' or 'reconstructing'. May include several values separated by comma and space." displayType="detail" dataType="trait" />
+            <metric property="aggrOptions" description="Options associated with the aggregate." displayType="detail" dataType="trait" />
+            <metric property="aggrUUID" description="A unique id associated with the aggregate." displayType="detail" dataType="trait" />
+            <metric property="aggrFlexvollist" description="List of all the flexible volumes within this aggregate." displayType="detail" dataType="trait" />
+            <metric property="aggrType" description="Type of this container, containers containing flexible volumes are aggregate." displayType="detail" dataType="measurement" />
+            <metric property="aggrRaidType" description="Type of raid protection of the aggregate, such as 'raid0', 'mirrored raid0', 'raid4', 'mirrored raid4', 'raid_dp', 'mirrored raid_dp'." displayType="detail" dataType="trait" />
+        </service>
+        <service name="raidTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="raidIndex" description="A number that identifies this entry for the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidDiskName" description="The name identifying the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidStatus" description="The status of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidDiskId" description="The disk identifier for the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidScsiAdapter" description="The identifier of the SCSI adapter for the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidScsiId" description="The identifier for the referenced disk drive on the referenced SCSI adapter." displayType="detail" dataType="trait" />
+            <metric property="raidUsedMb" description="The number of MBytes currently in use on the referenced disk drive." displayType="detail" dataType="measurement" units="megabytes" />
+            <metric property="raidUsedBlocks" description="The number of Blocks currently in use on the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidTotalMb" description="The number of MBytes physically available on the referenced disk drive." displayType="detail" dataType="measurement" units="megabytes" />
+            <metric property="raidTotalBlocks" description="The number of Blocks physically available on the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidCompletionPerCent" description="In the case when reconstruction/adding a spare, verification or scrubbing is in progress, the percent of such reconstruction, verification or scrubbing that has been completed on the referenced disk drive." displayType="detail" dataType="measurement" />
+        </service>
+        <service name="raidVTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="raidVIndex" description="A number that identifies this disk drive within the given volume and RAID group." displayType="detail" dataType="trait" />
+            <metric property="raidVDiskName" description="The name identifying the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidVStatus" description="The status of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidVDiskId" description="The disk identifier for the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidVScsiAdapter" description="The identifier of the SCSI adapter for the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidVScsiId" description="The identifier for the referenced disk drive on the referenced SCSI adapter." displayType="detail" dataType="trait" />
+            <metric property="raidVUsedMb" description="The number of MBytes currently in use on the referenced disk drive." displayType="detail" dataType="measurement" units="megabytes" />
+            <metric property="raidVUsedBlocks" description="The number of Blocks currently in use on the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidVTotalMb" description="The number of MBytes physically available on the referenced disk drive." displayType="detail" dataType="measurement" units="megabytes" />
+            <metric property="raidVTotalBlocks" description="The number of Blocks physically available on the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidVCompletionPerCent" description="In the case when rapid raid recovery, disk copy, reconstruction/adding a spare, verification or scrubbing is in progress, the percent of such copy, reconstruction, verification or scrubbing that has been completed on the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidVVol" description="A number that identifies the volume that this entry belongs to. The first volume is '1'." displayType="detail" dataType="trait" />
+            <metric property="raidVGroup" description="A number that identifies the RAID group within the given volume that this entry belongs to. The first RAID group is '1', and number across all plexes." displayType="detail" dataType="trait" />
+            <metric property="raidVDiskNumber" description="The number of disks within this RAID group." displayType="detail" dataType="measurement" />
+            <metric property="raidVGroupNumber" description="The number of RAID groups within this volume." displayType="detail" dataType="measurement" />
+            <metric property="raidVDiskPort" description="A number that indicates which port of the disk is being used by the primary path to the disk. For a dual-ported disk, values of portA and portB indicate which port is being used. If the disk only has a single port, the value is portSingle, and if the port" displayType="detail" dataType="trait" />
+            <metric property="raidVSecondaryDiskName" description="The name identifying the secondary path to the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidVSecondaryDiskPort" description="A number that indicates which port of the disk is being used by the secondary path to the disk. For a dual-ported disk, values of portA and portB indicate which port is being used. If the disk only has a single port, the value is portSingle, and if the po" displayType="detail" dataType="trait" />
+            <metric property="raidVShelf" description="Number identifying the shelf where the disk is located." displayType="detail" dataType="trait" />
+            <metric property="raidVBay" description="Number identifying the disk bay within the shelf where the disk is located." displayType="detail" dataType="trait" />
+            <metric property="raidVPlex" description="A number that identifies the plex within the given volume that this entry belongs to. The first plex is '1'." displayType="detail" dataType="trait" />
+            <metric property="raidVPlexGroup" description="A number that identifies the RAID group within the given plex that this entry belongs to. The first RAID group is '1'." displayType="detail" dataType="trait" />
+            <metric property="raidVPlexNumber" description="The number of plexes within this volume. This number is always 1 or 2." displayType="detail" dataType="measurement" />
+            <metric property="raidVPlexName" description="A name that identifies the plex that this entry belongs to. A plex name can be anything, but is usually a string like 'plex0' or 'plex1'." displayType="detail" dataType="trait" />
+            <metric property="raidVSectorSize" description="A number that specifies bytes per sector for this entry. Values are '512' or '520'." displayType="detail" dataType="measurement" units="bytes" />
+            <metric property="raidVDiskSerialNumber" description="Serial number of the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidVDiskVendor" description="The vendor of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidVDiskModel" description="Model string of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidVDiskFirmwareRevision" description="Firmware revision number of the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidVDiskRPM" description="RPM of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidVDiskType" description="Interface type of the referenced disk drive. e.g SCSI, or ATA." displayType="detail" dataType="trait" />
+            <metric property="raidVDiskPool" description="A name that identifies the disk pool that this entry belongs to." displayType="detail" dataType="trait" />
+            <metric property="raidVDiskCopyDestDiskName" description="When raidVStatus value is prefailed, this string identifies the name of the disk which is the copy target of the referenced prefailed disk." displayType="detail" dataType="trait" />
+        </service>
+        <service name="spareTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="spareIndex" description="A number that identifies this entry for the referenced disk drive in the list of spare disk drives." displayType="detail" dataType="trait" />
+            <metric property="spareDiskName" description="The name identifying the referenced spare disk drive." displayType="detail" dataType="trait" />
+            <metric property="spareStatus" description="The status of the referenced spare disk drive." displayType="detail" dataType="trait" />
+            <metric property="spareDiskId" description="The disk identifier for the referenced spare disk drive." displayType="detail" dataType="trait" />
+            <metric property="spareScsiAdapter" description="The identifier of the SCSI adapter for the referenced spare disk drive." displayType="detail" dataType="trait" />
+            <metric property="spareScsiId" description="The identifier for the referenced spare disk drive on the referenced SCSI adapter." displayType="detail" dataType="trait" />
+            <metric property="spareTotalMb" description="The number of MBytes physically available on the referenced spare disk drive." displayType="detail" dataType="measurement" units="megabytes" />
+            <metric property="spareTotalBlocks" description="The number of Blocks physically available on the referenced spare disk drive." displayType="detail" dataType="measurement" />
+            <metric property="spareDiskPort" description="A number that indicates which port of the disk is being used by the primary path to the disk. For a dual-ported disk, values of portA and portB indicate which port is being used. If the disk only has a single port, the value is portSingle, and if the port" displayType="detail" dataType="trait" />
+            <metric property="spareSecondaryDiskName" description="The name identifying the secondary path to the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="spareSecondaryDiskPort" description="A number that indicates which port of the disk is being used by the secondary path to the disk. For a dual-ported disk, values of portA and portB indicate which port is being used. If the disk only has a single port, the value is portSingle, and if the po" displayType="detail" dataType="trait" />
+            <metric property="spareShelf" description="Number identifying the shelf where the disk is located." displayType="detail" dataType="trait" />
+            <metric property="spareBay" description="Number identifying the disk bay within the shelf where the disk is located." displayType="detail" dataType="trait" />
+            <metric property="sparePool" description="A name that identifies the disk pool that this entry belongs to." displayType="detail" dataType="trait" />
+            <metric property="spareSectorSize" description="A number that specifies bytes per sector for this entry. Values are '512' or '520'." displayType="detail" dataType="measurement" units="bytes" />
+            <metric property="spareDiskSerialNumber" description="Serial number of the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="spareDiskVendor" description="The vendor of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="spareDiskModel" description="Model string of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="spareDiskFirmwareRevision" description="Firmware revision number of the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="spareDiskRPM" description="RPM of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="spareDiskType" description="Interface type of the referenced disk drive. e.g SCSI, or ATA." displayType="detail" dataType="trait" />
+        </service>
+        <service name="otherDiskTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="otherDiskIndex" description="A number that identifies this entry for the referenced disk drive in the list of out-of-service diskdrives. Out-of-service disks include all disks that are not in service in a raid group or available as a spare disk." displayType="detail" dataType="trait" />
+            <metric property="otherDiskDiskName" description="The name identifying the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="otherDiskStatus" description="The status of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="otherDiskDiskId" description="The disk identifier for the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="otherDiskScsiAdapter" description="The identifier of the SCSI adapter for the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="otherDiskScsiId" description="The identifier for the referenced disk drive on the referenced SCSI adapter." displayType="detail" dataType="trait" />
+            <metric property="otherDiskTotalMb" description="The number of MBytes physically available on the referenced disk drive." displayType="detail" dataType="measurement" units="megabytes" />
+            <metric property="otherDiskTotalBlocks" description="The number of Blocks physically available on the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="otherDiskDiskPort" description="A number that indicates which port of the disk is being used by the primary path to the disk. For a dual-ported disk, values of portA and portB indicate which port is being used. If the disk only has a single port, the value is portSingle, and if the port" displayType="detail" dataType="trait" />
+            <metric property="otherDiskSecondaryDiskName" description="The name identifying the secondary path to the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="otherDiskSecondaryDiskPort" description="A number that indicates which port of the disk is being used by the secondary path to the disk. For a dual-ported disk, values of portA and portB indicate which port is being used. If the disk only has a single port, the value is portSingle, and if the po" displayType="detail" dataType="trait" />
+            <metric property="otherDiskShelf" description="Number identifying the shelf where the disk is located." displayType="detail" dataType="trait" />
+            <metric property="otherDiskBay" description="Number identifying the disk bay within the shelf where the disk is located." displayType="detail" dataType="trait" />
+            <metric property="otherDiskPool" description="A name that identifies the disk pool that this entry belongs to." displayType="detail" dataType="trait" />
+            <metric property="otherDiskSectorSize" description="A number that specifies bytes per sector for this entry. Values are '512' or '520'." displayType="detail" dataType="measurement" units="bytes" />
+            <metric property="otherDiskSerialNumber" description="Serial number of the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="otherDiskVendor" description="The vendor of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="otherDiskModel" description="Model string of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="otherDiskFirmwareRevision" description="Firmware revision number of the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="otherDiskRPM" description="RPM of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="otherDiskType" description="Interface type of the referenced disk drive. e.g SCSI, or ATA." displayType="detail" dataType="trait" />
+        </service>
+        <service name="raidPTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="raidPIndex" description="A number that identifies this disk drive within the given volume and RAID group." displayType="detail" dataType="trait" />
+            <metric property="raidPStatus" description="The status of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidPVol" description="A number that identifies the volume that this entry belongs to. The first volume is '1'." displayType="detail" dataType="trait" />
+            <metric property="raidPPlex" description="A number that identifies the plex that this entry belongs to. The first plex is '1'." displayType="detail" dataType="trait" />
+            <metric property="raidPGroup" description="A number that identifies the RAID group within the given plex that this entry belongs to. The first RAID group is '1'." displayType="detail" dataType="trait" />
+            <metric property="raidPPlexNumber" description="The number of plexes within this volume. This number is always 1 or 2." displayType="detail" dataType="measurement" />
+            <metric property="raidPGroupNumber" description="The number of RAID groups within this plex." displayType="detail" dataType="measurement" />
+            <metric property="raidPDiskNumber" description="The number of disks within this RAID group." displayType="detail" dataType="measurement" />
+            <metric property="raidPPlexName" description="A name that identifies the plex that this entry belongs to. A plex name can be anything, but is usually a string like 'plex0' or 'plex1'." displayType="detail" dataType="trait" />
+            <metric property="raidPDiskName" description="The name identifying the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidPDiskPort" description="A number that indicates which port of the disk is being used by the primary path to the disk. For a dual-ported disk, values of portA and portB indicate which port is being used. If the disk only has a single port, the value is portSingle, and if the port" displayType="detail" dataType="trait" />
+            <metric property="raidPSecondaryDiskName" description="The name identifying the secondary path to the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidPSecondaryDiskPort" description="A number that indicates which port of the disk is being used by the secondary path to the disk. For a dual-ported disk, values of portA and portB indicate which port is being used. If the disk only has a single port, the value is portSingle, and if the po" displayType="detail" dataType="trait" />
+            <metric property="raidPScsiAdapter" description="The identifier of the SCSI adapter for the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidPScsiId" description="The identifier for the referenced disk drive on the referenced SCSI adapter." displayType="detail" dataType="trait" />
+            <metric property="raidPDiskId" description="The disk identifier for the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidPShelf" description="Number identifying the shelf where the disk is located." displayType="detail" dataType="trait" />
+            <metric property="raidPBay" description="Number identifying the disk bay within the shelf where the disk is located." displayType="detail" dataType="trait" />
+            <metric property="raidPSectorSize" description="A number that specifies bytes per sector for this entry. Values are '512' or '520'." displayType="detail" dataType="measurement" units="bytes" />
+            <metric property="raidPUsedMb" description="The number of MBytes currently in use on the referenced disk drive." displayType="detail" dataType="measurement" units="megabytes" />
+            <metric property="raidPUsedBlocks" description="The number of Blocks currently in use on the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidPTotalMb" description="The number of MBytes physically available on the referenced disk drive." displayType="detail" dataType="measurement" units="megabytes" />
+            <metric property="raidPTotalBlocks" description="The number of Blocks physically available on the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidPCompletionPerCent" description="In the case when rapid raid recovery, disk copy, reconstruction or adding a spare, verification or scrubbing is in progress, the percent of such copy, reconstruction, verification or scrubbing that has been completed on the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidPDiskSerialNumber" description="Serial number of the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidPDiskVendor" description="The vendor of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidPDiskModel" description="Model string of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidPDiskFirmwareRevision" description="Firmware revision number of the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="raidPDiskRPM" description="RPM of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="raidPDiskType" description="Interface type of the referenced disk drive. e.g SCSI, or ATA." displayType="detail" dataType="trait" />
+            <metric property="raidPDiskPool" description="A name that identifies the disk pool that this entry belongs to." displayType="detail" dataType="trait" />
+            <metric property="raidPDiskCopyDestDiskName" description="When raidPStatus value is prefailed, this string identifies the name of the disk which is the copy target of the referenced prefailed disk." displayType="detail" dataType="trait" />
+        </service>
+        <service name="plexTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="plexIndex" description="A number that identifies this entry for the referenced plex." displayType="detail" dataType="trait" />
+            <metric property="plexName" description="The identifier of the plex." displayType="detail" dataType="trait" />
+            <metric property="plexVolName" description="The volume to which this plex belongs." displayType="detail" dataType="trait" />
+            <metric property="plexStatus" description="The status of the plex." displayType="detail" dataType="trait" />
+            <metric property="plexPercentResyncing" description="If the plex is resyncing, the percent completion of the resync." displayType="detail" dataType="measurement" />
+        </service>
+        <service name="outOfDateDiskTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="outOfDateDiskIndex" description="A number that identifies this entry for the referenced disk drive in the list of out-of-date diskdrives." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskDiskName" description="The name identifying the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskDiskId" description="The disk identifier for the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskScsiAdapter" description="The identifier of the SCSI adapter for the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskScsiId" description="The identifier for the referenced disk drive on the referenced SCSI adapter." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskTotalMb" description="The number of MBytes physically available on the referenced disk drive." displayType="detail" dataType="measurement" units="megabytes" />
+            <metric property="outOfDateDiskTotalBlocks" description="The number of Blocks physically available on the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="outOfDateDiskDiskPort" description="A number that indicates which port of the disk is being used by the primary path to the disk. For a dual-ported disk, values of portA and portB indicate which port is being used. If the disk only has a single port, the value is portSingle, and if the port" displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskSecondaryDiskName" description="The name identifying the secondary path to the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskSecondaryDiskPort" description="A number that indicates which port of the disk is being used by the secondary path to the disk. For a dual-ported disk, values of portA and portB indicate which port is being used. If the disk only has a single port, the value is portSingle, and if the po" displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskShelf" description="Number identifying the shelf where the disk is located." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskBay" description="Number identifying the disk bay within the shelf where the disk is located." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskPool" description="A name that identifies the disk pool that this entry belongs to." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskSectorSize" description="A number that specifies bytes per sector for this entry. Values are '512' or '520'." displayType="detail" dataType="measurement" units="bytes" />
+            <metric property="outOfDateDiskSerialNumber" description="Serial number of the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="outOfDateDiskVendor" description="The vendor of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskModel" description="Model string of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskFirmwareRevision" description="Firmware revision number of the referenced disk drive." displayType="detail" dataType="measurement" />
+            <metric property="outOfDateDiskRPM" description="RPM of the referenced disk drive." displayType="detail" dataType="trait" />
+            <metric property="outOfDateDiskType" description="Interface type of the referenced disk drive. e.g SCSI, or ATA." displayType="detail" dataType="trait" />
+        </service>
+        <service name="amTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="amIndex" description="A unique value for each entry in the acceleration monitor table." displayType="detail" dataType="measurement" />
+            <metric property="amAddress" description="The IP address of the acceleration server the NetCache is monitoring." displayType="detail" dataType="trait" />
+            <metric property="amPort" description="The corresponding port on the server that NetCache is monitoring." displayType="detail" dataType="trait" />
+            <metric property="amStatus" description="The status of the service running on the server. active - in queue but no probes done yet. up - the server is reachable and responding to probes. down - the server is unreachable. inactive - monitoring is disabled." displayType="detail" dataType="trait" />
+        </service>
+        <service name="ncHttpAccelTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="ncHttpAccelIndex" description="A unique value for each entry in the http acceleration stats table" displayType="detail" dataType="measurement" />
+            <metric property="ncHttpAccelKbytesFromClient" description="The total number of kilobytes received from the client for this acceleration rule" displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="ncHttpAccelKbytesToClient" description="The total number of kilobytes sent to the client for this acceleration rule" displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="ncHttpAccelHits" description="The number of times this acceleration rule has been hit" displayType="detail" dataType="measurement" />
+        </service>
+        <service name="ncHttpsAccelTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="ncHttpsAccelIndex" description="A unique value for each entry in the http acceleration stats table" displayType="detail" dataType="measurement" />
+            <metric property="ncHttpsAccelKbytesFromClient" description="The total number of kilobytes received from the client for this acceleration rule" displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="ncHttpsAccelKbytesToClient" description="The total number of kilobytes sent to the client for this acceleration rule" displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="ncHttpsAccelHits" description="The number of times this acceleration rule has been hit" displayType="detail" dataType="measurement" />
+        </service>
+        <service name="ncStreamingAccelTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="ncStreamingAccelIndex" description="A unique value for each entry in the streaming acceleration stats table" displayType="detail" dataType="measurement" />
+            <metric property="ncStreamingAccelKbytesFromClient" description="The total number of kilobytes received from the client for this acceleration rule" displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="ncStreamingAccelKbytesToClient" description="The total number of kilobytes sent to the client for this acceleration rule" displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="ncStreamingAccelHits" description="The number of times this acceleration rule has been hit" displayType="detail" dataType="measurement" />
+        </service>
+        <service name="snapmirrorStatusTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="snapmirrorIndex" description="Index into the snapmirror status table." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorSrc" description="Source of the snapmirror. &lt;filer&gt;:&lt;vol&gt; or &lt;filer&gt;:/vol/&lt;qtree_name&gt;" displayType="detail" dataType="trait" />
+            <metric property="snapmirrorDst" description="Destination of the snapmirror. &lt;filer&gt;:&lt;vol&gt; or &lt;filer&gt;:/vol/&lt;qtree_name&gt;" displayType="detail" dataType="trait" />
+            <metric property="snapmirrorStatus" description="Current transfer status of the snapmirror." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorState" description="Current state of the snapmirror." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorLag" description="How far behind from the source the destination is." displayType="detail" dataType="measurement" units="milliseconds" />
+            <metric property="snapmirrorTotalSuccesses" description="Total number of successful transfer since the snapmirror is initialized. Persistent across reboot." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="snapmirrorTotalRestartSuccesses" description="Total number of successful restarted transfer since the snapmirror is initialized. Persistent across reboot." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="snapmirrorTotalFailures" description="Total number of failed or aborted transfer since the snapmirror is initialized. Persistent across reboot." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="snapmirrorTotalDeferments" description="Total number of deferment since the snapmirror is initialized. Persistent across reboot." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="snapmirrorTotalTransMBs" description="Total transfer size in MB for the snapmirror. Reset on reboot." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="snapmirrorTotalTransTimeSeconds" description="Total number of seconds spent in successful transfer for the snapmirror. Reset on reboot." displayType="detail" dataType="measurement" measurementType="trendsup" units="seconds" />
+            <metric property="snapmirrorThrottleValue" description="Current throttle value for the snapmirror." displayType="detail" dataType="measurement" />
+            <metric property="snapmirrorMirrorTimestamp" description="Timestamp of the last snapshot successfully transferred from the source to the destination." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorBaseSnapshot" description="The name of the current base snapshot for the snapmirror." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorLastTransType" description="The type of the previous successful transfer." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorLastTransMBs" description="Last successful transfer size in MB for the snapmirror." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="snapmirrorLastTransTimeSeconds" description="Duration of last successful transfer in seconds for the snapmirror." displayType="detail" dataType="measurement" measurementType="trendsup" units="seconds" />
+            <metric property="snapmirrorSchedule" description="Update schedule for the snapmirror in conf file format." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorScheduleDesc" description="Description of the update schedule for the snapmirror." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorArguments" description="Arguments for the snapmirror in conf file format." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorSyncToAsync" description="The number of times changing from sync mode to async mode since the snapmirror is initialized. Persistent across reboot." displayType="detail" dataType="measurement" />
+        </service>
+        <service name="snapmirrorConnTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="snapmirrorConnIndex" description="Index into the snapmirror multipath connection table." displayType="detail" dataType="measurement" />
+            <metric property="snapmirrorConnName" description="The name of the snapmirror multipath connection." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorConnType" description="The type of the snapmirror multipath connection." displayType="detail" dataType="measurement" />
+            <metric property="snapmirrorConnSrc1" description="The name of the source for the first path." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorConnDst1" description="The name of the destination for the first path." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorConnSrc2" description="The name of the source for the second path." displayType="detail" dataType="trait" />
+            <metric property="snapmirrorConnDst2" description="The name of the destination for the second path." displayType="detail" dataType="trait" />
+        </service>
+        <service name="snapvaultStatusTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="svIndex" description="Index into the snapvault status table." displayType="detail" dataType="trait" />
+            <metric property="svSrc" description="Source of the snapvault relationship. &lt;filer&gt;:/vol/&lt;qtree_name&gt;" displayType="detail" dataType="trait" />
+            <metric property="svDst" description="Destionation of the snapvault relationship. &lt;filer&gt;:/vol/&lt;qtree_name&gt;" displayType="detail" dataType="trait" />
+            <metric property="svStatus" description="Current transfer status of the snapvault relationship." displayType="detail" dataType="trait" />
+            <metric property="svState" description="Current state of the snapvault relationship." displayType="detail" dataType="trait" />
+            <metric property="svLag" description="How far behind from the source the destination is." displayType="detail" dataType="measurement" units="milliseconds" />
+            <metric property="svTotalSuccesses" description="Total number of successful transfer since the snapvault relationship was established. Persistent across reboot." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="svTotalRestartSuccesses" description="Total number of successful restarted transfer since the snapvault relationship was established. Persistent across reboot." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="svTotalFailures" description="Total number of failed or aborted transfer since the snapvault relationship was established. Persistent across reboot." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="svTotalDeferments" description="Total number of deferment since the snapvault relationship was established. Persistent across reboot." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="svTotalTransMBs" description="Total transfer size in MB for the snapvault. Reset on reboot." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="svTotalTransTimeSeconds" description="Total number of seconds spent in successful transfer for the snapvault relationship. Reset on reboot." displayType="detail" dataType="measurement" measurementType="trendsup" units="seconds" />
+            <metric property="svThrottleValue" description="Current throttle value for the snapvault relationship." displayType="detail" dataType="measurement" />
+            <metric property="svSrcSnapshotTime" description="Time when the source snapshot was created. The time in seconds since January 1, 1970. The source snapshot here is the last snapshot successfully transferred from the source to the destination." displayType="detail" dataType="measurement" units="seconds" />
+            <metric property="svBaseSnapshot" description="The name of the current base snapshot for the snapvault relationship." displayType="detail" dataType="trait" />
+            <metric property="svLastTransType" description="The type of the previous successful transfer." displayType="detail" dataType="trait" />
+            <metric property="svLastTransMBs" description="Last successful transfer size in MB for the snapvault relationship." displayType="detail" dataType="measurement" />
+            <metric property="svLastTransTimeSeconds" description="Duration of last successful transfer in seconds for the snapvault relationship." displayType="detail" dataType="measurement" units="seconds" />
+        </service>
+        <service name="snapvaultHostTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="svHostIndex" description="Index into the snapvault remote host table." displayType="detail" dataType="measurement" />
+            <metric property="svHostName" description="The name of the remote snapvault host." displayType="detail" dataType="trait" />
+            <metric property="svHostType" description="The type of the remote snapvault host." displayType="detail" dataType="measurement" />
+            <metric property="svHostTotalSuccesses" description="Total number of successful snapvault transfers for all current established relationships between the local snapvault system and the given remote host." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="svHostTotalFailures" description="Total number of failed snapvault transfers for all current established relationships between the local snapvault system and the given remote host." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="svHostTotalDeferments" description="Total number of deferred snapvault transfers for all current established relationships between the local snapvault system and the given remote host. 0 for snapvault client host." displayType="detail" dataType="measurement" measurementType="trendsup" />
+        </service>
+        <service name="snapvaultSchedTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="svSchedIndex" description="Index into the snapvault schedule table." displayType="detail" dataType="measurement" />
+            <metric property="svSchedVolume" description="The name of the volume on the snapvault for the snapvault schedule. This does not have a /vol/ prefix." displayType="detail" dataType="trait" />
+            <metric property="svSchedSnapshot" description="The name of the snapshot for the snapvault schedule." displayType="detail" dataType="trait" />
+            <metric property="svSchedStatus" description="Current status of the snapvault schedule." displayType="detail" dataType="trait" />
+            <metric property="svSchedType" description="The type of the snapvault schedule." displayType="detail" dataType="measurement" />
+            <metric property="svSchedSchedule" description="The update schedule of the snapvault." displayType="detail" dataType="trait" />
+        </service>
+        <service name="fabricTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="fabricIndex" description="A number that identifies this fabric entry." displayType="detail" dataType="trait" />
+            <metric property="fabricStatus" description="This indicates the overall status of the SAN fabric(s)." displayType="detail" dataType="trait" />
+            <metric property="fabricStatusMessage" description="A string describing the fabric status, including a description of the condition (if any) that caused the status to be anything other than ok(3)." displayType="detail" dataType="trait" />
+            <metric property="fabricName" description="This is the WWN of the fabric." displayType="detail" dataType="trait" />
+            <metric property="fabricOwner" description="This indicates who owns the management of the fabric." displayType="detail" dataType="trait" />
+        </service>
+        <service name="switchTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="switchIndex" description="A number that identifies this switch entry." displayType="detail" dataType="trait" />
+            <metric property="switchName" description="This is the WWN of the switch." displayType="detail" dataType="trait" />
+            <metric property="switchSymbolicName" description="This is the symbolic name of the switch." displayType="detail" dataType="trait" />
+            <metric property="switchType" description="The type of the switch." displayType="detail" dataType="measurement" />
+            <metric property="switchDomain" description="The domain identifier of the switch." displayType="detail" dataType="trait" />
+            <metric property="switchManagementId" description="The in-band management identifier of the switch." displayType="detail" dataType="trait" />
+            <metric property="switchStatus" description="The current status of the switch." displayType="detail" dataType="trait" />
+            <metric property="switchStatusMessage" description="A string describing the switch status, including a description of the condition (if any) that caused the status to be anything other than ok(3)." displayType="detail" dataType="trait" />
+            <metric property="switchLinkSpeed" description="The link speed of the switch. The value is an integer whose units are Gbits (for example, a value of 2 represents a link speed of 2 Gbit)." displayType="detail" dataType="measurement" />
+            <metric property="switchLowPacketsProcessed^switchHighPacketsRejected" description="Number of Packets successfully processed since the last reboot/reset of the switch." displayType="detail" dataType="measurement" />
+            <metric property="switchLowPacketsRejected^switchHighPacketsRejected" description="Number of Packets rejected since the last reboot/reset of the switch."/>
+            <metric property="switchFabricIndex" description="The index of the fabric on which this switch resides. The value ranges from 1 to the value of fabricInstances." displayType="detail" dataType="measurement" />
+            <metric property="switch64PacketsProcessed" description="Number of Packets successfully processed since the last reboot/reset of the switch." displayType="detail" dataType="measurement" />
+            <metric property="switch64PacketsRejected" description="Number of Packets rejected since the last reboot/reset of the switch." displayType="detail" dataType="measurement" />
+        </service>
+        <service name="portTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="portIndex" description="A number that identifies this port entry." displayType="detail" dataType="trait" />
+            <metric property="portName" description="This is the WWN of the port." displayType="detail" dataType="trait" />
+            <metric property="portSwitchIndex" description="The index of the switch on which this port resides. The value ranges from 1 to the number of of switches." displayType="detail" dataType="trait" />
+            <metric property="portSwitchName" description="This is the WWN of the switch to which the port is attached." displayType="detail" dataType="trait" />
+            <metric property="portNumber" description="The port number on the switch." displayType="detail" dataType="trait" />
+            <metric property="portType" description="The type of the port." displayType="detail" dataType="trait" />
+            <metric property="portState" description="The current state of the port." displayType="detail" dataType="trait" />
+            <metric property="portFabricIndex" description="The index of the fabric on which this port resides. The value ranges from 1 to the value of fabricInstances." displayType="detail" dataType="trait" />
+        </service>
+        <service name="dmpTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="dmpIndex" description="Index into the subtree dump table." displayType="detail" dataType="measurement" />
+            <metric property="dmpStPath" description="The full path to the dump subtree. In the format of /vol/&lt;volname&gt;/..." displayType="detail" dataType="trait" />
+            <metric property="dmpStAttempts" description="No. of dump attempted for the subtree." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="dmpStSuccesses" description="No. of dump succeeded for the subtree." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="dmpStFailures" description="No. of dump failed for the subtree." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="dmpTime" description="The start time for the last attempt to dump the subtree, including the currently running one. The time in seconds since January 1, 1970." displayType="detail" dataType="measurement" units="seconds" />
+            <metric property="dmpStatus" description="The status for the last dump attempt on the subtree." displayType="detail" dataType="trait" />
+            <metric property="dmpLevel" description="The level of the dump." displayType="detail" dataType="measurement" />
+            <metric property="dmpNumFiles" description="The number of files dumped." displayType="detail" dataType="measurement" />
+            <metric property="dmpDataAmount" description="The amount of data dumped, in Megabytes." displayType="detail" dataType="measurement" units="megabytes" />
+            <metric property="dmpStartTime" description="The start time of the dump. The time is in seconds since January 1, 1970." displayType="detail" dataType="measurement" units="seconds" />
+            <metric property="dmpDuration" description="The duration of the dump." displayType="detail" dataType="measurement" units="milliseconds" />
+        </service>
+        <service name="dafsNicTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="dafsNicIndex" description="A unique value for each interface. Its value ranges between 1 and the value of DafsNicNumber. The value for each interface must remain constant at least from one re-initialization of the entity's network management system to the next re- initialization." displayType="detail" dataType="measurement" />
+            <metric property="dafsNicName" description="A textual string containing the logical name under which the nic has been attached." displayType="detail" dataType="trait" />
+            <metric property="dafsNicDevice" description="A textual string containing the physical name of the nic that has been attached." displayType="detail" dataType="trait" />
+            <metric property="dafsNicState" description="Current state of DAFS nic" displayType="detail" dataType="trait" />
+            <metric property="dafsNicListenAddr" description="Transport specific address structure giving the DAFS listen address for this NIC." displayType="detail" dataType="trait" />
+            <metric property="dafsNicInBytes" description="Total number of bytes, include DMA, received on this interface" displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+            <metric property="dafsNicDirectInBytes" description="Total number of bytes read directly from the peer memory through this interface" displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+            <metric property="dafsNicOutBytes" description="Total number of bytes, include DMA, sent on this interface" displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+            <metric property="dafsNicDirectOutBytes" description="Total number of bytes written directly to the peer memory through this interface" displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+        </service>
+        <service name="dafsSessionTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="dafsSessionIndex" description="A unique value for each session." displayType="detail" dataType="measurement" />
+            <metric property="dafsSessionId" description="Session Identifier assigned by the server." displayType="detail" dataType="trait" />
+            <metric property="dafsSessionEndian" description="Byte order used on this session." displayType="detail" dataType="measurement" />
+            <metric property="dafsSessionAllowBackChannel" description="Session may use a back control channel." displayType="detail" dataType="measurement" />
+            <metric property="dafsSessionAllowRdmaReadChannel" description="Session may use a RDMA read channel." displayType="detail" dataType="measurement" />
+            <metric property="dafsSessionUseChecksums" description="Session uses checksums." displayType="detail" dataType="measurement" />
+            <metric property="dafsSessionMaxCredentials" description="Maximum number of credientials that can be registered on this session." displayType="detail" dataType="measurement" />
+            <metric property="dafsSessionMaxRequestSize" description="Maximum size of a DAFS request." displayType="detail" dataType="measurement" />
+            <metric property="dafsSessionMaxResponseSize" description="Maximum size of a DAFS response." displayType="detail" dataType="measurement" />
+            <metric property="dafsSessionMaxRequests" description="Maximum number of concurrent requests." displayType="detail" dataType="measurement" />
+            <metric property="dafsSessionInlineWriteHeaderSize" description="Size of DAFS headers plus padding to the start of data. Used to better align inline data." displayType="detail" dataType="measurement" />
+            <metric property="dafsSessionClientIdString" description="Client ID string supplied by the client. Intended to uniquely identify that client." displayType="detail" dataType="trait" />
+            <metric property="dafsSessionClientVerifier" description="Supplied by the client to uniquely identify an instnce of a client." displayType="detail" dataType="trait" />
+            <metric property="dafsSessionNumCredentials" description="Current number of credentials registered on this session" displayType="detail" dataType="measurement" />
+            <metric property="dafsSessionNumRequests" description="Current number of active requests on this session" displayType="detail" dataType="measurement" />
+        </service>
+        <service name="dafsExportTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="dafsExportIndex" description="A unique value for each export. Its value ranges between 1 and the number of exports. The value for each export must remain constant at least from one re-initialization of the entity's network management system to the next re- initialization." displayType="detail" dataType="measurement" />
+            <metric property="dafsExportName" description="A textual string containing information about the export. This is the logical export name." displayType="detail" dataType="trait" />
+            <metric property="dafsExportPath" description="A textual string containing information about the export. This is the local filesystem path to the export." displayType="detail" dataType="trait" />
+            <metric property="dafsExportEnabled" description="This export is available for access." displayType="detail" dataType="measurement" />
+            <metric property="dafsExportRwMode" description="Global export mode. This represents the maximum access rights." displayType="detail" dataType="measurement" />
+            <metric property="dafsExportAccessList" description="A textual string containing information about the export. This is the list of hosts that may access the export. If empty, all hosts may access the export." displayType="detail" dataType="trait" />
+        </service>
+        <service name="viaConnTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="viaConnState" description="The state of this via connection Legal States: Idle 1 Pending Connect 2 Connected 3 Error 4" displayType="detail" dataType="trait" />
+            <metric property="viaConnVINumber" description="A number which uniquely defines a connection." displayType="detail" dataType="measurement" />
+            <metric property="viaConnRemoteNetAddress" description="IP address of the remote system of the connection." displayType="detail" dataType="trait" />
+            <metric property="viaConnLocalNetAddress" description="Local IPadress of the connection." displayType="detail" dataType="trait" />
+            <metric property="viaConnRemotePortNumber" description="Remote TCP portnumber of the connection." displayType="detail" dataType="trait" />
+            <metric property="viaConnLocalPortNumber" description="Local TCP Portnumber of the connection." displayType="detail" dataType="trait" />
+            <metric property="viaConnLocalDescriminator" description="An identifier used by the local process to identify the VI connection." displayType="detail" dataType="trait" />
+            <metric property="viaConnRemoteDescriminator" description="An identifier used by the remote process to identify the VI connection." displayType="detail" dataType="trait" />
+            <metric property="viaConnLocalMaxTransferSize" description="The local limit on the maximum packet size that can be transfered through the connection." displayType="detail" dataType="measurement" />
+            <metric property="viaConnRemoteMaxTransferSize" description="The remote limit on the maximum packet size that can be transfered through the connection." displayType="detail" dataType="measurement" />
+            <metric property="viaConnLocalEnableRdmaWrite" description="The value is 1 if remote DMA write is enabled in the local system otherwise, it is 0." displayType="detail" dataType="measurement" />
+            <metric property="viaConnLocalEnableRdmaRead" description="The value is 1 if remote DMA read is enabled in the local system otherwise, it is 0." displayType="detail" dataType="measurement" />
+            <metric property="viaConnRemoteEnableRdmaWrite" description="The value is 1 if remote DMA write is enabled in the remote system otherwise, it is 0." displayType="detail" dataType="measurement" />
+            <metric property="viaConnRemoteEnableRdmaRead" description="The value is 1 if remote DMA read is enabled in the remote system otherwise, it is 0." displayType="detail" dataType="measurement" />
+            <metric property="viaConnSentMessages" description="Total number of messages sent through the connection." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="viaConnSentRdmaReadMessages" description="Total number of rdma read messages sent through the connection." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="viaConnSentRdmaWriteMessages" description="Total number of rdma write messages sent through the connection." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="viaConnRcvdMessages" description="Total number of messages received through the connection." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="viaConnRcvdRdmaReadMessages" description="Total number of rdma read messages received through the connection." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="viaConnRcvdRdmaWriteMessages" description="Total number of rdma write messages received through the connection." displayType="detail" dataType="measurement" measurementType="trendsup" />
+        </service>
+        <service name="viaNicTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="viaNicIndex" description="The index of the NIC in the NIC table." displayType="detail" dataType="measurement" />
+            <metric property="viaName" description="The symbolic name of the NIC device." displayType="detail" dataType="trait" />
+            <metric property="viaHardwareVersion" description="The version of the VINIC described by this MIB." displayType="detail" dataType="trait" />
+            <metric property="viaProviderVersion" description="The version of the VI provider." displayType="detail" dataType="trait" />
+            <metric property="viaNicAddress" description="The Network address of this NIC." displayType="detail" dataType="trait" />
+            <metric property="viaThreadSafe" description="1 if synchronisation model is thread safe else 0." displayType="detail" dataType="measurement" />
+            <metric property="viaMaxDiscriminatorLength" description="The maximum number of bytes that the VI provider allows for a connection descriminator." displayType="detail" dataType="measurement" units="bytes" />
+            <metric property="viaMaxRegisterBytes" description="Maximum number of bytes that can be registered." displayType="detail" dataType="measurement" units="bytes" />
+            <metric property="viaMaxRegisterRegions" description="Maximum number of memory regions that can be registered." displayType="detail" dataType="measurement" />
+            <metric property="viaMaxRegisterBlockBytes" description="Largest contiguous block of memory that can be registered." displayType="detail" dataType="measurement" />
+            <metric property="viaMaxVI" description="The limit on the total number of VI instances this entity can support." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="viaMaxDescriptorsPerQueue" description="Maximum Descriptors per VI Work Queue that this VI provider can support." displayType="detail" dataType="measurement" />
+            <metric property="viaMaxSegmentsPerDesc" description="Maximum number of segments per descriptor that this VI provider can support." displayType="detail" dataType="measurement" />
+            <metric property="viaMaxCQ" description="Maximum number of completion queues this VI provider can support." displayType="detail" dataType="measurement" />
+            <metric property="viaMaxCQEntries" description="Maximum number of Completion queue entries per completion queue that this VI provider can support." displayType="detail" dataType="measurement" />
+            <metric property="viaMaxTransferSize" description="The maximum transfer size supported by the VI Nic. The maximum transfer size is the amount of data that can be described by a single VI descriptor." displayType="detail" dataType="measurement" />
+            <metric property="viaNativeMTU" description="The native MTU size of the underlying network. For frame-based networks, this could reflect its native frame size. For cell-based networks, it could reflect the MTU of the appropriate abstraction layer that it supports." displayType="detail" dataType="measurement" />
+            <metric property="viaMaxPTags" description="The maximum number of protection tags that are supported by this VI provider." displayType="detail" dataType="measurement" />
+            <metric property="viaCurrRegisterBytes" description="Number of bytes registered by the VI user for this NIC." displayType="detail" dataType="measurement" units="bytes" />
+            <metric property="viaCurrRegisterRegions" description="Number of memory regions that is registered by VI user for this NIC." displayType="detail" dataType="measurement" />
+            <metric property="viaCurrVI" description="The current number of VI instances for this NIC." displayType="detail" dataType="measurement" />
+            <metric property="viaCurrCQ" description="Current number of completion queues this VI provider has." displayType="detail" dataType="measurement" />
+            <metric property="viaCurrPTags" description="Current Number of protection tags this VI provider has." displayType="detail" dataType="measurement" />
+            <metric property="viaConnectionListenPort" description="Port number on which VI server is listening for VI connection request." displayType="detail" dataType="trait" />
+        </service>
+        <service name="vfTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="vfIndex" description="A number that identifies this entry for the referenced vfiler." displayType="detail" dataType="trait" />
+            <metric property="vfName" description="A textual string that contains the name of the referenced vfiler." displayType="detail" dataType="trait" />
+            <metric property="vfUuid" description="The UUID of the referenced vfiler." displayType="detail" dataType="trait" />
+            <metric property="vfIpAddresses" description="The total number of IP addresses for the referenced vfiler." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="vfStoragePaths" description="The total number of storage paths for the referenced vfiler." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="vfIpSpace" description="A textual string that contains the name of the ipspace that the referenced vfiler belongs to." displayType="detail" dataType="trait" />
+            <metric property="vfAllowedProtocols" description="Total number of protocols allowed for the referenced vfiler." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="vfDisallowedProtocols" description="Total number of protocols disallowed for the referenced vfiler." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="vfState" description="Status of the vfiler: Running or stopped." displayType="detail" dataType="trait" />
+        </service>
+        <service name="vfIpTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="vfFiIndex" description="A number that identifies the referenced vfiler." displayType="detail" dataType="trait" />
+            <metric property="vfIpIndex" description="A number that identifies which IP address in the referenced vfiler." displayType="detail" dataType="trait" />
+            <metric property="vfIpAddr" description="A IP address for the referenced vfiler." displayType="detail" dataType="trait" />
+        </service>
+        <service name="vfSpTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="vfFsIndex" description="A number that identifies the referenced vfiler." displayType="detail" dataType="trait" />
+            <metric property="vfSpIndex" description="A number that identifies which storage path in the referenced vfiler." displayType="detail" dataType="trait" />
+            <metric property="vfSpName" description="The storage path name for the referenced vfiler." displayType="detail" dataType="trait" />
+        </service>
+        <service name="vfProTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="vfFpIndex" description="A number that identifies the referenced vfiler." displayType="detail" dataType="trait" />
+            <metric property="vfProIndex" description="A number that identifies a protocol in the referenced vfiler." displayType="detail" dataType="trait" />
+            <metric property="vfProName" description="A textual string that contains the protocol name for the referenced vfiler." displayType="detail" dataType="trait" />
+            <metric property="vfProStatus" description="Whether the referenced vfiler protocol is allowed or disallowed." displayType="detail" dataType="measurement" />
+        </service>
+        <service name="lunTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="lunIndex" description="A number that identifies the referenced LUN." displayType="detail" dataType="trait" />
+            <metric property="lunName" description="The name of the LUN. This is also the path to the LUN on the filer." displayType="detail" dataType="trait" />
+            <metric property="lunComment" description="The comment, if any, for this LUN." displayType="detail" dataType="trait" />
+            <metric property="lunSizeLow^lunSizeHigh" description="Size of the LUN in bytes." displayType="detail" dataType="measurement" units="bytes" />
+            <metric property="lunMapped" description="This LUN has been mapped to at least one initiator group." displayType="detail" dataType="measurement" />
+            <metric property="lunSerialNumber" description="The 12 character SCSI serial number of the LUN." displayType="detail" dataType="measurement" />
+            <metric property="lunQtreeName" description="A string that indicates which qtree this LUN belongs to." displayType="detail" dataType="trait" />
+            <metric property="lunLowOps^lunHighOps" description="The total number of Target side SCSI ops for this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="lunLowReadBytes^lunHighReadBytes" description="The total number of bytes read from this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+            <metric property="lunLowWriteBytes^lunHighWriteBytes" description="The total number of bytes written to this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+            <metric property="lunLowErrors^lunHighErrors" description="The total number of errors seen on this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="lunOnline" description="Whether the LUN is online." displayType="detail" dataType="measurement" />
+            <metric property="lunSnapStatus" description="Whether a snapshot of this LUN can be taken." displayType="detail" dataType="measurement" />
+            <metric property="lunShareStatus" description="The sharing status for the LUN." displayType="detail" dataType="trait" />
+            <metric property="lunSpaceReserved" description="Whether the LUN has space reservation enabled." displayType="detail" dataType="measurement" />
+            <metric property="lunStatsResetTime" description="Number of seconds since this LUN's stats were last reset." displayType="detail" dataType="measurement" units="seconds" />
+            <metric property="lunLowReadOps^lunHighReadOps" description="The total number of Target side SCSI read ops for this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="lunLowWriteOps^lunHighWriteOps" description="The total number of Target side SCSI write ops for this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="lunLowOtherOps^lunHighOtherOps" description="The total number of Target side SCSI ops that are not read or write for this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="lunSize64" description="Size of the LUN in bytes." displayType="detail" dataType="trait" units="bytes" />
+            <metric property="lun64Ops" description="The total number of Target side SCSI ops for this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="lun64ReadBytes" description="The total number of bytes read from this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+            <metric property="lun64WriteBytes" description="The total number of bytes written to this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+            <metric property="lun64Errors" description="The total number of errors seen on this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="lun64ReadOps" description="The total number of Target side SCSI read ops for this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="lun64WriteOps" description="The total number of Target side SCSI write ops for this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="lun64OtherOps" description="The total number of Target side SCSI ops that are not read or write for this LUN since the stats were last reset." displayType="detail" dataType="measurement" measurementType="trendsup" />
+        </service>
+        <service name="lunMapTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="lunMapLUNIndex" description="A number that identifies the LUN in the table." displayType="detail" dataType="trait" />
+            <metric property="lunMapInitiatorGroupIndex" description="A number that identifies an initiator group in the table." displayType="detail" dataType="trait" />
+            <metric property="lunMapLUNName" description="The name of the LUN." displayType="detail" dataType="trait" />
+            <metric property="lunMapInitiatorGroupName" description="The name of the initiator group that this LUN is mapped to." displayType="detail" dataType="trait" />
+            <metric property="lunMapLogicalUnitNumber" description="SCSI Logical Unit Number that this LUN is mapped to for this initiator group." displayType="detail" dataType="measurement" />
+        </service>
+        <service name="initiatorGroupTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="initiatorGroupIndex" description="A number that identifies a specific initiator group." displayType="detail" dataType="trait" />
+            <metric property="initiatorGroupName" description="The name of the initiator group" displayType="detail" dataType="trait" />
+            <metric property="initiatorGroupType" description="Type of this initiator group, either iSCSI or FCP" displayType="detail" dataType="measurement" />
+            <metric property="initiatorGroupOS" description="Operating system the clients in this initiator group run. This governs the finer details of SCSI protocol interaction with these initiators" displayType="detail" dataType="measurement" />
+            <metric property="initiatorGroupThrottleReserve" description="Percentage of filer scsi command blocks reserved for this initiator group" displayType="detail" dataType="measurement" />
+            <metric property="initiatorGroupThrottleBorrow" description="True if this inititiator group is allowed to exceed it's throttle settings if more resources are needed and otherwise available. If initiatorGroupThrottleReserve is 0, this value is meaningless" displayType="detail" dataType="measurement" />
+            <metric property="initiatorGroupUsePartner" description="The takeover mode for the initiator group. This is only applicable to FCP initiator groups on clustered filers" displayType="detail" dataType="measurement" />
+            <metric property="initiatorGroupUseALUA" description="If true this initiator group supports Asymetric Logical Unit Access." displayType="detail" dataType="measurement" />
+        </service>
+        <service name="initiatorGroupMemberTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="initiatorGroupMemberIndex" description="A number that identifies a specific initiator group." displayType="detail" dataType="trait" />
+            <metric property="initiatorGroupMemberNameIndex" description="A number the identifies the initiator in the group." displayType="detail" dataType="trait" />
+            <metric property="initiatorName" description="A textual name for this initiator." displayType="detail" dataType="trait" />
+        </service>
+        <service name="initiatorListTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="initiatorListEntryIndex" description="A number that identifies the initiator connected to the target adapter." displayType="detail" dataType="trait" />
+            <metric property="targetAdapterName" description="The name of the target adapter in the filer." displayType="detail" dataType="trait" />
+            <metric property="connectedInitiatorNodeName" description="A textual name for this initiator node." displayType="detail" dataType="trait" />
+            <metric property="connectedInitiatorPortName" description="The FibreChannel device's portname. This is FCP only." displayType="detail" dataType="trait" />
+            <metric property="connectedInitiatorType" description="Type of this init group, either iSCSI or FCP" displayType="detail" dataType="measurement" />
+            <metric property="connectedInitiatorIsid" description="The iSCSI isid (initiator session id) for this initiator. This is iSCSI only." displayType="detail" dataType="trait" />
+            <metric property="connectedInitiatorPortalGroup" description="The iSCSI portal group ID for this initiator. This is iSCSI only." displayType="detail" dataType="trait" />
+        </service>
+        <service name="fcpTargetTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="fcpTargetTableIndex" description="A number that identifies a specific fcp target device." displayType="detail" dataType="trait" />
+            <metric property="fcpTargetName" description="The name of the fcp target device" displayType="detail" dataType="trait" />
+            <metric property="fcpTargetNN" description="The FC WWNN of the fcp target device" displayType="detail" dataType="trait" />
+            <metric property="fcpTargetPN" description="The FC WWPN of the fcp target device" displayType="detail" dataType="trait" />
+            <metric property="fcpTargetSpeed" description="speed in gigabits per second. 0 is unknown." displayType="detail" dataType="measurement" />
+            <metric property="fcpTargetStatus" description="Status of the fcp target adapter" displayType="detail" dataType="trait" />
+            <metric property="fcpTargetStandby" description="Whether this target adapter is in standby mode." displayType="detail" dataType="measurement" />
+            <metric property="fcpTargetTopology" description="fibre channel topology for this adapter." displayType="detail" dataType="measurement" />
+            <metric property="fcpTargetType" description="Responsibility/Type for this adapter." displayType="detail" dataType="measurement" />
+        </service>
+        <service name="psetTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="psetIndex" description="A number that identifies a specific port set." displayType="detail" dataType="trait" />
+            <metric property="psetName" description="The name of the port set" displayType="detail" dataType="trait" />
+            <metric property="psetType" description="Type of this port set, either iSCSI or FCP" displayType="detail" dataType="trait" />
+        </service>
+        <service name="psetMemberTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="psetMemberIndex" description="A number that identifies a specific port set." displayType="detail" dataType="trait" />
+            <metric property="psetMemberNameIndex" description="A number the identifies the port in the set." displayType="detail" dataType="trait" />
+            <metric property="psetPortName" description="A textual name for this port." displayType="detail" dataType="trait" />
+        </service>
+        <service name="enclTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="enclIndex" description="A number that identifies this enclosure among the possible monitored enclosures. This number normally uniquely identifies one shelf within one boot, but may it change between boots. The number may also change within a boot if shelves are removed and added" displayType="detail" dataType="trait" />
+            <metric property="enclContactState" description="The state of the communication between the filer or storage engine and the enclosure monitoring device in the enclosure." displayType="detail" dataType="trait" />
+            <metric property="enclChannelShelfAddr" description="The adapter number or switch name and the port number (together, called the channel), and shelf ID of this enclosure. Examples are 8a.1 and switch:5.1." displayType="detail" dataType="trait" />
+            <metric property="enclProductLogicalID" description="The logical identifier of this enclosure. This a form of the World-Wide Name (WWN)." displayType="detail" dataType="trait" />
+            <metric property="enclProductID" description="The product ID of the shelf hardware module that provides the enclosure monitoring function. Example is LRC." displayType="detail" dataType="trait" />
+            <metric property="enclProductVendor" description="The name of the vendor of this enclosure. Example is Xyratex." displayType="detail" dataType="trait" />
+            <metric property="enclProductModel" description="The model name of this enclosure. Example is DiskShelf14." displayType="detail" dataType="trait" />
+            <metric property="enclProductRevision" description="The revision number of this enclosure." displayType="detail" dataType="measurement" />
+            <metric property="enclProductSerialNo" description="The serial number of this enclosure." displayType="detail" dataType="measurement" />
+            <metric property="enclNumberDiskBays" description="The number of disk bays in this enclosure." displayType="detail" dataType="measurement" />
+            <metric property="enclDisksPresent" description="The list of disks present by bay number in this enclosure." displayType="detail" dataType="measurement" />
+            <metric property="enclPowerSuppliesMaximum" description="The maximum number of power supplies in this enclosure." displayType="detail" dataType="measurement" />
+            <metric property="enclPowerSuppliesPresent" description="The list of power supplies present in the enclosure. Numbering is from left to right in their intended location in the shelf, while facing the supplies." displayType="detail" dataType="measurement" />
+            <metric property="enclPowerSuppliesSerialNos" description="The list of serial numbers of power supplies present in the enclosure. Not all shelves are able to report the power supply serial number. Communication errors may make the serial number unavailable. Numbering is from left to right in their intended locati" displayType="detail" dataType="measurement" />
+            <metric property="enclPowerSuppliesFailed" description="The list of failed power supplies in this enclosure, numbered as in enclPowerSuppliesPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclFansMaximum" description="The maximum number of fans or fan modules monitored by this enclosure. R100/R150 shelf power supply fans are not included in this number." displayType="detail" dataType="measurement" />
+            <metric property="enclFansPresent" description="The list of fans or fan modules present and for which status is known in this enclosure. Fans are numbered left-to-right as facing the fans. R100/R150 shelf power supply fans are not included in this list." displayType="detail" dataType="trait" />
+            <metric property="enclFansFailed" description="The list of failed fans or fan modules in this enclosure. Fans are numbered as described in enclFansPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclTempSensorsMaximum" description="The maximum number of temperature sensors monitored by this enclosure." displayType="detail" dataType="measurement" />
+            <metric property="enclTempSensorsPresent" description="The list of temperature sensors present and for which status is known in this enclosure. Temperature sensors are numbered top-to-bottom and left-to-right, beginning with the front of the enclosure, then the rear, as the modules containing them are faced." displayType="detail" dataType="trait" />
+            <metric property="enclTempSensorsOverTempFail" description="The list of temperature sensors reporting overtemperature failure in this enclosure. Sensors are numbered as in TempSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclTempSensorsOverTempWarn" description="The list of temperature sensors reporting overtemperature warning in this enclosure. Sensors are numbered as in TempSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclTempSensorsUnderTempFail" description="The list of temperature sensors reporting undertemperature failure in this enclosure. Sensors are numbered as in TempSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclTempSensorsUnderTempWarn" description="The list of temperature sensors reporting undertemperature warning in this enclosure. Sensors are numbered as in TempSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclTempSensorsCurrentTemp" description="The list of temperatures reported by all temperature sensors in the enclosure, including the ambient temperature. Sensors are numbered as in TempSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclTempSensorsOverTempFailThr" description="The list of overtemperature failure thresholds for all temperature sensors in the enclosure. Sensors are numbered as in TempSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclTempSensorsOverTempWarnThr" description="The list of overtemperature warning thresholds for all temperature sensors in the enclosure. Sensors are numbered as in TempSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclTempSensorsUnderTempFailThr" description="The list of undertemperature failure thresholds for all temperature sensors in the enclosure. Sensors are numbered as in TempSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclTempSensorsUnderTempWarnThr" description="The list of undertemperature warning thresholds for all temperature sensors in the enclosure. Sensors are numbered as in TempSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclElectronicsMaximum" description="The number of enclosure services electronics modules that it is possible for this enclosure to detect and/or monitor." displayType="detail" dataType="measurement" />
+            <metric property="enclElectronicsPresent" description="The list those enclosure services electronics modules present in this enclosure. Numbering is from left-to-right or top-to-bottom in their intended location in the shelf, while facing the electronics modules. It is normal for the R200 FC-AT module to be r" displayType="detail" dataType="measurement" />
+            <metric property="enclElectronicsSerialNos" description="The list of serial numbers of the enclosure services electronics modules present in this enclosure. The order follows that of enclElectronicsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclElectronicsFailed" description="The list of failed electronics elements. Valid only if enclElectronicsPresent shows that some are present." displayType="detail" dataType="trait" />
+            <metric property="enclVoltSensorsMaximum" description="The number of voltage sensors monitored by this enclosure." displayType="detail" dataType="measurement" />
+            <metric property="enclVoltSensorsPresent" description="The list of voltage sensors present and for which status is known in this enclosure. Voltage sensors are numbered top-to-bottom and left-to-right, beginning with the front of the enclosure, then the rear, as the modules containing them are faced." displayType="detail" dataType="trait" />
+            <metric property="enclVoltSensorsOverVoltFail" description="The list of voltage sensors reporting overvoltage failure in this enclosure. Sensors are numbered as in VoltSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclVoltSensorsOverVoltWarn" description="The list of voltage sensors reporting overvoltage warning in this enclosure. Sensors are numbered as in VoltSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclVoltSensorsUnderVoltFail" description="The list of voltage sensors reporting undervoltage failure in this enclosure. Sensors are numbered as in VoltSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclVoltSensorsUnderVoltWarn" description="The list of voltage sensors reporting undervoltage warning in this enclosure. Sensors are numbered as in VoltSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclVoltSensorsOverVoltFailThr" description="The list of overvoltage failure thresholds for all voltage sensors in the enclosure. Sensors are numbered as in VoltSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclVoltSensorsOverVoltWarnThr" description="The list of overvoltage warning thresholds for all voltage sensors in the enclosure. Sensors are numbered as in VoltSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclVoltSensorsUnderVoltFailThr" description="The list of undervoltage failure thresholds for all voltage sensors in the enclosure. Sensors are numbered as in VoltSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclVoltSensorsUnderVoltWarnThr" description="The list of undervoltage warning thresholds for all voltage sensors in the enclosure. Sensors are numbered as in VoltSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclVoltSensorsCurrentVolt" description="The list of voltages reported by all voltage sensors in the enclosure, Sensors are numbered as in VoltSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclCurSensorsMaximum" description="The number of current sensors monitored by this enclosure." displayType="detail" dataType="measurement" />
+            <metric property="enclCurSensorsPresent" description="The list of current sensors present and for which status is known in this enclosure. Current sensors are numbered top-to-bottom and left-to-right, beginning with the front of the enclosure, then the rear, as the modules containing them are faced." displayType="detail" dataType="trait" />
+            <metric property="enclCurSensorsOverCurFail" description="The list of current sensors reporting overcurrent failure in this enclosure. Sensors are numbered as in CurSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclCurSensorsOverCurWarn" description="The list of current sensors reporting overcurrent warning in this enclosure. Sensors are numbered as in CurSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclCurSensorsOverCurFailThr" description="The list of overcurrent failure thresholds for all current sensors in the enclosure. Sensors are numbered as in CurSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclCurSensorsOverCurWarnThr" description="The list of overcurrent warning thresholds for all current sensors in the enclosure. Sensors are numbered as in CurSensorsPresent." displayType="detail" dataType="measurement" />
+            <metric property="enclCurSensorsCurrentCur" description="The list of currents reported by all current sensors in the enclosure, Sensors are numbered as in CurSensorsPresent." displayType="detail" dataType="measurement" />
+        </service>
+        <service name="netifTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="netifIndex" description="A unique value for each interface. Its value ranges between 1 and the value of ifNumber. The value for each interface must remain constant at least from one re-initialization of the entity's network management system to the next re- initialization." displayType="detail" dataType="measurement" />
+            <metric property="netifDescr" description="A textual string containing information about the interface. This string should include the name of the manufacturer, the product name and the version of the hardware interface." displayType="detail" dataType="trait" />
+            <metric property="ifLowInOctets^ifHighInOctets" description="The total number of octets received on the interface, including framing characters." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="ifLowInUcastPkts^ifHighInUcastPkts" description="The number of subnetwork-unicast packets delivered to a higher-layer protocol." displayType="detail" dataType="measurement" />
+            <metric property="ifLowInNUcastPkts^ifHighInNUcastPkts" description="The number of non-unicast (i.e., subnetwork- broadcast or subnetwork-multicast) packets delivered to a higher-layer protocol." displayType="detail" dataType="measurement" />
+            <metric property="ifLowInDiscards^ifHighInDiscards" description="The number of inbound packets which were chosen to be discarded even though no errors had been detected to prevent their being deliverable to a higher-layer protocol. One possible reason for discarding such a packet could be to free up buffer space. This " displayType="detail" dataType="measurement" />
+            <metric property="ifLowInErrors^ifHighInErrors" description="The number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol." displayType="detail" dataType="measurement" />
+            <metric property="ifLowInUnknownProtos^ifHighInUnknownProtos" description="The number of packets received via the interface which were discarded because of an unknown or unsupported protocol." displayType="detail" dataType="measurement" />
+            <metric property="ifLowOutOctets^ifHighOutOctets" description="The total number of octets transmitted out of the interface, including framing characters." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="ifLowOutUcastPkts^ifHighOutUcastPkts" description="The total number of packets that higher-level protocols requested be transmitted to a subnetwork-unicast address, including those that were discarded or not sent." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="ifLowOutNUcastPkts^ifHighOutNUcastPkts" description="The total number of packets that higher-level protocols requested be transmitted to a non- unicast (i.e., a subnetwork-broadcast or subnetwork-multicast) address, including those that were discarded or not sent." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="ifLowOutDiscards^ifHighOutDiscards" description="The number of outbound packets which were chosen to be discarded even though no errors had been detected to prevent their being transmitted. One possible reason for discarding such a packet could be to free up buffer space." displayType="detail" dataType="measurement" />
+            <metric property="ifLowOutErrors^ifHighOutErrors" description="The number of outbound packets that could not be transmitted because of errors." displayType="detail" dataType="measurement" />
+            <metric property="if64InOctets" description="The total number of octets received on the interface, including framing characters." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="if64InUcastPkts" description="The number of subnetwork-unicast packets delivered to a higher-layer protocol." displayType="detail" dataType="measurement" />
+            <metric property="if64InNUcastPkts" description="The number of non-unicast (i.e., subnetwork- broadcast or subnetwork-multicast) packets delivered to a higher-layer protocol." displayType="detail" dataType="measurement" />
+            <metric property="if64InDiscards" description="The number of inbound packets which were chosen to be discarded even though no errors had been detected to prevent their being deliverable to a higher-layer protocol. One possible reason for discarding such a packet could be to free up buffer space. This " displayType="detail" dataType="measurement" />
+            <metric property="if64InErrors" description="The number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol." displayType="detail" dataType="measurement" />
+            <metric property="if64InUnknownProtos" description="The number of packets received via the interface which were discarded because of an unknown or unsupported protocol." displayType="detail" dataType="measurement" />
+            <metric property="if64OutOctets" description="The total number of octets transmitted out of the interface, including framing characters." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="if64OutUcastPkts" description="The total number of packets that higher-level protocols requested be transmitted to a subnetwork-unicast address, including those that were discarded or not sent." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="if64OutNUcastPkts" description="The total number of packets that higher-level protocols requested be transmitted to a non- unicast (i.e., a subnetwork-broadcast or subnetwork-multicast) address, including those that were discarded or not sent." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric property="if64OutDiscards" description="The number of outbound packets which were chosen to be discarded even though no errors had been detected to prevent their being transmitted. One possible reason for discarding such a packet could be to free up buffer space." displayType="detail" dataType="measurement" />
+            <metric property="if64OutErrors" description="The number of outbound packets that could not be transmitted because of errors." displayType="detail" dataType="measurement" />
+        </service>
+        <service name="sisTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="sisIndex" description="A number that identifies this entry for the SIS volume." displayType="detail" dataType="trait" />
+            <metric property="sisPath" description="The path to the SIS volume." displayType="detail" dataType="trait" />
+            <metric property="sisState" description="Indicates whether SIS is enabled on the volume or not." displayType="detail" dataType="trait" />
+            <metric property="sisStatus" description="Current status of the SIS volume." displayType="detail" dataType="trait" />
+            <metric property="sisProgress" description="The progress of the current SIS operation." displayType="detail" dataType="trait" />
+            <metric property="sisType" description="Indicates whether it is a regular or snapvaulted SIS volume." displayType="detail" dataType="trait" />
+            <metric property="sisSchedule" description="The schedule for the SIS opertions." displayType="detail" dataType="trait" />
+            <metric property="sisLastOpBeginTime" description="The starting time of the last completed SIS opertion." displayType="detail" dataType="trait" />
+            <metric property="sisLastOpEndTime" description="The ending time of the last completed SIS operation." displayType="detail" dataType="trait" />
+            <metric property="sisLowLastOpSize^sisHighLastOpSize" description="The total amount of data in KBytes that the last completed SIS operation had processed." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="sisLastOpError" description="The error that the last SIS operation encountered if it failed." displayType="detail" dataType="trait" />
+            <metric property="sis64LastOpSize" description="The total amount of data in KBytes that the last completed SIS operation had processed." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+        </service>
+        <service name="compressTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="compressIndex" description="A number that identifies this entry for the referenced file system." displayType="detail" dataType="trait" />
+            <metric property="compressFileSys" description="The name for the referenced file system." displayType="detail" dataType="trait" />
+            <metric property="compressLowUsedKBytes^compressHighUsedKBytes" description="The total disk space in KBytes that is in use on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="compress64UsedKBytes" description="The total disk space in KBytes that is in use on the referenced file system." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="compressLowSavedKBytes^compressHighSavedKBytes" description="The disk space in KBytes of disk space that is saved by compression on the referenced filesystem." displayType="detail" dataType="measurement" measurementType="trendsup" units="kilobytes" />
+            <metric property="compress64SavedKBytes" description="The disk space in KBytes of disk space that is saved by compression on the referenced filesystem." displayType="detail" dataType="trait" units="kilobytes" />
+            <metric property="compressPercentSaved" description="The percentage of disk space saved by compression on the referenced filesystem." displayType="detail" dataType="measurement" />
+        </service>
+    </service>
+</plugin>

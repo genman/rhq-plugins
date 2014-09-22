@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+      <name>ipc.client.connect.max.retries</name>
+      <value>1</value>
+      <description>Indicates the number of retries a client will make to establish a server connection.</description>
+    </property>
+    <property>
+      <name>fs.hdfs.impl</name>
+      <value>org.apache.hadoop.hdfs.DistributedFileSystem</value>
+    </property>
+    <property>
+      <name>fs.file.impl</name>
+      <value>org.apache.hadoop.fs.LocalFileSystem</value>
+    </property>
+</configuration>

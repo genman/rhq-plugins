@@ -1,0 +1,53 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>com.apple.iad</groupId>
+      <artifactId>iad-plugins-parent</artifactId>
+      <version>5.0.5-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
+
+   <artifactId>rhq-http-plugin</artifactId>
+   <packaging>jar</packaging>
+
+   <name>Apple iAd RHQ HTTP Plugin</name>
+   <description>a plugin for extracting or verifying data from an HTTP application</description>
+
+  <repositories>
+    <repository>
+      <id>noderunner.net</id>
+      <name>e-xml repository</name>
+      <layout>default</layout>
+      <url>http://e-xml.sourceforge.net/maven2/repository/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+   <dependencies>
+     <dependency>
+       <groupId>net.noderunner</groupId>
+       <artifactId>http</artifactId>
+       <version>1.0.3</version>
+       <scope>test</scope>
+     </dependency>
+     <dependency>
+       <groupId>javax.servlet</groupId>
+       <artifactId>servlet-api</artifactId>
+       <version>2.5</version>
+       <scope>test</scope>
+     </dependency>
+     <dependency>
+       <groupId>com.apple.iad</groupId>
+       <artifactId>rhq-plugin-testing</artifactId>
+     </dependency>
+     <dependency>
+       <groupId>com.googlecode.json-simple</groupId>
+       <artifactId>json-simple</artifactId>
+     </dependency>
+   </dependencies>
+
+</project>

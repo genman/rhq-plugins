@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<plugin name="dns"
+        displayName="DNS Monitoring Plugin"
+        description="Monitor DNS caching resolver times, for determining if DNS service is working or not"
+        package="com.apple.iad.rhq.dns"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+    <server name="dns" class="DNSComponent"
+        discovery="DNSDiscovery" supportsManualAdd="true" singleton="false"
+        createDeletePolicy="both">
+
+        <plugin-configuration>
+            <c:simple-property name="host" default="" description="Hostname or names to test lookup, by default the current hostname"/>
+        </plugin-configuration>
+
+        <metric property="queryTime" displayType="summary"
+            description="Last query time in nanoseconds"
+            units="nanoseconds" measurementType="dynamic"/>
+
+        <metric property="ipCount" displayType="summary"
+            description="Number of address records total"
+            units="none" measurementType="dynamic"/>
+
+    </server>
+
+</plugin>

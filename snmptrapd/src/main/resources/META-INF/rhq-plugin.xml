@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<plugin name="snmptrapd" displayName="SNMP Trap and Notification Receiver"
+          description="Forwards incoming SNMP traps and notifications to RHQ as events"
+          ampsVersion="2.0"
+          package="org.rhq.plugins.snmptrapd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns="urn:xmlns:rhq-plugin"
+          xmlns:c="urn:xmlns:rhq-configuration"
+          xmlns:ci="urn:xmlns:rhq-configuration-instance">
+
+   <depends plugin="snmp" useClasses="true" />
+
+   <server name="SnmpTrapd" discovery="SnmpTrapdDiscovery" class="SnmpTrapdComponent" supportsManualAdd="true"
+          description="Support for receiving SNMP traps and notifications,
+          as well as support for decoding trap messages and mapping traps to
+          RHQ severities.">
+
+      <plugin-configuration>
+         <c:simple-property name="mibs" description="Comma and/or space-separated list of MIB files to import.
+                 These are used to decode PDU OIDs. To add additional MIB files, either add the MIB
+                 directory to the system classpath or modify this plugin to include that MIB."
+                 default="RHQ-mib.txt SNMPv2-MIB" />
+
+         <c:simple-property name="port" description="The port to listen on. Note: ports less than 1024 require RHQ Agent to run as root access." required="true" default="11162" type="integer" />
+         <c:simple-property name="sourceLocation" description="Source Location OID or name.
+             If set in the trap/notification, instead of resolving the remote UDP hostname, uses the value of this OID."
+             required="false" default="" type="string" />
+
+         <c:simple-property name="filter" required="false" default="" type="string" >
+            <c:description>
+                 Regex filter to remove unwanted event text; e.g. dates like this:
+                 '(\d+-\d+-\d+\s+)?(\d+:\d+:\d+(,\d+)?)?'
+            </c:description>
+         </c:simple-property>
+
+         <c:simple-property name="charset" required="false" default="UTF-8" type="string" >
+            <c:description>
+                 Character set used to decode OCTET STRING variable values.
+            </c:description>
+         </c:simple-property>
+
+         <c:list-property displayName="Omit OIDs" name="omitOids">
+             <c:simple-property displayName="Omit OID" name="omitOid" default="sysUpTime" type="string" required="false">
+                <c:description>
+                     Specific OIDs or names to not include in the trap text. (Do not add 0 to the OID).
+                </c:description>
+             </c:simple-property>
+          </c:list-property>
+
+           <c:list-property displayName="Event severity rules" name="rules">
+              <c:map-property name="rule">
+                 <c:description>
+                    An event severity rule, used to map SNMP traps and notifications to RHQ event severity levels.
+                    Events can be matched by generic, generic-specific types, SNMPv2 notification types,
+                    and/or a specific PDU variable name and value. Note only a single
+                    matching variable name is supported. Empty properties indicate ignore this match condition.
+                 </c:description>
+                 <c:simple-property displayName="Generic" name="genericTrap" required="false">
+                    <c:description>
+                         Generic trap type for SNMPv1 traps. For SNMPv2 notification use the trap OID setting.
+                    </c:description>
+                    <c:property-options allowCustomValue="false">
+                        <c:option value='0' name="coldStart"/>
+                        <c:option value='1' name="warmStart"/>
+                        <c:option value='2' name="linkDown"/>
+                        <c:option value='3' name="linkUp"/>
+                        <c:option value='4' name="authenticationFailure"/>
+                        <c:option value='5' name="egpNeighborLoss"/>
+                        <c:option value='6' name="enterpriseSpecific"/>
+                    </c:property-options>
+                 </c:simple-property>
+                 <c:simple-property displayName="Specific" name="specificTrap" default="-1" type="integer" required="false">
+                    <c:description>
+                         Specific trap type for SNMPv1 traps. Integer value.
+                    </c:description>
+                 </c:simple-property>
+                 <c:simple-property name="enterprise" default="" type="string" required="false">
+                    <c:description>
+                         Enterprise trap OID for SNMPv1 traps. Can be a name, OID, or name plus OID suffix.
+                    </c:description>
+                 </c:simple-property>
+                 <c:simple-property name="trapOid" default="" type="string" required="false">
+                    <c:description>
+                         Trap OID for SNMPv2 traps. Can be a name, OID, or name plus OID suffix.
+                         The drop-down only works if SNMPv2-MIB was loaded.
+                    </c:description>
+                    <c:property-options allowCustomValue="true">
+                        <c:option value="coldStart"/>
+                        <c:option value="warmStart"/>
+                        <c:option value="linkDown"/>
+                        <c:option value="linkUp"/>
+                        <c:option value="authenticationFailure"/>
+                        <c:option value="egpNeighborLoss"/>
+                        <c:option value="enterpriseSpecific"/>
+                     </c:property-options>
+                 </c:simple-property>
+                 <c:simple-property name="varbind" description="Specific varbind (variable) OID or name to match; optional" required="false"/>
+                 <c:simple-property name="value" description="Specific varbind value to match; indicated as a regular expression to find; optional" required="false"/>
+                 <c:simple-property name="severity" default="WARN" description="RHQ event severity. Default is WARN for unknown traps.">
+                    <c:property-options>
+                       <c:option value="ERROR" />
+                       <c:option value="WARN" />
+                       <c:option value="INFO" />
+                    </c:property-options>
+                 </c:simple-property>
+              </c:map-property>
+           </c:list-property>
+
+           <c:template name="generic" description="Generic trap support template">
+              <c:list-property name="rules">
+                 <c:map-property name="rule">
+                    <c:simple-property name="trap" default="0" />
+                    <c:simple-property name="severity" default="WARN" />
+                 </c:map-property>
+              </c:list-property>
+              <c:list-property name="rules">
+                 <c:map-property name="rule">
+                    <c:simple-property name="trap" default="1" />
+                    <c:simple-property name="severity" default="WARN" />
+                 </c:map-property>
+              </c:list-property>
+              <c:list-property name="rules">
+                 <c:map-property name="rule">
+                    <c:simple-property name="trap" default="2" />
+                    <c:simple-property name="severity" default="ERROR" />
+                 </c:map-property>
+              </c:list-property>
+              <c:list-property name="rules">
+                 <c:map-property name="rule">
+                    <c:simple-property name="trap" default="3" />
+                    <c:simple-property name="severity" default="INFO" />
+                 </c:map-property>
+              </c:list-property>
+              <c:list-property name="rules">
+                 <c:map-property name="rule">
+                    <c:simple-property name="trap" default="4" />
+                    <c:simple-property name="severity" default="WARN" />
+                 </c:map-property>
+              </c:list-property>
+              <c:list-property name="rules">
+                 <c:map-property name="rule">
+                    <c:simple-property name="trap" default="5" />
+                    <c:simple-property name="severity" default="ERROR" />
+                 </c:map-property>
+              </c:list-property>
+              <c:list-property name="rules">
+                 <c:map-property name="rule">
+                    <c:simple-property name="trap" default="6" />
+                    <c:simple-property name="severity" default="WARN" />
+                 </c:map-property>
+              </c:list-property>
+           </c:template>
+
+           <c:template name="rhq" description="RHQ trap support template">
+              <c:list-property name="rules">
+                 <c:map-property name="rule">
+                    <c:simple-property name="trap" default="" />
+                    <c:simple-property name="varbind" default="alertSeverity" />
+                    <c:simple-property name="value" default="(?i)high" />
+                    <c:simple-property name="alertName" default="ERROR" />
+                 </c:map-property>
+              </c:list-property>
+              <c:list-property name="rules">
+                 <c:map-property name="rule">
+                    <c:simple-property name="trap" default="" />
+                    <c:simple-property name="varbind" default="alertSeverity" />
+                    <c:simple-property name="value" default="(?i)warn" />
+                    <c:simple-property name="alertName" default="WARN" />
+                 </c:map-property>
+              </c:list-property>
+              <c:list-property name="rules">
+                 <c:map-property name="rule">
+                    <c:simple-property name="trap" default="" />
+                    <c:simple-property name="varbind" default="alertSeverity" />
+                    <c:simple-property name="value" default="" />
+                    <c:simple-property name="alertName" default="INFO" />
+                 </c:map-property>
+              </c:list-property>
+           </c:template>
+
+      </plugin-configuration>
+
+      <metric property="trap_count" displayType="summary" measurementType="trendsup" />
+
+      <event name="SnmpTrap" description="One single incoming trap" />
+
+   </server>
+</plugin>

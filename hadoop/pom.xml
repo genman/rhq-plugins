@@ -1,0 +1,211 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>com.apple.iad</groupId>
+      <artifactId>iad-plugins-parent</artifactId>
+      <version>5.0.5-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
+
+   <artifactId>rhq-hadoop-plugin</artifactId>
+   <packaging>jar</packaging>
+
+   <name>Apple iAd RHQ Hadoop Plugin</name>
+   <description>Monitor Hadoop clusters</description>
+
+   <properties>
+      <!-- Test depends on hadoop running -->
+      <skipTests>true</skipTests>
+   </properties>
+
+   <build>
+      <plugins>
+         <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+               <execution>
+                  <phase>process-resources</phase>
+                  <goals>
+                     <goal>copy-dependencies</goal>
+                  </goals>
+                  <configuration>
+                     <outputDirectory>${project.build.outputDirectory}/lib</outputDirectory>
+                     <includeScope>runtime</includeScope>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+
+       <!-- Integration testing voodoo to load and test this plugin with its plugin dependencies -->
+
+         <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+               <execution>
+                  <phase>process-test-resources</phase>
+                  <goals>
+                     <goal>run</goal>
+                  </goals>
+                  <configuration>
+                     <tasks>
+                        <echo>Setting up plugin dependencies for ${project.artifactId}-${rhq.version}.jar...</echo>
+                        <property name="settings.localRepository" location="${user.home}/.m2/repository" />
+                        <mkdir dir="target/itest" />
+                        <mkdir dir="target/itest/plugins" />
+                        <mkdir dir="target/itest/lib" />
+                        <copy toDir="target/itest/plugins" flatten="true" verbose="true">
+                           <fileset dir="${settings.localRepository}/">
+                              <include name="org/rhq/rhq-platform-plugin/${rhq.version}/rhq-platform-plugin-${rhq.version}.jar" />
+                           </fileset>
+                           <fileset dir="${project.build.directory}">
+                              <include name="${project.artifactId}-${project.version}.jar" />
+                           </fileset>
+                        </copy>
+                        <unzip dest="target/itest/lib">
+                           <fileset dir="${settings.localRepository}/org/hyperic/sigar-dist/${sigar.version}" includes="*.zip" />
+                           <patternset>
+                              <include name="**/lib/sigar.jar" />
+                              <include name="**/lib/bcel*.jar" />
+                              <include name="**/lib/*.so" />
+                              <include name="**/lib/*.sl" />
+                              <include name="**/lib/*.dll" />
+                              <include name="**/lib/*.dylib" />
+                           </patternset>
+                        </unzip>
+                        <move todir="target/itest/lib" flatten="true">
+                           <fileset dir="target/itest/lib">
+                              <include name="**/lib/*" />
+                           </fileset>
+                        </move>
+                     </tasks>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+
+         <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+            <useSystemClassLoader>true</useSystemClassLoader>
+            <systemPropertyVariables>
+                <org.hyperic.sigar.path>${basedir}/target/itest/lib</org.hyperic.sigar.path>
+            </systemPropertyVariables>
+            </configuration>
+         </plugin>
+      </plugins>
+
+   </build>
+
+   <profiles>
+      <profile>
+         <id>hadoop-test</id>
+         <activation>
+            <activeByDefault>false</activeByDefault>
+         </activation>
+         <build>
+            <plugins>
+               <plugin>
+                  <artifactId>maven-surefire-plugin</artifactId>
+                  <configuration>
+                     <systemProperties>
+                        <property>
+                           <name>hadoop.connectorAddress</name>
+                           <value>${hadoop.connectorAddress}</value>
+                        </property>
+                        <property>
+                           <name>hadoop.principal</name>
+                           <value>${hadoop.principal}</value>
+                        </property>
+                        <property>
+                           <name>hadoop.credentials</name>
+                           <value>${hadoop.credentials}</value>
+                        </property>
+                     </systemProperties>
+                  </configuration>
+               </plugin>
+            </plugins>
+         </build>
+      </profile>
+   </profiles>
+
+   <dependencies>
+      <dependency>
+         <groupId>com.apple.iad</groupId>
+         <artifactId>rhq-plugin-testing</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-jmx-plugin</artifactId>
+         <version>${rhq.version}</version>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-core</artifactId>
+         <version>${hadoop.core.version}</version>
+         <scope>provided</scope> <!-- loaded through ClassLoaderFacet -->
+      </dependency>
+      <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-common</artifactId>
+         <version>${hadoop.version}</version>
+         <scope>provided</scope> <!-- loaded through ClassLoaderFacet -->
+      </dependency>
+      <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-hdfs</artifactId>
+         <version>${hadoop.version}</version>
+         <scope>provided</scope> <!-- loaded through ClassLoaderFacet -->
+      </dependency>
+      <dependency>
+         <groupId>org.apache.hadoop.thirdparty.guava</groupId>
+         <artifactId>guava</artifactId>
+         <version>r09-jarjar</version>
+         <scope>provided</scope> <!-- loaded through ClassLoaderFacet -->
+      </dependency>
+      <dependency>
+            <groupId>net.sourceforge.nekohtml</groupId>
+            <artifactId>nekohtml</artifactId>
+            <version>1.9.15</version>
+      </dependency>
+      <dependency>
+         <groupId>xerces</groupId>
+         <artifactId>xercesImpl</artifactId>
+         <version>2.10.0</version>
+         <!--
+         <exclusions>
+            <exclusion>
+               <groupId>xml-apis</groupId>
+               <artifactId>xml-apis</artifactId>
+            </exclusion>
+         </exclusions>
+         -->
+      </dependency>
+      <dependency>
+         <groupId>com.googlecode.json-simple</groupId>
+         <artifactId>json-simple</artifactId>
+      </dependency>
+
+   </dependencies>
+
+    <repositories>
+        <repository>
+            <id>iadbuild</id>
+            <name>iadbuild-snapshots</name>
+            <url>https://iadbuild.apple.com/artifactory/ops-local</url>
+            <releases>
+                <enabled>false</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+
+</project>

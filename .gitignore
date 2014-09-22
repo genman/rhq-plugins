@@ -1,0 +1,8 @@
+.settings
+test-output/
+target/
+.project
+.classpath
+.metadata
+.gitignore
+.DS_Store

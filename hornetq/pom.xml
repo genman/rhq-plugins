@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>com.apple.iad</groupId>
+      <artifactId>iad-plugins-parent</artifactId>
+      <version>5.0.5-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
+
+   <artifactId>rhq-hornetq-plugin</artifactId>
+   <packaging>jar</packaging>
+
+   <name>Apple iAd RHQ HornetQ Plugin</name>
+   <description>Monitor HornetQ instances</description>
+
+   <properties>
+      <!-- Test depends on flume running -->
+      <skipTests>true</skipTests>
+   </properties>
+
+   <build>
+   </build>
+
+   <dependencies>
+     <dependency>
+       <groupId>com.apple.iad</groupId>
+       <artifactId>rhq-plugin-testing</artifactId>
+     </dependency>
+     <dependency>
+       <groupId>com.apple.iad</groupId>
+       <artifactId>rhq-jmx-app</artifactId>
+     </dependency>
+     <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-jmx-plugin</artifactId>
+         <scope>provided</scope>
+     </dependency>
+   </dependencies>
+</project>

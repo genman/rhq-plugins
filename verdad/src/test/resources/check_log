@@ -1,0 +1,17 @@
+#!/bin/sh
+
+opt=$1
+case $opt in
+    1)
+    echo "warning"
+    exit 1
+    ;;
+    2)
+    echo "error"
+    exit 2
+    ;;
+    *)
+    echo "okay $@"
+    exit 0
+    ;;
+esac

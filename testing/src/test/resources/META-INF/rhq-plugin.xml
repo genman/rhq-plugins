@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<plugin name="test"
+        displayName="test Monitoring Plugin"
+        description="Monitor test processes"
+        package="com.apple.iad.rhq.testing"
+        pluginLifecycleListener="TestPluginLifecycleListener"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration"
+        xmlns:ci="urn:xmlns:rhq-configuration-instance"
+        >
+
+    <server name="Test Name" class="TestComponent"
+        discovery="TestComponentDiscovery" supportsManualAdd="false" singleton="true"
+        createDeletePolicy="both">
+
+        <plugin-configuration>
+            <c:simple-property name="simple" default="foo"/>
+        </plugin-configuration>
+
+        <metric property="rhq.availability" defaultInterval="60000" defaultOn="true" category="availability"/>
+        <metric property="duration" displayName="Completion Duration" displayType="summary"
+            description="Median start-end completion time" units="milliseconds"/>
+
+        <event name="test" description="Test event" />
+
+    </server>
+
+</plugin>

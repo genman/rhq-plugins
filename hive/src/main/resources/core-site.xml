@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+      <name>ipc.client.connect.max.retries</name>
+      <value>1</value>
+      <description>Indicates the number of retries a client will make to establish a server connection.</description>
+    </property>
+</configuration>

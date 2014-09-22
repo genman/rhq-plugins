@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<plugin name="netstat"
+        displayName="Netstat Monitoring Plugin"
+        description="Monitor Netstat Information"
+        package="org.rhq.plugins.script"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+   <depends plugin="Script" useClasses="true"/>
+
+   <service name="Netstat Protocol Data"
+           discovery="ScriptDiscoveryComponent"
+           class="ScriptServerComponent"
+           description="Returns per-protocol data using netstat command tool"
+           singleton="true"
+           supportsManualAdd="true">
+
+      <plugin-configuration>
+        <c:simple-property name="executable" required="true" default="/bin/netstat" />
+        <c:simple-property name="fixedDescription" required="true" default="Runs netstat" />
+      </plugin-configuration>
+
+      <metric property="{-s}|(?s)Tcp:[^:]*?(\d+) segments rec"
+              dataType="measurement"
+              displayName="TCP segments received"
+              displayType="summary"
+              category="throughput"
+              measurementType="trendsup"/>
+
+      <metric property="{-s}|(?s)Tcp:[^:]*?(\d+) segments send"
+              dataType="measurement"
+              displayName="TCP segments send out"
+              displayType="summary"
+              category="throughput"
+              measurementType="trendsup"/>
+
+      <metric property="{-s}|(?s)Tcp:[^:]*?(\d+) segments retrans"
+              dataType="measurement"
+              displayName="TCP segments retransmitted"
+              displayType="summary"
+              category="throughput"
+              measurementType="trendsup"/>
+
+      <metric property="{-s}|(?s)Tcp:[^:]*?(\d+) bad seg"
+              dataType="measurement"
+              displayName="TCP bad segments"
+              displayType="summary"
+              category="throughput"
+              measurementType="trendsup"/>
+
+    </service>
+
+</plugin>

@@ -1,0 +1,88 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>com.apple.iad</groupId>
+      <artifactId>iad-plugins-parent</artifactId>
+      <version>5.0.5-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
+
+   <artifactId>rhq-splunk-plugin</artifactId>
+   <packaging>jar</packaging>
+
+   <name>Apple iAd RHQ Monitor Splunk Plugin</name>
+   <description>Monitor Splunk is active or not</description>
+
+   <properties>
+      <skipTests>true</skipTests>
+   </properties>
+
+   <build>
+      <plugins>
+         <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+               <execution>
+                  <phase>process-test-resources</phase>
+                  <goals>
+                     <goal>run</goal>
+                  </goals>
+                  <configuration>
+                     <tasks>
+                        <echo>Setting up plugin dependencies for ${project.artifactId}-${rhq.version}.jar...</echo>
+                        <property name="settings.localRepository" location="${user.home}/.m2/repository" />
+                        <mkdir dir="target/itest" />
+                        <mkdir dir="target/itest/plugins" />
+                        <mkdir dir="target/itest/lib" />
+                        <copy toDir="target/itest/plugins" flatten="true" verbose="true">
+                           <fileset dir="${settings.localRepository}/">
+                              <include name="org/rhq/rhq-platform-plugin/${project.version}/rhq-platform-plugin-${rhq.version}.jar" />
+                           </fileset>
+                           <fileset dir="${project.build.directory}">
+                              <include name="${project.artifactId}-${project.version}.jar" />
+                           </fileset>
+                        </copy>
+                        <unzip dest="target/itest/lib">
+                           <fileset dir="${settings.localRepository}/org/hyperic/sigar-dist/${sigar.version}" includes="*.zip" />
+                           <patternset>
+                              <include name="**/lib/sigar.jar" />
+                              <include name="**/lib/bcel*.jar" />
+                              <include name="**/lib/*.so" />
+                              <include name="**/lib/*.sl" />
+                              <include name="**/lib/*.dll" />
+                              <include name="**/lib/*.dylib" />
+                           </patternset>
+                        </unzip>
+                        <move todir="target/itest/lib" flatten="true">
+                           <fileset dir="target/itest/lib">
+                              <include name="**/lib/*" />
+                           </fileset>
+                        </move>
+                     </tasks>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+
+      </plugins>
+   </build>
+
+   <dependencies>
+     <dependency>
+       <groupId>com.apple.iad</groupId>
+       <artifactId>rhq-plugin-testing</artifactId>
+     </dependency>
+        <dependency>
+            <!-- See: http://dev.splunk.com/view/SP-CAAAECN
+                 Also: splunk-dep.sh in this directory
+            -->
+            <groupId>com.splunk</groupId>
+            <artifactId>splunk-sdk-java</artifactId>
+            <version>1.2</version>
+            <scope>compile</scope>
+        </dependency>
+
+   </dependencies>
+</project>

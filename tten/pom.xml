@@ -1,0 +1,44 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>com.apple.iad</groupId>
+      <artifactId>iad-plugins-parent</artifactId>
+      <version>5.0.5-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
+
+   <artifactId>rhq-tten-plugin</artifactId>
+   <packaging>jar</packaging>
+
+   <name>Apple iAd TimesTen Plugin</name>
+   <description>A plugin for managing TimesTen Database Servers</description>
+
+   <!-- Test depends on database running -->
+   <properties>
+      <skipTests>true</skipTests>
+   </properties>
+
+   <dependencies>
+
+      <dependency>
+          <groupId>com.timesten</groupId>
+          <artifactId>ttjdbc6</artifactId>
+          <version>11.2.1.9.0</version>
+          <!-- Loaded by classloader extension -->
+          <scope>provided</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.rhq</groupId>
+          <artifactId>rhq-database-plugin</artifactId>
+          <version>4.12.0</version>
+      </dependency>
+      <dependency>
+         <groupId>com.apple.iad</groupId>
+         <artifactId>rhq-plugin-testing</artifactId>
+      </dependency>
+
+   </dependencies>
+
+</project>

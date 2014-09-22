@@ -1,0 +1,1 @@
+./snmp.sh -x DES -X passYYY123 -a MD5 -u rhq -A passXXX123 -p GETBULK -Ow -t 60000 vg61l01ad-netscaler001/161

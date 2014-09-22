@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<plugin name="HTTP"
+        displayName="Generic URL plugin"
+        package="com.apple.iad.rhq.http"
+        description="Supports obtaining data via a URL and/or checking the result of a URL request"
+        ampsVersion="2.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+   <server name="HTTP Server" discovery="HttpDiscovery" class="HttpComponent"
+           description="Generic HTTP Server monitor component"
+           supportsManualAdd="true" createDeletePolicy="neither">
+
+      <!-- Properties are connection/lookup configurations. They are values that the
+         plugin components need to connect and interact with the resource. -->
+      <plugin-configuration>
+         <c:simple-property name="url" required="true" default="http://localhost" type="string" description="URL to monitor; any URL supported by java.util.URL"/>
+
+         <c:simple-property name="status" required="false" default="200" type="string" description="Expected HTTP status"/>
+         <c:simple-property name="regex" required="false" default="" type="string" description="Expected HTTP body regular expression"/>
+         <c:simple-property name="timeout" required="false" default="60" type="string" description="Expected maximum HTTP request time in secondss"/>
+         <c:simple-property name="encoding" required="false" default="UTF-8" type="string" description="Character encoding of body; TODO autodetect"/>
+
+         <c:simple-property name="method" required="false" default="GET" type="string" description="HTTP request method"/>
+         <c:simple-property name="body" required="false" default="" type="longString" description="HTTP request body"/>
+         <c:simple-property name="content-type" required="false" default="text/plain" type="string" description="HTTP request content Type"/>
+         <c:simple-property name="user-agent" required="false" default="RHQ Plugin" type="string" description="HTTP user agent"/>
+         <c:simple-property name="charset" required="false" default="" type="string" description="HTTP request charset"/>
+
+         <c:simple-property name="format" type="string" default="regex"
+                            description="The data format for extracting measurements">
+            <c:property-options>
+               <c:option value="regex" name="Regular Expression format; use regular expressions on the body text"/>
+               <c:option value="json"  name="JSon format; digest data into name-value pairs"/>
+               <c:option value="jsonTree" name="JSon format; content stored using nested maps or lists"/>
+               <!--
+                 Split each property name using the first character (e.g. /) into keys in this map or indexes into a list
+               -->
+               <c:option value="xml"   name="XML format; return data using XPath expressions"/>
+            </c:property-options>
+         </c:simple-property>
+
+      </plugin-configuration>
+
+      <operation name="test" description="Tests a request by showing the URL, request, and URL response">
+          <parameters>
+              <c:simple-property name="extract" default="" description="Extract this metric or field from the body" required="false"/>
+          </parameters>
+          <results>
+             <c:simple-property name="success" type="boolean" description="True if URL is available" />
+             <c:simple-property name="responseCode" type="integer" description="HTTP request code, if applicable"/>
+             <c:simple-property name="url" type="string" description="URL used for this request"/>
+             <c:simple-property name="request" type="longString" description="URL request body used"/>
+             <c:simple-property name="response" type="longString" description="URL body returned"/>
+          </results>
+      </operation>
+
+      <metric property="responseTime"
+              dataType="measurement"
+              displayName="Response Time"
+              description="Response time for the URL request"
+              defaultOn="true"
+              units="milliseconds"
+              defaultInterval="300000"
+              displayType="summary"
+              category="performance" />
+
+      <metric property="responseSize"
+              dataType="measurement"
+              displayName="Response Size"
+              description="Response body size for the URL request"
+              defaultOn="true"
+              units="bytes"
+              defaultInterval="300000"
+              displayType="summary"
+              category="performance" />
+
+      <metric property="lastModified"
+              dataType="measurement"
+              displayName="Last modified time"
+              description="Last modified time for the URL request"
+              defaultOn="true"
+              units="epoch_milliseconds"
+              defaultInterval="300000"
+              displayType="detail"
+              category="availability" />
+
+      <!--
+         For each measurement that should be collected via a URL, a metric element is added.
+
+         The expectation is the HTTP body should contain all measurements.
+
+         Depending on the format, the name is interpreted as a regular expression (regex),
+         JSon document (json), XPath expression (xml).
+
+         For regex:
+
+         Note that the FIRST capture group in a regex is used to pick out the metric
+         value, or if there are no groups, the entire pattern as matched.
+
+         Example: "apple: (\\d+)" will return 42 from the document "some apple: 42"
+
+         For JSon:
+
+         The name is interpreted as a key. The document is reduced to a Java 'Map' where
+         every key-value pair comes from the document itself.
+
+         Example: "title" will return 66 from the doc "{ 'body': { 'title': 66 } }"
+
+         For xml:
+
+         The name is interpreted as an XML XPath expression.
+         Example: "//t/text()" will return 999 from the doc "<i><t>999</t></i>"
+
+         For HTTP headers:
+
+         The name needs to be the HTTP header, prefixed by a hashtag, e.g. '#x-something'. Note that this
+         could conflict with a JSon string.
+      -->
+      <!--
+      <metric property="(.*)"
+              dataType="measurement"
+              displayName="The Measurement Name"
+              description="Describes what this measurement is actually telling you"
+              defaultOn="true"
+              units="none"
+              defaultInterval="300000"
+              displayType="summary"
+              category="performance" />
+      -->
+
+      <help>
+         <![CDATA[
+         <p>Monitors a service via a URL. By default, captures the time taken to make the request and the return code.</p>
+         <p>Although mainly for http, supports any Java URL in fact. For file resources, HTTP status codes are ignored.</p>
+         <p>You may also extract measurements from the URL response body, as well by customizing the plugin.</p>
+         ]]>
+      </help>
+  </server>
+
+   <help>
+      <![CDATA[
+          <p>This plugin provides connectivity to arbitrary URL resources.
+          It is often used as a base plugin to support other URL based resources
+          and is designed for extension.</p>
+      ]]>
+   </help>
+
+</plugin>

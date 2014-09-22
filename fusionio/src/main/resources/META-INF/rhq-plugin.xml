@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="urn:xmlns:rhq-plugin" xmlns:c="urn:xmlns:rhq-configuration"
+    name="fusionio"
+    displayName="Fusion IO SNMP monitoring plugin"
+    description="Monitors Fusion IO devices" package="com.apple.iad.rhq.snmp">
+
+    <depends plugin="snmp" useClasses="true" />
+
+    <service name="Fusion IO" discovery="MibDiscovery" class="MibComponent" singleton="true" classLoader="instance">
+        <runs-inside>
+            <parent-resource-type name="SNMP Component" plugin="snmp" />
+        </runs-inside>
+        <plugin-configuration>
+            <c:simple-property name="mibs" default="fioIoDimm.mib" />
+        </plugin-configuration>
+        <metric property="fusionIoDimmMibRevMajor" description="Major MIB revision. This will increment when incompatible structural changes occur." displayType="detail" dataType="trait" />
+        <metric property="fusionIoDimmMibRevMinor" description="Minor MIB revision. This will increment when minor additions occur." displayType="detail" dataType="trait" />
+        <metric property="fusionIoDimmMIBCondition" description="The overall MIB condition." displayType="detail" dataType="trait" />
+        <service name="fusionIoDimmInfoTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="fusionIoDimmInfoIndex" description="Unique index for ioDrive entries." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoStatus values: {1=other, 2=ok, 3=degraded, 4=failed}-->
+            <metric property="fusionIoDimmInfoStatus" description="The overall status of the ioDrive device." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoName" description="System control device name for this device." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoSerialNumber" description="Serial number of this device." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoPartNumber" description="System part number of this device." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoSubVendorPartNumber" description="Sub-vendor system part number of this device." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoSparePartNumber" description="The spare part number of this device." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoAssemblyNumber" description="The assembly number of this device (HW revision)." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoFirmwareVersion" description="Firmware version of this device." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoDriverVersion" description="Device driver version." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoUID" description="Device UID written at format time." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoState values: {0=unknown, 1=detached, 2=attached, 3=minimal, 4=error, 5=detaching, 6=attaching, 7=scanning, 8=formatting, 9=updating, 10=attach, 11=detach, 12=format, 13=update}-->
+            <metric property="fusionIoDimmInfoState" description="The current state of the attached client device. In order to function normally, the device must be in the 'attached' state. Quiescent states: attached = device is ready for normal use detached = device is stopped minimal = driver loaded but firmware needs" displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoClientDeviceName" description="The name of the attached client device." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoBeacon values: {1=true, 2=false}-->
+            <metric property="fusionIoDimmInfoBeacon" description="Writing a true value here will turn on the LED flashing beacon for visual card identification. A false value will turn the LED beacon off." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoPCIAddress" description="Device address on the PCI bus." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoPCIDeviceID" description="Device PCI ID." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoPCISubdeviceID" description="Device PCI subdevice ID." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoPCIVendorID" description="Device PCI vendor ID." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoPCISubvendorID" description="Device PCI subvendor ID." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoPCISlot" description="Device PCI slot number." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoWearoutIndicator values: {1=true, 2=false}-->
+            <metric property="fusionIoDimmInfoWearoutIndicator" description="A true condition indicates that the device has surpassed the wearout threshold." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoWritableIndicator values: {0=writeReduced, 1=nonWritable, 2=normal, 3=unknown}-->
+            <metric property="fusionIoDimmInfoWritableIndicator" description="A value that indicates the writability of the device." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoInternalTemp" description="The current internal temperature of the device in Celsius." displayType="detail" dataType="measurement" />
+            <metric property="fusionIoDimmInfoHealthPercentage" description="An estimate of the health of the drive expressed as the remaining percentage of drive life before write rate is reduced due to wearout. If health percentage is not available the value will be set to -1." displayType="detail" dataType="measurement" />
+            <!--fusionIoDimmInfoMinimalModeReason values: {0=unknown, 1=fwOutOfDate, 2=lowPower, 3=dualPlaneFail, 5=internal, 6=cardLimitExceeded, 7=notInMinimalMode, 8=unsupportedOS, 9=insufficientMemory}-->
+            <metric property="fusionIoDimmInfoMinimalModeReason" description="Reason card is in minimal mode." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoReducedWriteReason values: {0=none, 1=userRequested, 2=noMdBlocks, 3=noMemory, 4=dieFailure, 5=wearout, 6=adapterPower, 7=internal, 8=powerLimiting, 9=unavailable, 10=groomFails}-->
+            <metric property="fusionIoDimmInfoReducedWriteReason" description="Reason card is in reduced write mode." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoMilliVolts" description="Current voltage level of PCIe 12 volt bus in millivolts. A value of 0 means value could not be determined." displayType="detail" dataType="measurement" />
+            <metric property="fusionIoDimmInfoMilliVoltsPeak" description="Peak voltage level of PCIe 12 volt bus in millivolts. A value of 0 means value could not be determined." displayType="detail" dataType="measurement" />
+            <metric property="fusionIoDimmInfoMilliVoltsMin" description="Minimum voltage level of PCIe 12 volt bus in millivolts. A value of 0 means value could not be determined." displayType="detail" dataType="measurement" />
+            <metric property="fusionIoDimmInfoMilliWatts" description="Current wattage drawn on the PCIe 12 volt bus in milliwatts. A value of 0 means value could not be determined." displayType="detail" dataType="measurement" />
+            <metric property="fusionIoDimmInfoMilliWattsPeak" description="Peak wattage drawn on the PCIe 12 volt bus in milliwatts. A value of 0 means value could not be determined." displayType="detail" dataType="measurement" />
+            <metric property="fusionIoDimmInfoMilliAmps" description="Amperage flowing on the PCIe 12 volt bus in milliamps. A value of 0 means value could not be determined." displayType="detail" dataType="measurement" />
+            <metric property="fusionIoDimmInfoMilliAmpsPeak" description="Peak amperage flowing on the PCIe 12 volt bus in milliamps. A value of 0 means value could not be determined." displayType="detail" dataType="measurement" />
+            <!--fusionIoDimmInfoAdapterType values: {0=iodrive, 1=iodriveLowPro2, 2=iodriveDuo, 3=iosan, 4=unknown, 5=ioOctal}-->
+            <metric property="fusionIoDimmInfoAdapterType" description="Type of ioDimm adapter." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoAdapterPort" description="Port number of this ioDimm on the adapter. If port number is not available the value will be set to -1." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmInfoAdapterSerialNumber" description="Serial number of the adapter where this ioDimm is connected." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoAdapterExtPowerPresent values: {1=true, 2=false}-->
+            <metric property="fusionIoDimmInfoAdapterExtPowerPresent" description="A true condition indicates that external power is connected on the adapter where this ioDimm is connected." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoPowerlossProtectDisabled values: {1=true, 2=false}-->
+            <metric property="fusionIoDimmInfoPowerlossProtectDisabled" description="A true condition indicates that powerloss protection is available but disabled." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoInternalTempHigh values: {1=true, 2=false}-->
+            <metric property="fusionIoDimmInfoInternalTempHigh" description="A true condition indicates that the internal temperature is nearing the maximum rating." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoPCIBandwidthCompatibility values: {2048=optimal, 0=incompatible, 16=suboptimal, 32768=unknown}-->
+            <metric property="fusionIoDimmInfoPCIBandwidthCompatibility" description="The bandwidth compatibility of the PCI-E slot. If the value is not optimal, the status and condition variables will be set accordingly." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoPCIPowerCompatibility values: {2048=optimal, 0=incompatible, 16=suboptimal, 32768=unknown}-->
+            <metric property="fusionIoDimmInfoPCIPowerCompatibility" description="The power compatibility of the PCI-E slot. If the value is not optimal, the status and condition variables will be set accordingly." displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoActualGoverningLevel values: {0=none, 1=light, 2=moderate, 3=heavy, 4=unavailable}-->
+            <metric property="fusionIoDimmInfoActualGoverningLevel" description="The level of governing currently happening on the device. This may be due to any of several reasons. Current reasons are because of high temperature, power shortage, or to prolong life of the drive. none = no governing active light = light governing moder" displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoPowerGoverningLevel values: {0=none, 1=light, 2=moderate, 3=heavy, 4=unavailable}-->
+            <metric property="fusionIoDimmInfoPowerGoverningLevel" description="Governing may be impacted due to a lack of power available to the device. This value indicates the level of contribution due to lack of power. none = no governing active light = light governing moderate = moderate governing heavy = heavy governing unavail" displayType="detail" dataType="trait" />
+            <!--fusionIoDimmInfoThermalGoverningLevel values: {0=none, 1=light, 2=moderate, 3=heavy, 4=unavailable}-->
+            <metric property="fusionIoDimmInfoThermalGoverningLevel" description="Governing may be impacted due to the device reaching high temperatures. This value indicates the level of contribution due to high temperatures. none = no governing active light = light governing moderate = moderate governing heavy = heavy governing unava" displayType="detail" dataType="trait" />
+        </service>
+        <service name="fusionIoDimmExtnTable" discovery="MibTableDiscovery" class="MibTableComponentExt" singleton="false">
+            <metric displayName="Index" property="fusionIoDimmExtnIndex" description="The unique index for the ioDrive extension table. There should be an entry in this table for each entry in the ioDrive table." displayType="detail" dataType="trait" />
+            <metric displayName="TotalPhysCapacity" property="fusionIoDimmExtnTotalPhysCapacityL^fusionIoDimmExtnTotalPhysCapacityU" description="The max format size in bytes." displayType="detail" dataType="measurement" measurementType="dynamic" units="bytes" />
+            <metric displayName="TotalLogCapacity" property="fusionIoDimmExtnTotalLogCapacityL^fusionIoDimmExtnTotalLogCapacityU" description="The total logical capacity in bytes as formatted." displayType="detail" dataType="measurement" measurementType="dynamic" units="bytes" />
+            <metric displayName="BytesRead" property="fusionIoDimmExtnBytesReadL^fusionIoDimmExtnBytesReadU" description="The total number of bytes read since the device was formatted." displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+            <metric displayName="BytesWritten" property="fusionIoDimmExtnBytesWrittenL^fusionIoDimmExtnBytesWrittenU" description="The total bytes written." displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+            <metric displayName="FormattedBlockSize" property="fusionIoDimmExtnFormattedBlockSize" description="The block size that this device is formatted to use." displayType="detail" dataType="trait" />
+            <metric displayName="CurrentRAMUsage" property="fusionIoDimmExtnCurrentRAMUsageL^fusionIoDimmExtnCurrentRAMUsageU" description="The current RAM usage in bytes for the drive." displayType="detail" dataType="measurement" measurementType="dynamic" units="bytes" />
+            <metric displayName="PeakRAMUsage" property="fusionIoDimmExtnPeakRAMUsageL^fusionIoDimmExtnPeakRAMUsageU" description="The peak RAM usage in bytes for the drive." displayType="detail" dataType="measurement" measurementType="dynamic" units="bytes" />
+        </service>
+        <service name="fusionIoDimmCapacityTable" discovery="MibTableDiscovery" class="MibTableComponentExt" singleton="false">
+            <metric displayName="Index" property="fusionIoDimmCapacityInfoIndex" description="The ioDrive index. This correlates to the drive index in the info table." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmCapacityIndex" description="Unique index for the usable physical capacity log." displayType="detail" dataType="trait" />
+            <metric displayName="Capacity" property="fusionIoDimmCapacityValueL^fusionIoDimmCapacityValueU" description="The physical usable capacity at this point in time." displayType="detail" dataType="measurement" measurementType="trendsup" />
+            <metric displayName="Timestamp" property="fusionIoDimmCapacityTimestamp" description="The time stamp of this value entry." displayType="detail" dataType="trait" />
+        </service>
+        <service name="fusionIoDimmWriteTable" discovery="MibTableDiscovery" class="MibTableComponentExt" singleton="false">
+            <metric property="fusionIoDimmWriteInfoIndex" description="The ioDrive index. This correlates with the index in the info table." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmWriteIndex" description="Unique index for this write volume entry." displayType="detail" dataType="trait" />
+            <metric displayName="WriteValue" property="fusionIoDimmWriteValueL^fusionIoDimmWriteValueU" description="The total physical number of bytes written at a given moment in time." displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+            <metric property="fusionIoDimmWriteTimestamp" description="The timestamp entry for this value." displayType="detail" dataType="trait" />
+        </service>
+        <service name="fusionIoDimmTempTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <metric property="fusionIoDimmTempInfoIndex" description="The device index. This correlates to the index in the info table." displayType="detail" dataType="trait" />
+            <metric property="fusionIoDimmTempIndex" description="Unique index for this temperature log entry." displayType="detail" dataType="trait" />
+            <metric displayName="Temp" property="fusionIoDimmTempValue" description="The current temperature of the device in Celsius." displayType="detail" dataType="measurement" />
+            <metric property="fusionIoDimmTempTimestamp" description="The timestamp for this entry." displayType="detail" dataType="trait" />
+        </service>
+    </service>
+</plugin>

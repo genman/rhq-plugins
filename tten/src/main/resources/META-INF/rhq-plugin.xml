@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<plugin name="tten" displayName="tten Database"
+          description="Plugin supporting tten database"
+          package="com.apple.iad.rhq.tten"
+          pluginLifecycleListener="org.rhq.plugins.database.DatabasePluginLifecycleListener"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:c="urn:xmlns:rhq-configuration"
+          xmlns="urn:xmlns:rhq-plugin">
+
+   <depends plugin="Database" useClasses="true" />
+
+   <server name="TimesTen" class="TimesTenComponent" discovery="TimesTenDiscovery" classLoader="instance">
+      <plugin-configuration>
+         <c:simple-property name="url" type="string" default="jdbc:timesten:direct:dsn=master;"
+            description="JDBC URL in the format jdbc:timesten:{direct|client}:dsn=DSNname;[DSNattributes;ttc_server=host;tcp_port=17002]."/>
+         <c:simple-property name="username" type="string" default="sa" />
+         <c:simple-property name="password" type="string" default="" />
+         <c:simple-property name="driverClass" default="com.timesten.jdbc.TimesTenDriver" />
+         <c:simple-property name="jar" default="ttjdbc6.jar" description="Name of the JDBC jar file" />
+         <c:simple-property name="java.library.path" default="/u01/app/timesten/product/11.2.2.6.4/TimesTen/tt1122/lib/"
+            description="Path to native libraries, as well as the ttjdbc6.jar file used. These files must be readable by the RHQ agent."/>
+      </plugin-configuration>
+
+      <process-scan name="tten" query="process|basename|match=^ttcserver.*" />
+
+        <!--
+        <process-scan name="tten"  query="process|basename|match=^java.*,arg|oracle.sysman.gcagent.tmmain.TMMain"/>
+        <process-scan name="tten2" query="process|basename|match=^ttcserver.*,arg|-port"/>
+        6056 ?        Sl     5:09 /u01/app/oem/agent12c/core/12.1.0.2.0/jdk/bin/java -Xmx128M -XX:MaxPermSize=96M -server -Djava.security.egd=file:///dev/./urandom -Dsun.lang.ClassLoader.allowArraySyntax=true -XX:+UseLinuxPosixThreadCPUClocks -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+UseCompressedOops -Dwatchdog.pid=5775 -cp /u01/app/oem/agent12c/core/12.1.0.2.0/jdbc/lib/ojdbc5.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/ucp/lib/ucp.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/modules/oracle.http_client_11.1.1.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/lib/xmlparserv2.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/lib/jsch.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/lib/optic.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/modules/oracle.dms_11.1.1/dms.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/modules/oracle.odl_11.1.1/ojdl.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/modules/oracle.odl_11.1.1/ojdl2.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/sysman/jlib/log4j-core.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/jlib/gcagent_core.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/sysman/jlib/emagentSDK-intg.jar:/u01/app/oem/agent12c/core/12.1.0.2.0/sysman/jlib/emagentSDK.jar oracle.sysman.gcagent.tmmain.TMMain
+        oracle   40923  0.0  0.0 144284  8200 ?        Sl   Aug21   0:01 /u01/app/timesten/product/11.2.2.5.0/TimesTen/ttdb1/bin/ttcserver -verbose -userlog tterrors.log -supportlog ttmesg.log -id 1000004 -p 53397 -facility user -showdate -group oinstall
+        tcp        0      0 0.0.0.0:53396               0.0.0.0:*                   LISTEN
+        tcp        0      0 0.0.0.0:53397               0.0.0.0:*                   LISTEN
+        -->
+
+        <!--  http://download.oracle.com/otn_hosted_doc/timesten/1122/doc/timesten.1122/e21644/systemtables.htm#TTSYS442 -->
+        <!--
+SYS.SYSTEMSTATS
+
+Column name         Type      Description
+NAME      TT_CHAR(64) NOT NULL          Name of statistic
+VALUE     TT_BIGINT NOT NULL  Value of statistic
+         -->
+
+      <metric displayName="CG awt tt txns" property="cg.awt.tt_txns" description="Number of TimesTen transactions propagated to the Oracle database" dataType="measurement" displayType="detail" measurementType="trendsup" />
+      <metric displayName="CG awt sql mode inserts rows" property="cg.awt.sql_mode.inserts.rows" description="Number of rows inserted on the Oracle database in SQL mode (CacheAWTMethod=0)" measurementType="trendsup" />
+      <metric displayName="CG awt sql mode updates rows" property="cg.awt.sql_mode.updates.rows" description="Number of rows updated on the Oracle database in SQL mode (CacheAWTMethod=0)" measurementType="trendsup" />
+      <metric displayName="CG awt sql mode deletes rows" property="cg.awt.sql_mode.deletes.rows" description="Number of rows deleted on the Oracle database in SQL mode (CacheAWTMethod=0)" measurementType="trendsup" />
+      <metric displayName="CG awt sql mode inserts batches" property="cg.awt.sql_mode.inserts.batches" description="Number of insert batches sent to the Oracle database in SQL mode (CacheAWTMethod=0)" measurementType="trendsup" />
+      <metric displayName="CG awt sql mode updates batches" property="cg.awt.sql_mode.updates.batches" description="Number of update batches sent to the Oracle database in SQL mode (CacheAWTMethod=0)" measurementType="trendsup" />
+      <metric displayName="CG awt sql mode deletes batches" property="cg.awt.sql_mode.deletes.batches" description="Number of delete batches sent to the Oracle database in SQL mode (CacheAWTMethod=0)" measurementType="trendsup" />
+      <metric displayName="CG awt sql mode bytes" property="cg.awt.sql_mode.bytes" description="Number of bytes sent to the Oracle database in SQL mode (CacheAWTMethod=0)" units="bytes" measurementType="trendsup" />
+      <metric displayName="CG awt sql mode batches" property="cg.awt.sql_mode.batches" description="Number of batches sent to the Oracle database in SQL mode (CacheAWTMethod=0)" measurementType="trendsup" />
+      <metric displayName="CG awt plsql mode inserts rows" property="cg.awt.plsql_mode.inserts.rows" description="Number of rows inserted on the Oracle database in PL/SQL mode (CacheAWTMethod=1)" measurementType="trendsup" />
+      <metric displayName="CG awt plsql mode updates rows" property="cg.awt.plsql_mode.updates.rows" description="Number of rows updated on the Oracle database in PL/SQL mode (CacheAWTMethod=1)" measurementType="trendsup" />
+      <metric displayName="CG awt plsql mode deletes rows" property="cg.awt.plsql_mode.deletes.rows" description="Number of rows deleted on the Oracle database in PL/SQL mode (CacheAWTMethod=1)" measurementType="trendsup" />
+      <metric displayName="CG awt plsql mode bytes" property="cg.awt.plsql_mode.bytes" description="Number of bytes sent to the Oracle database in PL/SQL mode (CacheAWTMethod=1)" units="bytes" measurementType="trendsup" />
+      <metric displayName="CG awt plsql mode batches" property="cg.awt.plsql_mode.batches" description="Number of PL/SQL block batches sent to the Oracle database (CacheAWTMethod=1)" measurementType="trendsup" />
+      <metric displayName="CG awt calls to Oracle" property="cg.awt.calls_to_oracle" description="Number of calls made to the Oracle database" measurementType="trendsup" />
+      <metric displayName="CG awt commits on Oracle" property="cg.awt.commits_on_oracle" description="Number of AWT transactions committed on the Oracle database" measurementType="trendsup" />
+      <metric displayName="CG awt rollbacks on Oracle" property="cg.awt.rollbacks_on_oracle" description="Number of rollbacks on the Oracle database because of errors" measurementType="trendsup" />
+      <metric displayName="CG awt retries on Oracle" property="cg.awt.retries_on_oracle" description="Number of times AWT transactions are retried on the Oracle database in case of an error" measurementType="trendsup" />
+
+      <metric displayName="Log buffer insertions" property="log.buffer.insertions" description="Number of log records inserted into the log buffer" measurementType="trendsup" />
+      <metric displayName="Log buffer bytes inserted" property="log.buffer.bytes_inserted" description="Number of bytes inserted into the log buffer" units="bytes" measurementType="trendsup" />
+      <metric displayName="Log buffer waits" property="log.buffer.waits" description="Total number of waits experienced by all insertion processes" measurementType="trendsup" />
+      <metric displayName="Log file reads" property="log.file.reads" description="Number of file system reads" measurementType="trendsup" />
+      <metric displayName="Log file writes" property="log.file.writes" description="Number of file system writes" measurementType="trendsup" />
+      <metric displayName="Log forces" property="log.forces" description="Number of times the log is synched to disk" measurementType="trendsup" />
+      <metric displayName="Log files generated" property="log.files.generated" description="Number of log files generated so far" measurementType="trendsup" />
+      <metric displayName="Log file earliest" property="log.file.earliest" description="Earliest log file that currently exists in the database" measurementType="trendsup" />
+      <metric displayName="Log file latest" property="log.file.latest" description="Most recent log file present Same as LAST_LOG_FILE in SYS.MONITOR." measurementType="trendsup" />
+
+      <metric displayName="CG autorefresh inserts rows" property="cg.autorefresh.inserts.rows" description="Number of rows inserted in TimesTen during autorefresh from the Oracle database" measurementType="trendsup" />
+      <metric displayName="CG autorefresh updates rows" property="cg.autorefresh.updates.rows" description="Number of rows updated in TimesTen during autorefresh from the Oracle database" measurementType="trendsup" />
+      <metric displayName="CG autorefresh deletes rows" property="cg.autorefresh.deletes.rows" description="Number of rows deleted in TimesTen during autorefresh from the Oracle database" measurementType="trendsup" />
+      <metric displayName="CG autorefresh cycles completed" property="cg.autorefresh.cycles.completed" description="Number of autorefresh cycles completed successfully on TimesTen" measurementType="trendsup" />
+      <metric displayName="CG autorefresh cycles failed" property="cg.autorefresh.cycles.failed" description="Number of autorefresh cycles that failed because of errors" measurementType="trendsup" />
+      <metric displayName="CG autorefresh full refreshes" property="cg.autorefresh.full_refreshes" description="Number of full refreshes triggered during autorefresh operations" measurementType="trendsup" />
+
+      <metric displayName="CG flush execs" property="cg.flush.execs" description="Number of flush cache group executions" measurementType="trendsup" />
+      <metric displayName="CG flush rows" property="cg.flush.rows" description="Number of rows flushed to the Oracle database" measurementType="trendsup" />
+      <metric displayName="CG flush bytes" property="cg.flush.bytes" description="Number of bytes flushed to the Oracle database" units="bytes" measurementType="trendsup" />
+
+      <metric displayName="CG swt inserts rows" property="cg.swt.inserts.rows" description="Number of rows in SWT cache groups inserted on the Oracle database" measurementType="trendsup" />
+      <metric displayName="CG swt updates rows" property="cg.swt.updates.rows" description="Number of rows in SWT cache groups updated on the Oracle database" measurementType="trendsup" />
+      <metric displayName="CG swt deletes rows" property="cg.swt.deletes.rows" description="Number of rows in SWT cache groups deleted on the Oracle database" measurementType="trendsup" />
+      <metric displayName="CG swt bytes" property="cg.swt.bytes" description="Number of bytes sent to the Oracle database during SWT cache group operations" units="bytes" measurementType="trendsup" />
+
+      <metric displayName="CG dynamic local hits" property="cg.dynamic.local.hits.count" description="Local dynamic cache group cache hits: Number of dynamic loads that find the requested data within the TimesTen database" measurementType="trendsup" />
+      <metric displayName="CG dynamic local misses" property="cg.dynamic.local.misses.count" description="Local dynamic cache group cache misses" measurementType="trendsup" />
+      <metric displayName="CG dynamic local misses oracle loads" property="cg.dynamic.local.misses.oracle.loads" description="Number of data load attempts from the Oracle database" measurementType="trendsup" />
+      <metric displayName="CG dynamic local misses oracle loads successes" property="cg.dynamic.local.misses.oracle.loads.successes" description="Number of data loads from the Oracle database" measurementType="trendsup" />
+
+      <metric displayName="grid member attaches" property="grid.member.attaches" description="Number of attach operations" measurementType="trendsup" />
+      <metric displayName="grid member detaches" property="grid.member.detaches" description="Number of detach operations" measurementType="trendsup" />
+
+      <metric displayName="CG dynamic global hits" property="cg.dynamic.global.hits.count" description="Global dynamic cache group cache hits" measurementType="trendsup" />
+      <metric displayName="CG dynamic global misses" property="cg.dynamic.global.misses.count" description="Global dynamic cache group cache misses" measurementType="trendsup" />
+      <metric displayName="CG dynamic global misses remote loads successes" property="cg.dynamic.global.misses.remote.loads.successes" description="Dynamic loads that do not find data in the local grid member and successfully load the required data from a different grid member" measurementType="trendsup" />
+      <metric displayName="CG dynamic global misses oracle" property="cg.dynamic.global.misses.oracle" description="Number of times a dynamic load miss had to load the requested data from the Oracle database" measurementType="trendsup" />
+      <metric displayName="CG dynamic global misses oracle loads successes" property="cg.dynamic.global.misses.oracle.loads.successes" description="Number of data loads from the Oracle database when servicing dynamic load misses for dynamic global cache groups" measurementType="trendsup" />
+      <metric displayName="CG dynamic global requests received" property="cg.dynamic.global.requests.received" description="Number of requests for data received by this grid member from another grid member (as a result of a dynamic load on the remote grid member)" measurementType="trendsup" />
+      <metric displayName="CG dynamic global requests received data not present" property="cg.dynamic.global.requests.received.data_not_present" description="Number of requests for data received by this grid member when the data requested was found not to be present on this grid member" measurementType="trendsup" />
+      <metric displayName="CG dynamic global requests received data locked" property="cg.dynamic.global.requests.received.data_locked" description="Number of requests for data received by this grid member when the data requested was locked by a transaction on this grid member" measurementType="trendsup" />
+      <metric displayName="CG dynamic global requests received data dirty" property="cg.dynamic.global.requests.received.data_dirty" description="Number of requests for data received by this grid member when the data requested is dirty and must first be propagated to the Oracle database" measurementType="trendsup" />
+
+      <metric displayName="Log commit bytes read" property="log.commit.bytes.read" description="Number of bytes read from the log for commit processing" units="bytes" measurementType="trendsup" />
+      <metric displayName="Log commit file reads" property="log.commit.file.reads" description="Number of file system reads from the log for commit processing" measurementType="trendsup" />
+      <metric displayName="Log recovery bytes read" property="log.recovery.bytes.read" description="Number of log bytes read during database recovery" units="bytes" measurementType="trendsup" />
+      <metric displayName="Ckpt bytes written" property="ckpt.bytes_written" description="Number of bytes written for checkpointing" units="bytes" measurementType="trendsup" />
+      <metric displayName="Ckpt writes" property="ckpt.writes" description="Number of checkpoint writes" measurementType="trendsup" />
+      <metric displayName="Ckpt completed" property="ckpt.completed" description="Number of checkpoints completed" measurementType="trendsup" />
+      <metric displayName="Ckpt completed fuzzy" property="ckpt.completed.fuzzy" description="Number of fuzzy checkpoints completed" measurementType="trendsup" />
+      <metric displayName="Ckpt bytes written during recovery" property="ckpt.bytes_written.during_recovery" description="Number of bytes written for checkpointing during database recovery" units="bytes" measurementType="trendsup" />
+
+      <metric displayName="Stmt prepares" property="stmt.prepares.count" description="Number of statement prepares" measurementType="trendsup" />
+      <metric displayName="Stmt prepares command cache miss" property="stmt.prepares.command_cache_miss" description="Number of command cache misses during statement prepare" measurementType="trendsup" />
+      <metric displayName="Stmt reprepares" property="stmt.reprepares.count" description="Number of statement reprepares, including forced and automatic" measurementType="trendsup" />
+      <metric displayName="Stmt reprepares automatic" property="stmt.reprepares.automatic" description="Number of automatic statement reprepares" measurementType="trendsup" />
+      <metric displayName="Stmt executes" property="stmt.executes.count" description="Number of SQL statements executed" measurementType="trendsup" />
+      <metric displayName="Stmt executes updates" property="stmt.executes.updates" description="Number of UPDATE statements executed" measurementType="trendsup" />
+      <metric displayName="Stmt executes deletes" property="stmt.executes.deletes" description="Number of DELETE statements executed" measurementType="trendsup" />
+      <metric displayName="Stmt executes merges" property="stmt.executes.merges" description="Number of MERGE statements executed" measurementType="trendsup" />
+      <metric displayName="Stmt executes inserts" property="stmt.executes.inserts" description="Number of INSERT statements executed" measurementType="trendsup" />
+      <metric displayName="Stmt executes selects" property="stmt.executes.selects" description="Number of SELECT statements executed" measurementType="trendsup" />
+      <metric displayName="Stmt executes alters" property="stmt.executes.alters" description="Number of ALTER statements executed" measurementType="trendsup" />
+      <metric displayName="Stmt executes creates" property="stmt.executes.creates" description="Number of CREATE statements executed" measurementType="trendsup" />
+      <metric displayName="Stmt executes drops" property="stmt.executes.drops" description="Number of DROP statements executed" measurementType="trendsup" />
+      <metric displayName="Txn commits" property="txn.commits.count" description="Number of transactions committed" measurementType="trendsup" />
+      <metric displayName="Txn commits durable" property="txn.commits.durable" description="Number of durable transaction commits" measurementType="trendsup" />
+      <metric displayName="Txn commits nondurable" property="txn.commits.nondurable" description="Number of nondurable transaction commits" measurementType="trendsup" />
+      <metric displayName="Txn commits replicated durable" property="txn.commits.replicated.durable" description="Number of durable replicated transaction commits" measurementType="trendsup" />
+      <metric displayName="Txn commits replicated nondurable" property="txn.commits.replicated.nondurable" description="Number of nondurable replicated transaction commits" measurementType="trendsup" />
+      <metric displayName="Txn commits internal replication" property="txn.commits.internal.replication" description="Number of replication-initiated transaction commits" measurementType="trendsup" />
+      <metric displayName="Txn commits internal xla" property="txn.commits.internal.xla" description="Number of XLA-initiated transaction commits" measurementType="trendsup" />
+      <metric displayName="Txn rollbacks" property="txn.rollbacks" description="Number of transaction rollbacks" measurementType="trendsup" />
+      <metric displayName="Connections established" property="connections.established.count" description="Number of database connections established" measurementType="trendsup" displayType="summary" />
+      <metric displayName="Connections established first" property="connections.established.first.count" description="Number of first database connections established" measurementType="trendsup" />
+      <metric displayName="Connections established direct" property="connections.established.direct" description="Number of direct-linked database connections established" measurementType="trendsup" />
+      <metric displayName="Connections established client/server" property="connections.established.client_server" description="Number of client/server connections established" measurementType="trendsup" />
+      <metric displayName="Connections established threshold exceeded" property="connections.established.threshold_exceeded" description="Number of database connection threshold exceeded events" measurementType="trendsup" />
+      <metric displayName="Connections disconnected" property="connections.disconnected" description="Number of database disconnects" measurementType="trendsup" displayType="summary" />
+
+      <metric displayName="DB table rows read" property="db.table.rows_read" description="Number of table rows read" measurementType="trendsup" displayType="summary" />
+      <metric displayName="DB table rows inserted" property="db.table.rows_inserted" description="Number of table rows inserted" measurementType="trendsup" />
+      <metric displayName="DB table rows updated" property="db.table.rows_updated" description="Number of table rows updated" measurementType="trendsup" />
+      <metric displayName="DB table rows deleted" property="db.table.rows_deleted" description="Number of table rows deleted" measurementType="trendsup" />
+      <metric displayName="DB table full scans" property="db.table.full_scans" description="Number of full table scans" measurementType="trendsup" displayType="summary" />
+      <metric displayName="DB index rebuilds" property="db.index.rebuilds" description="Number of indexes rebuilt" measurementType="trendsup" />
+      <metric displayName="DB index hash inserts" property="db.index.hash.inserts" description="Number of rows inserted into hash indexes" measurementType="trendsup" />
+      <metric displayName="DB index hash inserts recovery rebuild" property="db.index.hash.inserts.recovery_rebuild" description="Number of rows inserted into hash indexes during index rebuild phase of database recovery" measurementType="trendsup" />
+      <metric displayName="DB index hash deletes" property="db.index.hash.deletes" description="Number of rows deleted from hash indexes" measurementType="trendsup" />
+      <metric displayName="DB index hash scans" property="db.index.hash.scans.count" description="Number of hash indexes scanned" measurementType="trendsup" />
+      <metric displayName="DB index hash scans repl" property="db.index.hash.scans.repl" description="Number of hash indexes scanned during replication operations (such as insert, update and delete operations on tables)" measurementType="trendsup" />
+      <metric displayName="DB index hash rows fetched" property="db.index.hash.rows_fetched.count" description="Number of rows fetched from hash indexes" measurementType="trendsup" />
+      <metric displayName="DB index hash rows fetched repl" property="db.index.hash.rows_fetched.repl" description="Number of rows fetched from hash indexes during replication operations" measurementType="trendsup" />
+      <metric displayName="DB index range inserts" property="db.index.range.inserts.count" description="Number of rows inserted into range indexes" measurementType="trendsup" />
+      <metric displayName="DB index range inserts recovery rebuild" property="db.index.range.inserts.recovery_rebuild" description="Number of rows inserted into range indexes during index rebuild phase of database recovery" measurementType="trendsup" />
+      <metric displayName="DB index range deletes" property="db.index.range.deletes" description="Number of rows deleted from range indexes" measurementType="trendsup" />
+      <metric displayName="DB index range updates" property="db.index.range.updates" description="Number of rows updated on range indexes" measurementType="trendsup" />
+      <metric displayName="DB index range scans" property="db.index.range.scans.count" description="Number of range indexes scanned" measurementType="trendsup" />
+      <metric displayName="DB index range scans repl" property="db.index.range.scans.repl" description="Number of range indexes scanned during replication operations (such as insert, update and delete operations on tables)" measurementType="trendsup" />
+      <metric displayName="DB index range rows fetched" property="db.index.range.rows_fetched.count" description="Number of rows fetched from range indexes" measurementType="trendsup" />
+      <metric displayName="DB index range rows fetched repl" property="db.index.range.rows_fetched.repl" description="Number of rows fetched from range indexes during replication operations" measurementType="trendsup" />
+      <metric displayName="DB index temporary created" property="db.index.temporary.created" description="Number of temporary indexes created" measurementType="trendsup" />
+      <metric displayName="DB index temporary scans" property="db.index.temporary.scans.count" description="Number of temporary indexes scanned" measurementType="trendsup" />
+      <metric displayName="DB index temporary scans repl" property="db.index.temporary.scans.repl" description="Number of temporary indexes scanned during replication operations" measurementType="trendsup" />
+      <metric displayName="DB index temporary rows fetched" property="db.index.temporary.rows_fetched.count" description="Number of rows fetched from temporary indexes" measurementType="trendsup" />
+      <metric displayName="DB index temporary rows fetched repl" property="db.index.temporary.rows_fetched.repl" description="Number of rows fetched from temporary indexes during replication operations" measurementType="trendsup" />
+      <metric displayName="DB sorts" property="db.sorts" description="Number of sorts done" measurementType="trendsup" />
+      <metric displayName="DB joins nested loop" property="db.joins.nested_loop" description="Number of nested loop joins done" measurementType="trendsup" />
+      <metric displayName="DB joins merge" property="db.joins.merge" description="Number of merge joins done" measurementType="trendsup" />
+
+      <metric displayName="Lock locks granted immediate" property="lock.locks_granted.immediate" description="Number of locks granted immediately" measurementType="trendsup" />
+      <metric displayName="Lock locks granted wait" property="lock.locks_granted.wait" description="Number of locks granted that required waiting" measurementType="trendsup" />
+      <metric displayName="Lock timeouts" property="lock.timeouts" description="Number of lock timeouts" measurementType="trendsup" displayType="summary" />
+      <metric displayName="Lock deadlocks" property="lock.deadlocks" description="Number of deadlocks" measurementType="trendsup" displayType="summary" />
+      <metric displayName="Lock locks acquired table scans" property="lock.locks_acquired.table_scans" description="Number of locks acquired for table scans" measurementType="trendsup" />
+      <metric displayName="Lock locks acquired dml" property="lock.locks_acquired.dml" description="Number of locks acquired for DML activity" measurementType="trendsup" />
+
+      <metric displayName="Aging timebased cycles" property="aging.timebased.cycles" description="Number of time-based aging cycles completed since the database was loaded into memory" measurementType="trendsup" />
+      <metric displayName="Aging timebased commits" property="aging.timebased.commits" description="Number of time-based aging commits done since the database was loaded into memory" measurementType="trendsup" />
+      <metric displayName="Aging timebased rows deleted" property="aging.timebased.rows.deleted" description="Number of rows deleted during time-based aging since the database was loaded into memory" measurementType="trendsup" />
+      <metric displayName="Aging timebased rows skipped" property="aging.timebased.rows.skipped" description="Number of rows that were not deleted using time-based aging because of lock contention since the database was loaded into memory" measurementType="trendsup" />
+      <metric displayName="Aging lru cycles" property="aging.lru.cycles" description="Number of LRU aging cycles completed since the database was loaded into memory" measurementType="trendsup" />
+      <metric displayName="Aging lru commits" property="aging.lru.commits" description="Number of LRU aging commits done since the database was loaded into memory" measurementType="trendsup" />
+      <metric displayName="Aging lru rows deleted" property="aging.lru.rows.deleted" description="Number of rows deleted during LRU aging since the database was loaded into memory" measurementType="trendsup" />
+      <metric displayName="Aging lru rows skipped" property="aging.lru.rows.skipped" description="Number of rows that were not deleted using LRU aging because of lock contention since the database was loaded into memory" measurementType="trendsup" />
+      <metric displayName="Aging lru high threshold reached" property="aging.lru.high_threshold_reached" description="Number of times LRU aging high threshold is reached since the database was loaded into memory" measurementType="trendsup" />
+      <metric displayName="Aging lru low threshold reached" property="aging.lru.low_threshold_reached" description="Number of times LRU aging low threshold is reached since the database was loaded into memory" measurementType="trendsup" />
+
+      <metric displayName="CS server executes updates" property="cs.server.executes.updates" description="Number of UPDATE statements executed by server" measurementType="trendsup" />
+      <metric displayName="CS server executes deletes" property="cs.server.executes.deletes" description="Number of DELETE statements executed by server" measurementType="trendsup" />
+      <metric displayName="CS server executes merges" property="cs.server.executes.merges" description="Number of MERGE statements executed by server" measurementType="trendsup" />
+      <metric displayName="CS server executes inserts" property="cs.server.executes.inserts" description="Number of INSERT statements executed by server" measurementType="trendsup" />
+      <metric displayName="CS server executes selects" property="cs.server.executes.selects" description="Number of SELECT statements executed by server" measurementType="trendsup" />
+      <metric displayName="CS server executes alters" property="cs.server.executes.alters" description="Number of ALTER statements executed by server" measurementType="trendsup" />
+      <metric displayName="CS server executes creates" property="cs.server.executes.creates" description="Number of CREATE statements executed by server" measurementType="trendsup" />
+      <metric displayName="CS server executes drops" property="cs.server.executes.drops" description="Number of DROP statements executed by server" measurementType="trendsup" />
+      <metric displayName="CS server commits" property="cs.server.commits.count" description="Number of transactions committed by server" measurementType="trendsup" displayType="summary" />
+      <metric displayName="CS server rollbacks" property="cs.server.rollbacks" description="Number of transaction rollbacks by server" measurementType="trendsup" />
+      <metric displayName="CS server rows inserted" property="cs.server.rows_inserted" description="Number of table rows inserted by server" measurementType="trendsup" />
+      <metric displayName="CS server rows updated" property="cs.server.rows_updated" description="Number of table rows updated by server" measurementType="trendsup" />
+      <metric displayName="CS server rows deleted" property="cs.server.rows_deleted" description="Number of table rows deleted by server" measurementType="trendsup" />
+      <metric displayName="CS server roundtrips" property="cs.server.roundtrips" description="Number of client/server round trips" measurementType="trendsup" />
+      <metric displayName="CS server bytes transmitted" property="cs.server.bytes.transmitted" description="Number of client/server bytes transmitted by server" units="bytes" measurementType="trendsup" displayType="summary" />
+      <metric displayName="CS server bytes received" property="cs.server.bytes.received" description="Number of client/server bytes received by server" units="bytes" measurementType="trendsup" displayType="summary" />
+      <metric displayName="CS server disconnected" property="cs.server.disconnected" description="Number of client/server disconnects" measurementType="trendsup" />
+
+   </server>
+
+</plugin>
+
+

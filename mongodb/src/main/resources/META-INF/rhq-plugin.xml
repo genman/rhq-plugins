@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<plugin name="mongodb"
+        displayName="MongoDB Monitoring Plugin"
+        description="Monitor mongodb processes"
+        package="com.apple.iad.rhq.mongodb"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+    <server name="MongoDBServer" class="MongoDBServerComponent"
+        discovery="MongoDBServerDiscovery" supportsManualAdd="true" singleton="false"
+        createDeletePolicy="both">
+
+        <plugin-configuration>
+            <c:simple-property name="uri" default="mongodb://localhost:27017" description="URI to connect to mongodb server; see MongoDB URI for details"/>
+        </plugin-configuration>
+
+        <process-scan name="MongoDB" query="process|basename|match=^mongod.*"/>
+
+        <metric property="locked"      displayType="summary" description="'true' if this is locked" dataType="trait" />
+        <metric property="state"       displayType="summary" description="replication state" dataType="trait" />
+        <metric property="primary"     displayType="summary" description="replication primary server" dataType="trait" />
+        <metric property="replSetName" displayType="summary" description="replication set name" dataType="trait" />
+
+        <metric property="uptime"                displayType="detail"  units="seconds" dataType="measurement" />
+        <metric property="globalLock.lockTime"  displayName="Global Lock Time" displayType="detail"  units="microseconds" dataType="measurement" />
+        <metric property="globalLock.ratio"     displayName="Global Lock Ratio" displayType="detail"  units="seconds" dataType="measurement" />
+        <metric property="connections.current"  displayName="Connections Current" displayType="summary" dataType="measurement" />
+        <metric property="mem.resident"         displayName="Memory Resident" displayType="summary" units="megabytes" dataType="measurement" />
+        <metric property="connections.available" displayName="Connections Available" displayType="detail"  dataType="measurement" />
+        <metric property="mem.virtual"           displayName="Memory Virtual" displayType="detail"  units="megabytes" dataType="measurement" />
+        <metric property="cursors.totalOpen"     displayName="Cursors Total Open" displayType="detail"  dataType="measurement" measurementType="trendsup"/>
+        <metric property="backgroundFlushing.flushes" displayName="Background Flushing Flushes" displayType="detail"  dataType="measurement" measurementType="trendsup"/>
+        <metric property="network.bytesIn"       displayName="Network Bytes In" displayType="detail"  units="bytes" dataType="measurement" measurementType="trendsup"/>
+        <metric property="network.bytesOut"      displayName="Network Bytes Out" displayType="detail"  units="bytes" dataType="measurement" measurementType="trendsup"/>
+        <metric property="network.numRequests"   displayName="Network Number Requests" displayType="summary" dataType="measurement" measurementType="trendsup"/>
+
+        <metric property="dur.commits"           displayName="Durability commits" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+        <metric property="dur.journaledMB"       displayName="Durability journal size" displayType="detail" dataType="measurement" units="megabytes" measurementType="trendsup"/>
+
+        <metric property="opcounters.insert"     displayName="Counter Insert" displayType="detail"  dataType="measurement" measurementType="trendsup"/>
+        <metric property="opcounters.query"      displayName="Counter Query" displayType="detail"  dataType="measurement" measurementType="trendsup"/>
+        <metric property="opcounters.update"     displayName="Counter Update" displayType="detail"  dataType="measurement" measurementType="trendsup"/>
+        <metric property="opcounters.delete"     displayName="Counter Delete" displayType="detail"  dataType="measurement" measurementType="trendsup"/>
+        <metric property="opcounters.getmore"    displayName="Counter Get More" displayType="detail"  dataType="measurement" measurementType="trendsup"/>
+        <metric property="opcounters.command"    displayName="Counter Command" displayType="detail"  dataType="measurement" measurementType="trendsup"/>
+
+        <service name="MongoDB" class="MongoDBComponent"
+            discovery="MongoDBDiscovery" supportsManualAdd="false" singleton="false"
+            createDeletePolicy="both">
+
+            <plugin-configuration>
+                <c:simple-property name="db" default="admin" description="Database Name"/>
+                <!--
+                <c:simple-property name="discovery" default="true" description="Discover collection (child) resources" type="boolean"/>
+                -->
+            </plugin-configuration>
+
+<!--
+
+collections" : 0 , "objects" : 0 , "avgObjSize" : 0.0 , "dataSize" : 0 , "storageSize" : 0 ,
+"numExtents" : 0 , "indexes" : 0 , "indexSize" : 0 , "fileSize" : 0 , "ok
+
+ -->
+            <metric property="collections" displayType="detail" description="Contains a count of the number of collections in this database" units="none" dataType="measurement" />
+            <metric property="objects" displayType="detail" description="Contains a count of the number of objects (i.e. documents) in the database across all collections." units="none" dataType="measurement" />
+            <metric property="avgObjSize" displayType="detail" description="The average size of each document in bytes. This is the dataSize divided by the number of documents." units="bytes" dataType="measurement" />
+            <metric property="dataSize" displayType="summary" description="The total size of the data held in this database including the padding factor. The dataSize will not decrease when documents shrink, but will decrease when you remove documents." units="bytes" dataType="measurement" />
+            <metric property="storageSize" displayType="summary" description="The total amount of space allocated to collections in this database for document storage. The storageSize does not decrease as you remove or shrink documents." units="bytes" dataType="measurement" />
+            <metric property="numExtents" displayType="detail" description="Contains a count of the number of extents in the database across all collections." units="bytes" dataType="measurement" />
+            <metric property="indexes" displayType="detail" description="Contains a count of the total number of indexes across all collections in the database." units="none" dataType="measurement" />
+            <metric property="indexSize" displayType="detail" description="The total size of all indexes created on this database." units="none" dataType="measurement" />
+            <metric property="fileSize" displayType="summary" description="The total size of the data files that hold the database. This value includes preallocated space and the padding factor. The value of fileSize only reflects the size of the data files for the database and not the namespace file." units="bytes" dataType="measurement" />
+            <metric property="nsSizeMB" displayType="detail" description="The total size of the namespace files (i.e. that end with .ns) for this database." units="megabytes" dataType="measurement" />
+
+            <service name="MongoDBCollection" class="MongoDBCollectionComponent"
+                discovery="MongoDBCollectionDiscovery" singleton="false"
+                supportsManualAdd="false"
+                createDeletePolicy="both">
+
+<!--
+   "ns" : "<database>.<collection>",
+     "count" : <number>,
+     "size" : <number>,
+     "avgObjSize" : <number>,
+     "storageSize" : <number>,
+     "numExtents" : <number>,
+     "nindexes" : <number>,
+     "lastExtentSize" : <number>,
+     "paddingFactor" : <number>,
+     "systemFlags" : <bit>,
+     "userFlags" : <bit>,
+     "totalIndexSize" : <number>,
+     "indexSizes" : {
+             "_id_" : <number>,
+             "a_1" : <number>
+     },
+     "ok" : 1
+
+     Note: We don't support per index size.
+ -->
+                <plugin-configuration>
+                    <c:simple-property name="collection" default="" description="Collection Name"/>
+                </plugin-configuration>
+
+<!--
+                <operation name="validate" description="The collection validation command checks all of the structures within a name space for correctness and returns a document containing information regarding the on-disk representation of the collection.">
+                    <results><c:simple-property name="document"/></results>
+                </operation>
+  -->
+
+                <metric property="count" displayType="detail" description="The number of objects or documents in this collection." units="none" dataType="measurement" />
+                <metric property="size" displayType="summary" description="The size of the data stored in this collection. This value does not include the size of any indexes associated with the collection, which the totalIndexSize field reports." units="bytes" dataType="measurement" />
+                <metric property="storageSize" displayType="detail" description="The total amount of storage allocated to this collection for document storage. The storageSize does not decrease as you remove or shrink documents." units="bytes" dataType="measurement" />
+                <metric property="avgObjSize" displayType="detail" description="The average size of an object in the collection." units="bytes" dataType="measurement" />
+                <metric property="numExtents" displayType="detail" description="The total number of contiguously allocated data file regions" units="bytes" dataType="measurement" />
+                <metric property="nindexes" displayType="detail" description="The number of indexes on the collection. All collections have at least one index on the _id field." units="bytes" dataType="measurement" />
+                <metric property="lastExtentSize" displayType="detail" description="The size of the last extent allocated." units="bytes" dataType="measurement" />
+                <metric property="paddingFactor" displayType="detail" description="The amount of space added to the end of each document at insert time. The document padding provides a small amount of extra space on disk to allow a document to grow slightly without needing to move the document." units="bytes" dataType="measurement" />
+                <metric property="userFlags" displayType="detail" description="Reports the flags on this collection set by the user." dataType="trait" />
+                <metric property="systemFlags" displayType="detail" description="Reports the flags on this collection that reflect internal server options. Typically this value is 1 and reflects the existence of an index on the _id field." dataType="trait" />
+                <metric property="totalIndexSize" displayType="detail" description="The total size of all indexes." dataType="trait" />
+            </service>
+
+        </service>
+
+    </server>
+
+</plugin>

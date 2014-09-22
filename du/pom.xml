@@ -1,0 +1,34 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>com.apple.iad</groupId>
+      <artifactId>iad-plugins-parent</artifactId>
+      <version>5.0.5-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
+
+   <groupId>com.apple.iad</groupId>
+   <artifactId>rhq-du-plugin</artifactId>
+   <packaging>jar</packaging>
+
+   <name>Apple iAd Disk Usage Plugin</name>
+   <description>Monitor Disk Usage Information</description>
+
+   <properties>
+   </properties>
+
+   <dependencies>
+     <dependency>
+       <groupId>com.apple.iad</groupId>
+       <artifactId>rhq-plugin-testing</artifactId>
+     </dependency>
+     <dependency>
+       <groupId>org.rhq</groupId>
+       <artifactId>rhq-script-plugin</artifactId>
+       <version>${rhq.version}</version>
+       <scope>provided</scope>
+     </dependency>
+   </dependencies>
+</project>

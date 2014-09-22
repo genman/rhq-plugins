@@ -1,0 +1,55 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>com.apple.iad</groupId>
+      <artifactId>iad-plugins-parent</artifactId>
+      <version>5.0.5-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
+
+   <artifactId>rhq-jmx-app</artifactId>
+   <packaging>jar</packaging>
+
+   <name>Apple iAd JMX application monitoring</name>
+   <description>Classes for monitoring a JMX application. Not a plugin. Used to group together multiple MBeans.</description>
+
+   <!-- override, disable stuff -->
+   <build>
+      <plugins>
+         <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <executions>
+               <execution>
+                  <id>packaging</id>
+                  <phase>none</phase>
+               </execution>
+            </executions>
+            <configuration combine.self="override" />
+         </plugin>
+         <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+               <execution>
+                  <id>deps</id>
+                  <phase>none</phase>
+               </execution>
+            </executions>
+            <configuration combine.self="override" />
+         </plugin>
+      </plugins>
+   </build>
+
+   <dependencies>
+      <dependency>
+         <groupId>com.apple.iad</groupId>
+         <artifactId>rhq-plugin-testing</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-jmx-plugin</artifactId>
+         <scope>provided</scope>
+      </dependency>
+   </dependencies>
+</project>

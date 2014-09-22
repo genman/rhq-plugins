@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<plugin name="redis"
+        displayName="Redis Monitoring Plugin"
+        description="Monitor redis processes"
+        package="com.apple.iad.rhq.redis"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+    <server name="Redis" class="RedisComponent"
+        discovery="RedisDiscovery" supportsManualAdd="true" singleton="false"
+        createDeletePolicy="both">
+
+        <plugin-configuration>
+            <c:simple-property name="port" default="6379" description="Port to connect to redis server"/>
+        </plugin-configuration>
+
+        <process-scan name="Redis" query="process|basename|match=^redis-server.*"/>
+
+<metric property="redis_version" displayName="Version" displayType="detail" description="Version of the Redis server" units="none" dataType="trait" />
+<metric property="redis_git_sha1" displayName="SHA1" displayType="detail" description="Git SHA1" dataType="trait"/>
+<!--
+<metric property="os" displayType="detail" displayName="OS" description="Operating system hosting the Redis server" dataType="trait"/>
+<metric property="arch_bits" displayType="detail" description="Architecture (32 or 64 bits)" measurementType="dynamic"/>
+-->
+<metric property="multiplexing_api" displayName="Multiplexing API" displayType="detail" description="Event loop mechanism used by Redis" dataType="trait"/>
+<metric property="gcc_version" displayName="GCC Version" displayType="detail" description="Version of the GCC compiler used to compile the Redis server" dataType="trait"/>
+<metric property="process_id" displayName="Process ID" displayType="detail" description="PID of the server process" dataType="trait"/>
+<metric property="run_id" displayName="Run ID" displayType="detail" description="Random value identifying the Redis server (to be used by Sentinel and Cluster)" dataType="trait"/>
+<metric property="tcp_port" displayName="TCP port" displayType="detail" description="TCP/IP listen port" dataType="trait"/>
+<metric property="uptime_in_seconds" displayName="Uptime" displayType="summary" description="Number of seconds since Redis server start" units="seconds" measurementType="dynamic"/>
+<metric property="lru_clock" displayName="LRU clock" displayType="detail" description="Clock incrementing every minute, for LRU management" measurementType="dynamic"/>
+
+<metric property="connected_clients" displayName="Connected clients" displayType="summary" description="Number of client connections (excluding connections from slaves)" measurementType="dynamic"/>
+<metric property="client_longest_output_list" displayName="Client longest output list" displayType="detail" description="longest output list among current client connections" measurementType="dynamic"/>
+<metric property="client_biggest_input_buf" displayName="Client biggest input buf" displayType="detail" description="biggest input buffer among current client connections" measurementType="dynamic"/>
+<metric property="blocked_clients" displayName="Blocked clients" displayType="summary" description="Number of clients pending on a blocking call (BLPOP, BRPOP, BRPOPLPUSH)" measurementType="dynamic"/>
+<metric property="used_memory" displayName="Used memory" displayType="summary" description="Total number of bytes allocated by Redis using its allocator (either standard libc, jemalloc, or an alternative allocator such as tcmalloc" units="bytes" measurementType="dynamic"/>
+<!--
+<metric property="used_memory_human" displayType="detail" description="Human readable representation of previous value" measurementType="dynamic"/>
+<metric property="used_memory_rss" displayType="detail" description="Number of bytes that Redis allocated as seen by the operating system (a.k.a resident set size). This is the number reported by tools such as top and ps." measurementType="dynamic"/>
+<metric property="used_memory_peak" displayType="detail" description="Peak memory consumed by Redis (in bytes)" measurementType="dynamic"/>
+<metric property="used_memory_peak_human" displayType="detail" description="Human readable representation of previous value" measurementType="dynamic"/>
+-->
+<metric property="used_memory_lua" displayName="Used memory Lua" displayType="detail" description="Number of bytes used by the Lua engine" units="bytes" measurementType="dynamic"/>
+<metric property="mem_fragmentation_ratio" displayName="Memory frag ratio" displayType="summary" description="Ratio between used_memory_rss and used_memory" units="percentage" measurementType="dynamic"/>
+<metric property="mem_allocator" displayName="Memory allocator" displayType="detail" description="Memory allocator, chosen at compile time." dataType="trait"/>
+
+<metric property="loading" displayName="Loading" displayType="summary" description="Flag indicating if the load of a dump file is on-going" dataType="trait"/>
+
+<!-- RDB -->
+<metric property="rdb_changes_since_last_save" displayName="RDB changes since last save" displayType="detail" description="Number of changes since the last dump" measurementType="dynamic"/>
+<metric property="rdb_bgsave_in_progress" displayName="RDB bgsave in progress" displayType="detail" description="Flag indicating a RDB save is on-going" dataType="trait"/>
+<metric property="rdb_last_save_time" displayName="RDB last save time" displayType="detail" description="Epoch-based timestamp of last successful RDB save" units="epoch_seconds" measurementType="dynamic"/>
+<metric property="rdb_last_bgsave_status" displayName="RDB last bgsave status" displayType="detail" description="Status of the last RDB save operation" dataType="trait"/>
+<metric property="rdb_last_bgsave_time_sec" displayName="RDB last bgsave time" displayType="detail" description="Duration of the last RDB save operation in seconds" units="seconds" measurementType="dynamic"/>
+<metric property="rdb_current_bgsave_time_sec" displayName="RDB current bgsave time" displayType="detail" description="Duration of the on-going RDB save operation if any" units="seconds" measurementType="dynamic"/>
+
+<!-- AOF -->
+<metric property="aof_enabled" displayName="AOF enabled" displayType="detail" description="Flag indicating AOF logging is activated" dataType="trait"/>
+<metric property="aof_rewrite_in_progress" displayName="AOF rewrite in progress" displayType="detail" description="Flag indicating a AOF rewrite operation is on-going" dataType="trait"/>
+<metric property="aof_rewrite_scheduled" displayName="AOF rewrite scheduled" displayType="detail" description="Flag indicating an AOF rewrite operation will be scheduled once the on-going RDB save is complete." dataType="trait"/>
+<metric property="aof_last_rewrite_time_sec" displayName="AOF last rewrite time" displayType="detail" description="Duration of the last AOF rewrite operation in seconds" units="seconds" measurementType="dynamic"/>
+<metric property="aof_current_rewrite_time_sec" displayName="AOF current rewrite time" displayType="detail" description="Duration of the on-going AOF rewrite operation if any" units="seconds" measurementType="dynamic"/>
+<metric property="aof_last_bgrewrite_status" displayName="AOF last bgrewrite status" displayType="detail" description="Status of the last AOF rewrite operation" dataType="trait"/>
+<metric property="aof_current_size" displayName="AOF current size" displayType="detail" description="AOF current file size" units="bytes" measurementType="dynamic"/>
+<metric property="aof_base_size" displayName="AOF base size" displayType="detail" description="AOF file size on latest startup or rewrite" units="bytes" measurementType="dynamic"/>
+<metric property="aof_pending_rewrite" displayName="AOF pending rewrite" displayType="detail" description="Flag indicating an AOF rewrite operation will be scheduled once the on-going RDB save is complete." dataType="trait"/>
+<metric property="aof_buffer_length" displayName="AOF buffer length" displayType="detail" description="Size of the AOF buffer" units="bytes" measurementType="dynamic"/>
+<metric property="aof_rewrite_buffer_length" displayName="AOF rewrite buffer length" displayType="detail" description="Size of the AOF rewrite buffer" units="bytes" measurementType="dynamic"/>
+<metric property="aof_pending_bio_fsync" displayName="AOF pending bio fsync" displayType="detail" description="Number of fsync pending jobs in background I/O queue" measurementType="dynamic"/>
+<metric property="aof_delayed_fsync" displayName="AOF delayed fsync" displayType="detail" description="Delayed fsync counter" measurementType="dynamic"/>
+
+<metric property="total_connections_received" displayName="Total connections received" displayType="summary" description="Total number of connections accepted by the server" measurementType="trendsup"/>
+<metric property="total_commands_processed" displayName="Total commands processed" displayType="summary" description="Total number of commands processed by the server" measurementType="trendsup"/>
+<!--
+<metric property="instantaneous_ops_per_sec" displayType="summary" description="Number of commands processed per second" measurementType="dynamic"/>
+-->
+<metric property="rejected_connections" displayName="Rejected connections" displayType="summary" description="Number of connections rejected because of maxclients limit" measurementType="dynamic"/>
+<metric property="expired_keys" displayName="Expired keys" displayType="summary" description="Total number of key expiration events" measurementType="trendsup"/>
+<metric property="evicted_keys" displayName="Evicted keys" displayType="summary" description="Number of evicted keys due to maxmemory limit" measurementType="trendsup"/>
+<metric property="keyspace_hits" displayName="Keyspace hits" displayType="summary" description="Number of successful lookup of keys in the main dictionary" measurementType="trendsup"/>
+<metric property="keyspace_misses" displayName="Keyspace misses" displayType="summary" description="Number of failed lookup of keys in the main dictionary" measurementType="trendsup"/>
+<metric property="pubsub_channels" displayName="Pub/Sub channels" displayType="detail" description="Global number of pub/sub channels with client subscriptions" measurementType="dynamic"/>
+<metric property="pubsub_patterns" displayName="Pub/Sub patterns" displayType="detail" description="Global number of pub/sub pattern with client subscriptions" measurementType="dynamic"/>
+<metric property="latest_fork_usec" displayName="Latest fork" displayType="detail" description="Duration of the latest fork operation in microseconds" units="microseconds" measurementType="dynamic"/>
+<metric property="role" displayName="Role" displayType="summary" description="Value is master if the instance is slave of no one, or slave if the instance is enslaved to a master." dataType="trait"/>
+<metric property="master_host" displayName="Master Host" displayType="detail" description="Host or IP address of the master" dataType="trait"/>
+<metric property="master_port" displayName="Master Port" displayType="detail" description="Master listening TCP port" dataType="trait"/>
+<metric property="master_link_status" displayName="Master Link Status" displayType="detail" description="Status of the link (up/down)" dataType="trait"/>
+<metric property="master_last_io_seconds_ago" displayName="Master last IO seconds ago" displayType="detail" description="Number of seconds since the last interaction with master" units="seconds" measurementType="dynamic"/>
+<metric property="master_sync_in_progress" displayName="Master sync in progress" displayType="detail" description="Indicate the master is SYNCing to the slave" dataType="trait"/>
+<metric property="connected_slaves" displayName="Connected slaves" displayType="detail" description="Number of connected slaves" measurementType="dynamic"/>
+<metric property="used_cpu_sys" displayName="Used CPU sys" displayType="detail" description="System CPU consumed by the Redis server" measurementType="trendsup"/>
+<metric property="used_cpu_user" displayName="Used CPU user" displayType="detail" description="User CPU consumed by the Redis server" measurementType="trendsup"/>
+<metric property="used_cpu_sys_children" displayName="Used CPU sys children" displayType="detail" description="System CPU consumed by the background processes" measurementType="trendsup"/>
+<metric property="used_cpu_user_children" displayName="Used CPU user children" displayType="detail" description="User CPU consumed by the background processes" measurementType="trendsup"/>
+
+    </server>
+
+</plugin>

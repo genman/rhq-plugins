@@ -1,0 +1,61 @@
+{
+   "hostname" : {
+      "iad" : {
+         "monitor" : {
+            "enabled" : [
+               "true"
+            ],
+            "env" : {
+               "PATH" : [
+                  "/opt/iad/monitor/bin:/usr/lib64/nagios/plugins:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin"
+               ]
+            },
+            "group" : [
+               "p"
+            ],
+            "home" : [
+               "/opt/iad/monitor/bin"
+            ],
+            "interval" : [
+               "5"
+            ],
+            "service" : {
+               "check_mem" : {
+                  "interval" : [ "60" ],
+                  "source" : [ "global" ],
+                  "enabled" : [ "true" ],
+                  "description" : [ "Checks" ]
+               },
+               "check_log_null" : {
+                  "command" : [ "check_log" ],
+                  "args" : [ "--nagios", "/dev/null" ]
+               },
+               "check_log_bad" : {
+                  "command" : [ "check_log" ],
+                  "args" : [ "2" ]
+               },
+               "bogus" : {
+                  "enabled" : [ "false" ]
+               },
+               "truth" : {
+                  "command" : [ "true" ],
+                  "path" : [ "/usr/bin" ],
+                  "version" : [ "1.0" ],
+               },
+               "abstruth" : {
+                  "command" : [ "/usr/bin/true" ],
+                  "group" : [ "p" ],
+               },
+               "untrue" : {
+                  "command" : [ "false" ],
+                  "path" : [ "/usr/bin" ],
+                  "version" : [ "1.0" ],
+               },
+            },
+            "timeout" : [
+               "60"
+            ]
+         }
+      }
+   }
+}

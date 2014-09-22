@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<plugin name="memcached"
+        displayName="Memcached Monitoring Plugin"
+        description="Monitor memcached processes"
+        package="com.apple.iad.rhq.memcached"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+    <server name="Memcached" class="MemcachedComponent"
+        discovery="MemcachedDiscovery" supportsManualAdd="true" singleton="false"
+        createDeletePolicy="both">
+
+        <plugin-configuration>
+            <c:simple-property name="port" default="11211" description="Port to connect to memcached server"/>
+        </plugin-configuration>
+
+        <process-scan name="Memcached" query="process|basename|match=^memcached.*"/>
+
+        <metric property="uptime" displayType="summary"
+            displayName="Uptime" description="Uptime in seconds"
+            units="seconds" measurementType="dynamic"/>
+        <metric property="bytes" displayType="summary"
+            displayName="Bytes" description="Current number of bytes used by this server to store items"
+            units="bytes" measurementType="dynamic"/>
+        <metric property="curr_items" displayType="summary"
+            displayName="Current items" description="Current number of items stored by the server"
+            units="none" measurementType="dynamic"/>
+        <metric property="curr_connections" displayType="summary"
+            displayName="Current Connections" description="Number of current connections"
+            units="none" measurementType="dynamic"/>
+        <metric property="total_connections" displayType="summary"
+            displayName="Total Connections" description="Number of total connections"
+            units="none" measurementType="trendsup"/>
+
+        <metric property="get_ratio" displayType="summary"
+            displayName="Get Ratio" description="Since last measurement sample, get hits divided by total gets. 100% means no misses."
+            units="percentage" measurementType="dynamic"/>
+
+        <metric property="get_hits" displayType="detail"
+            displayName="Get hits" description="Number of get hits"
+            units="none" measurementType="trendsup"/>
+        <metric property="get_misses" displayType="detail"
+            displayName="Get misses" description="Number of get hits"
+            units="none" measurementType="trendsup"/>
+
+        <metric property="incr_misses" displayType="detail"
+            displayName="Incr misses" description="Number of incr reqs against missing keys"
+            units="none" measurementType="trendsup"/>
+        <metric property="incr_hits" displayType="detail"
+            displayName="Incr hits" description="Number of successful incr reqs"
+            units="none" measurementType="trendsup"/>
+
+        <metric property="decr_misses" displayType="detail"
+            displayName="Decr misses" description="Number of decr reqs against missing keys"
+            units="none" measurementType="trendsup"/>
+        <metric property="decr_hits" displayType="detail"
+            displayName="Decr hits" description="Number of successful decr reqs"
+            units="none" measurementType="trendsup"/>
+
+        <metric property="cas_misses" displayType="detail"
+            displayName="CAS misses" description="Number of CAS reqs against missing keys"
+            units="none" measurementType="trendsup"/>
+        <metric property="cas_hits" displayType="detail"
+            displayName="CAS hits" description="Number of successful CAS reqs"
+            units="none" measurementType="trendsup"/>
+        <metric property="cas_badval" displayType="detail"
+            displayName="CAS badval" description="Number of CAS reqs for which a key was found, but the CAS value did not match"
+            units="none" measurementType="trendsup"/>
+
+      <!-- <metric property="touch_hits" displayType="detail"
+            displayName="Touch hits" description="Numer of keys that have been touched with a new expiration time"
+            units="none" measurementType="trendsup"/>
+           <metric property="touch_misses" displayType="detail"
+            displayName="Touch misses" description="Numer of keys that have been touched and not found"
+            units="none" measurementType="trendsup"/> -->
+
+        <metric property="version" displayType="detail"
+            dataType="trait" displayName="Version" description="Version string of this server"
+            units="none" />
+        <metric property="pid" displayType="detail"
+            dataType="trait" displayName="PID" description="Process id of this server process"
+            units="none" />
+
+        <metric property="total_items" displayType="detail"
+            displayName="Total items" description="Total number of items stored by this server ever since it started"
+            units="none" measurementType="trendsup"/>
+        <metric property="evictions" displayType="summary"
+            displayName="Evictions" description="Number of cache evictions"
+            units="none" measurementType="trendsup"/>
+        <metric property="reclaimed" displayType="detail"
+            displayName="Reclaimed" description="Number of times an entry was stored using memory from an expired entry"
+            units="none" measurementType="trendsup"/>
+        <metric property="threads" displayType="detail"
+            displayName="Threads" description="Number of worker threads requested"
+            units="none" measurementType="dynamic"/>
+
+        <metric property="bytes_written" displayType="summary"
+            displayName="Bytes written" description="Number of bytes written"
+            units="bytes" measurementType="trendsup"/>
+        <metric property="bytes_read" displayType="summary"
+            displayName="Bytes read" description="Number of bytes read"
+            units="bytes" measurementType="trendsup"/>
+
+        <metric property="limit_maxbytes" displayType="summary"
+            displayName="Limit maxbytes" description="Number of bytes this server is permitted to use for storage"
+            units="bytes" measurementType="dynamic"/>
+        <metric property="total_malloced" displayType="summary"
+            displayName="Total malloced" description="Total amount of memory allocated to slab pages"
+            units="bytes" measurementType="dynamic"/>
+    </server>
+
+</plugin>

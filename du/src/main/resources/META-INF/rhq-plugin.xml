@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<plugin name="du"
+        displayName="Disk Usage Monitoring Plugin"
+        description="Monitor Uptime Information"
+        package="com.apple.iad.rhq.du"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+   <depends plugin="Script" useClasses="true"/>
+
+   <service name="du"
+           discovery="DUDiscovery"
+           class="DUComponent"
+           description="Returns Disk Usage information using du"
+           singleton="false"
+           supportsManualAdd="true">
+
+      <plugin-configuration>
+        <c:simple-property name="executable" required="true" default="/usr/bin/du" description="full path to the 'du' command"/>
+        <c:simple-property name="args" required="true" default="-k -s" description="args to get summary total in kilobytes"/>
+        <c:simple-property name="dir" required="true" default="/tmp" description="last argument(s), directory or directories to check"/>
+        <c:simple-property name="waitForCompletion" required="true" default="60" units="seconds" description="how long to wait to complete du execution"/>
+      </plugin-configuration>
+
+      <metric property="k"
+              dataType="measurement"
+              displayName="Space used in kilobytes"
+              displayType="summary"
+              defaultInterval="600000"
+              units="kilobytes"
+              measurementType="dynamic"/>
+      <metric property="time"
+              dataType="measurement"
+              displayName="Time to execute"
+              displayType="detail"
+              defaultInterval="600000"
+              units="nanoseconds"
+              measurementType="dynamic"/>
+    </service>
+
+</plugin>

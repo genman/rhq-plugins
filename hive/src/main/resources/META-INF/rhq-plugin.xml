@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<plugin name="hadoop-hive"
+        displayName="Hadoop Hive Monitoring Plugin"
+        description="Monitor various components of Hive; mostly Hive"
+        package="com.apple.iad.rhq.hadoop.hive"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+    <depends plugin="MySql" useClasses="true"/>
+
+    <server name="HiveServer" class="HiveServerComponent"
+        discovery="HiveServerDiscovery" supportsManualAdd="true" singleton="false"
+        createDeletePolicy="both" classLoader="instance">
+        <plugin-configuration>
+            <c:simple-property name="fs.default.name" default="hdfs://localhost:8020/" description="Hadoop file system location"/>
+            <c:simple-property name="hadoop.home.dir" default="/usr/lib/hadoop" description="Hadoop home directory"/>
+            <c:simple-property name="jdbc.driver" default="com.mysql.jdbc.Driver"/>
+            <c:simple-property name="jdbc.url" default="jdbc:mysql://localhost/metastore?user=login&amp;password=pw"/>
+            <c:simple-property name="table.query" type="longString" default="
+            select t.tbl_name from TBLS t, PARTITIONS p
+            where t.tbl_id = p.tbl_id group by (t.tbl_name) order by t.tbl_name limit 1000"
+                description="SQL query for a list of hive tables; ideally only those with partitions. Query should return table names as the result."/>
+            <c:simple-property name="location.query" type="longString" default="
+            select s.LOCATION from SDS s, PARTITIONS p, TBLS t
+            where s.sd_id = p.sd_id and p.tbl_id = t.tbl_id and t.tbl_name = ?"
+                description="SQL query for the location of table partition data. Should return the list of directories and files of interest."/>
+            <c:simple-property name="table.match" type="string" default=".*" description="Regular expression to match tables of interest"/>
+        </plugin-configuration>
+
+        <service name="HiveTable" discovery="HiveTableDiscovery" class="HiveTable"
+            description="Information about a Hive table inside Hadoop">
+            <metric displayType="summary" property="length" defaultOn="true" defaultInterval="3600000" dataType="measurement" displayName="Length" description="Length of the files" units="bytes" measurementType="trendsup"/>
+            <metric property="fileCount" defaultOn="true" defaultInterval="3600000" dataType="measurement" displayName="Files" description="Number of files" units="none" measurementType="trendsup"/>
+            <metric property="spaceConsumed" defaultOn="false" defaultInterval="3600000" dataType="measurement" displayName="Space consumed" description="Space actually consumed" units="bytes" measurementType="trendsup"/>
+            <metric property="directoryCount" defaultOn="false" defaultInterval="3600000" dataType="measurement" displayName="Directories" description="Number of directories" units="none" measurementType="trendsup"/>
+        </service>
+
+    </server>
+
+</plugin>

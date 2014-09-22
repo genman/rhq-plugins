@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<plugin name="uptime"
+        displayName="Uptime Monitoring Plugin"
+        description="Monitor Uptime Information"
+        package="org.rhq.plugins.script"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+   <depends plugin="Script" useClasses="true"/>
+
+   <service name="Uptime Data"
+           discovery="ScriptDiscoveryComponent"
+           class="ScriptServerComponent"
+           description="Returns per-protocol data using netstat command tool"
+           singleton="true"
+           supportsManualAdd="true">
+
+      <plugin-configuration>
+        <c:simple-property name="executable" required="true" default="/usr/bin/uptime" />
+        <c:simple-property name="fixedDescription" required="true" default="Runs uptime" />
+      </plugin-configuration>
+
+      <metric property="{}|(\d+) day"
+              dataType="measurement"
+              displayName="Number of days"
+              displayType="detail"
+              category="throughput"
+              measurementType="dynamic"/>
+
+      <metric property="{}|(\d+) user"
+              dataType="measurement"
+              displayName="Number of users"
+              displayType="detail"
+              category="throughput"
+              measurementType="dynamic"/>
+
+      <metric property="{}|load \w+: ([\d.]+)"
+              dataType="measurement"
+              displayName="Load average last minute"
+              displayType="summary"
+              category="throughput"
+              defaultInterval="60000"
+              measurementType="dynamic"/>
+
+    </service>
+
+</plugin>

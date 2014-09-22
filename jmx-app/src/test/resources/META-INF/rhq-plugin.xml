@@ -1,0 +1,31 @@
+<plugin name="jlang" package="com.apple.iad.rhq.jmx" description="Plugin for monitoring PNS"
+   ampsVersion="2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xmlns="urn:xmlns:rhq-plugin" xmlns:c="urn:xmlns:rhq-configuration">
+
+   <depends plugin="JMX" useClasses="true" />
+
+   <server name="JLang" discovery="ApplicationMBeansDiscoveryComponent"
+      class="ApplicationMBeansComponent" description="Desc">
+      
+      <runs-inside>
+          <parent-resource-type name="JMX Server" plugin="JMX" />
+      </runs-inside>
+
+      <plugin-configuration>
+         <c:simple-property name="beansQueryString" default="java.lang:*" />
+      </plugin-configuration>
+
+      <service name="CL"
+         discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent"
+         singleton="true">
+
+         <plugin-configuration>
+            <c:simple-property name="objectName" default="java.lang:type=ClassLoading" />
+         </plugin-configuration>
+
+      </service>
+
+   </server>
+
+</plugin>
+

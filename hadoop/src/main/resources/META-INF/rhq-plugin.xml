@@ -1,0 +1,651 @@
+<?xml version="1.0"?>
+<plugin name="hadoop"
+        displayName="Hadoop Monitoring Plugin"
+        description="Monitor various components of Hadoop Clusters"
+        package="com.apple.iad.rhq.hadoop"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+    <depends plugin="JMX" useClasses="true"/>
+    <!-- TODO: PID directory is distribution specific -->
+
+    <server name="SecondaryNameNode" discovery="HadoopDiscovery" class="HadoopComponent" singleton="true">
+        <process-scan name="SecondaryNameNode" query="process|basename|match=^java.*,arg|org.apache.hadoop.hdfs.server.namenode.SecondaryNameNode|match=.*"/>
+        <process-scan name="pid" query="process|pidfile|match=/var/hadoop/pids/hadoop-hadoop-secondarynamenode.pid"/>
+    </server>
+
+    <server name="NameNode" discovery="HadoopDiscovery" class="NameNodeComponent" singleton="true" classLoader="instance">
+        <plugin-configuration>
+            <c:simple-property name="connectorAddress" default="service:jmx:rmi:///jndi/rmi://localhost:8004/jmxrmi"/>
+            <c:simple-property name="type" default="org.mc4j.ems.connection.support.metadata.JSR160ConnectionTypeDescriptor"/>
+
+            <c:simple-property name="fs.default.name" default="hdfs://localhost:8020/" description="Location of Hadoop file system; typically begins with hdfs://"/>
+            <c:simple-property name="dfs.test.dir"    default="/tmp/perf_test" description="Location to create temporary files for DFS testing"/>
+            <c:simple-property name="dfs.test.files"  default="10" type="integer" description="Number of files to create for DFS testing; set to 0 to disable testing"/>
+            <c:simple-property name="dfs.test.bytes"  default="67108864" type="integer" units="bytes" description="Number of bytes to create in DFS per file"/> <!-- 64MB -->
+            <c:simple-property name="json.url" default="http://localhost:50070/metrics?format=json" description="JSon URL for NameNode server"/>
+            <c:simple-property name="json.enabled" type="boolean" default="true" description="Pull data from JSon URL"/>
+            <c:simple-property name="hadoop.classpath.command" default="/usr/bin/hadoop classpath" description="Command to get location of hadoop *.jar file"/>
+            <c:simple-property name="standby" default="false" type="boolean"
+                description="If true, if accessing HDFS throws StandbyException, availability is UP."/>
+        </plugin-configuration>
+
+        <process-scan name="NameNode" query="process|basename|match=^java.*,arg|org.apache.hadoop.hdfs.server.namenode.NameNode|match=.*"/>
+        <process-scan name="pid" query="process|pidfile|match=/var/hadoop/pids/hadoop-hadoop-namenode.pid"/>
+
+        <metric property="DFSPerformance" displayName="DFS Read-Write Performance" units="milliseconds"
+            category="performance" displayType="summary" defaultOn="true" defaultInterval="3600000"/>
+
+        <server name="NameNode JVM" description="JVM of the NameNode"
+              sourcePlugin="JMX" sourceType="JMX Server"
+              discovery="org.rhq.plugins.jmx.InternalJMXServerDiscoveryComponent" class="org.rhq.plugins.jmx.JMXServerComponent"
+              singleton="true"/>
+
+        <service name="NameNode FSCK"
+            description="Provides file system checking for particular sub directories"
+            discovery="NameNodeFsckDiscovery"
+            class="NameNodeFsckComponent"
+            supportsManualAdd="true"
+            createDeletePolicy="both" singleton="false">
+            <plugin-configuration>
+                <c:simple-property name="path" default="/tmp" description="Hadoop filesystem path"/>
+                <c:simple-property name="ignore.age" default="300" units="seconds"
+                    description="Ignore files older than this age"/>
+                <c:simple-property name="url" default="http://localhost:50070/fsck?ugi=rhq" description="URL for FSCK"/>
+                <c:simple-property name="size" default="-1" description="Minimum size for checking files"/>
+            </plugin-configuration>
+            <metric property="OpenForWrite"
+                    description="Number of files open for write that are older than some age"
+                    displayType="summary"
+                    units="none"
+                    dataType="measurement"
+                    defaultInterval="900000"/>
+        </service>
+
+        <!-- CDH4 -->
+        <service name="Stats" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:name=MetricsSystem,service=NameNode,sub=Stats"/>
+                <c:simple-property name="nameTemplate" default="NameNode Stats" readOnly="true"/>
+            </plugin-configuration>
+           <metric property="tag.Context" units="none" dataType="trait" description="Metrics context" />
+           <metric property="tag.Hostname" units="none" dataType="trait" description="Local hostname" />
+           <metric property="NumActiveSources" units="none" dataType="measurement" description="Number of active metrics sources" />
+           <metric property="NumAllSources" units="none" dataType="measurement" description="Number of all registered metrics sources" />
+           <metric property="NumActiveSinks" units="none" dataType="measurement" description="Number of active metrics sinks" />
+           <metric property="NumAllSinks" units="none" dataType="measurement" description="Number of all registered metrics sinks" />
+           <metric property="SnapshotNumOps" units="none" dataType="measurement" description="Number of ops for snapshot stats" />
+           <metric property="SnapshotAvgTime" units="none" dataType="measurement" description="Average time for snapshot stats" />
+           <metric property="PublishNumOps" units="none" dataType="measurement" description="Number of ops for publishing stats" />
+           <metric property="PublishAvgTime" units="none" dataType="measurement" description="Average time for publishing stats" />
+           <metric property="DroppedPubAll" units="none" dataType="measurement" description="Dropped updates by all sinks" />
+        </service>
+        <service name="NameNodeActivity" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:name=NameNodeActivity,service=NameNode"/>
+                <c:simple-property name="nameTemplate" default="NameNode Activity" readOnly="true"/>
+            </plugin-configuration>
+           <metric property="tag.ProcessName" units="none" dataType="trait" description="Process name" />
+           <metric property="tag.SessionId" units="none" dataType="trait" description="Session ID" />
+           <metric property="tag.Context" units="none" dataType="trait" description="Metrics context" />
+           <metric property="tag.Hostname" units="none" dataType="trait" description="Local hostname" />
+           <metric property="CreateFileOps" units="none" dataType="measurement" description="CreateFileOps" />
+           <metric property="FilesCreated" units="none" dataType="measurement" description="FilesCreated" />
+           <metric property="FilesAppended" units="none" dataType="measurement" description="FilesAppended" />
+           <metric property="GetBlockLocations" units="none" dataType="measurement" description="GetBlockLocations" />
+           <metric property="FilesRenamed" units="none" dataType="measurement" description="FilesRenamed" />
+           <metric property="GetListingOps" units="none" dataType="measurement" description="GetListingOps" />
+           <metric property="DeleteFileOps" units="none" dataType="measurement" description="DeleteFileOps" />
+           <metric property="FilesDeleted" units="none" dataType="measurement" description="Number of files/dirs deleted by delete or rename operations" />
+           <metric property="FileInfoOps" units="none" dataType="measurement" description="FileInfoOps" />
+           <metric property="AddBlockOps" units="none" dataType="measurement" description="AddBlockOps" />
+           <metric property="GetAdditionalDatanodeOps" units="none" dataType="measurement" description="GetAdditionalDatanodeOps" />
+           <metric property="CreateSymlinkOps" units="none" dataType="measurement" description="CreateSymlinkOps" />
+           <metric property="GetLinkTargetOps" units="none" dataType="measurement" description="GetLinkTargetOps" />
+           <metric property="FilesInGetListingOps" units="none" dataType="measurement" description="FilesInGetListingOps" />
+           <metric property="TransactionsNumOps" units="none" dataType="measurement" description="Number of ops for journal transactions" />
+           <metric property="TransactionsAvgTime" units="none" dataType="measurement" description="Average time for journal transactions" />
+           <metric property="SyncsNumOps" units="none" dataType="measurement" description="Number of ops for journal syncs" />
+           <metric property="SyncsAvgTime" units="none" dataType="measurement" description="Average time for journal syncs" />
+           <metric property="TransactionsBatchedInSync" units="none" dataType="measurement" description="Journal transactions batched in sync" />
+           <metric property="BlockReportNumOps" units="none" dataType="measurement" description="Number of ops for block report" />
+           <metric property="BlockReportAvgTime" units="none" dataType="measurement" description="Average time for block report" />
+           <metric property="SafeModeTime" units="none" dataType="measurement" description="Duration in SafeMode at startup" />
+           <metric property="FsImageLoadTime" units="none" dataType="measurement" description="Time loading FS Image at startup" />
+           <metric property="GetEditNumOps" units="none" dataType="measurement" description="Number of ops for getImageServlet getEdit" />
+           <metric property="GetEditAvgTime" units="none" dataType="measurement" description="Average time for getImageServlet getEdit" />
+           <metric property="GetImageNumOps" units="none" dataType="measurement" description="Number of ops for getImageServlet getImage" />
+           <metric property="GetImageAvgTime" units="none" dataType="measurement" description="Average time for getImageServlet getImage" />
+           <metric property="PutImageNumOps" units="none" dataType="measurement" description="Number of ops for getImageServlet putImage" />
+           <metric property="PutImageAvgTime" units="none" dataType="measurement" description="Average time for getImageServlet putImage" />
+        </service>
+        <service name="FSNamesystem" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:name=FSNamesystem,service=NameNode"/>
+                <c:simple-property name="nameTemplate" default="FSNamesystem" readOnly="true"/>
+            </plugin-configuration>
+           <metric property="tag.Context" units="none" dataType="trait" description="Metrics context" />
+           <metric property="tag.HAState" units="none" dataType="trait" description="HAState" />
+           <metric property="tag.Hostname" units="none" dataType="trait" description="Local hostname" />
+           <metric property="MissingBlocks" units="none" dataType="measurement" description="Number of missing blocks" />
+           <metric property="ExpiredHeartbeats" units="none" dataType="measurement" description="Number of expired heartbeats" />
+           <metric property="TransactionsSinceLastCheckpoint" units="none" dataType="measurement" description="Number of transactions since last checkpoint" />
+           <metric property="TransactionsSinceLastLogRoll" units="none" dataType="measurement" description="Number of transactions since last edit log roll" />
+           <metric property="LastWrittenTransactionId" units="none" dataType="measurement" description="Transaction ID written to the edit log" />
+           <metric property="LastCheckpointTime" units="milliseconds" dataType="measurement" description="Time in milliseconds since the epoch of the last checkpoint" />
+           <metric property="CapacityTotalGB" units="gigabytes" dataType="measurement" description="CapacityTotalGB" />
+           <metric property="CapacityUsedGB" units="gigabytes" dataType="measurement" description="CapacityUsedGB" />
+           <metric property="CapacityRemainingGB" units="gigabytes" dataType="measurement" description="CapacityRemainingGB" />
+           <metric property="TotalLoad" units="none" dataType="measurement" description="TotalLoad" />
+           <metric property="BlocksTotal" units="none" dataType="measurement" description="BlocksTotal" />
+           <metric property="FilesTotal" units="none" dataType="measurement" description="FilesTotal" />
+           <metric property="PendingReplicationBlocks" units="none" dataType="measurement" description="PendingReplicationBlocks" />
+           <metric property="UnderReplicatedBlocks" units="none" dataType="measurement" description="UnderReplicatedBlocks" />
+           <metric property="CorruptBlocks" units="none" dataType="measurement" description="Number of blocks with corrupt replicas" />
+           <metric property="ScheduledReplicationBlocks" units="none" dataType="measurement" description="ScheduledReplicationBlocks" />
+           <metric property="PendingDeletionBlocks" units="none" dataType="measurement" description="PendingDeletionBlocks" />
+           <metric property="ExcessBlocks" units="none" dataType="measurement" description="ExcessBlocks" />
+           <metric property="PostponedMisreplicatedBlocks" units="none" dataType="measurement" description="PostponedMisreplicatedBlocks" />
+           <metric property="PendingDataNodeMessageCount" units="none" dataType="measurement" description="PendingDataNodeMessageCount" />
+           <metric property="MillisSinceLastLoadedEdits" units="none" dataType="measurement" description="MillisSinceLastLoadedEdits" />
+           <metric property="BlockCapacity" units="none" dataType="measurement" description="BlockCapacity" />
+           <metric property="TotalFiles" units="none" dataType="measurement" description="TotalFiles" />
+        </service>
+        <service name="FSNamesystemState" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:name=FSNamesystemState,service=NameNode"/>
+                <c:simple-property name="nameTemplate" default="FSNamesystemState" readOnly="true"/>
+            </plugin-configuration>
+           <metric displayType="summary" property="CapacityRemaining" displayName="CapacityRemaining" units="bytes" description="DFS remaining"/>
+           <metric displayType="summary" property="CapacityTotal" displayName="CapacityTotal" units="bytes" description="DFS Configured capacitiy"/>
+           <metric displayType="summary" property="CapacityUsed" displayName="CapacityUsed" units="bytes" description="DFS used"/>
+           <metric displayType="summary" property="FSState" units="none" dataType="trait" description="e.g. Operational" />
+           <metric displayType="summary" property="NumDeadDataNodes" units="none" dataType="measurement" description="class java.lang.Integer, e.g. 0" />
+           <metric displayType="summary" property="NumLiveDataNodes" units="none" dataType="measurement" description="class java.lang.Integer, e.g. 17" />
+           <metric property="BlocksTotal" units="none" dataType="measurement" />
+           <metric property="CapacityRemaining" units="none" dataType="measurement" description="class java.lang.Long, e.g. 55419047309312" />
+           <metric property="CapacityTotal" units="none" dataType="measurement" description="class java.lang.Long, e.g. 57297193246720" />
+           <metric property="CapacityUsed" units="none" dataType="measurement" description="class java.lang.Long, e.g. 62684786270" />
+           <metric property="FilesTotal" units="none" dataType="measurement" />
+           <metric property="PendingReplicationBlocks" units="none" dataType="measurement" />
+           <metric property="ScheduledReplicationBlocks" units="none" dataType="measurement" />
+           <metric property="TotalLoad" units="none" dataType="measurement" />
+           <metric property="UnderReplicatedBlocks" units="none" dataType="measurement" />
+       </service>
+       <service name="NameNodeInfo" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="NameNodeInfoComponent" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:name=NameNodeInfo,service=NameNode"/>
+                <c:simple-property name="nameTemplate" default="NameNodeInfo" readOnly="true"/>
+            </plugin-configuration>
+           <metric property="BlockPoolId" units="none" dataType="trait" description="BlockPoolId" />
+           <metric property="BlockPoolUsedSpace" units="none" dataType="measurement" description="BlockPoolUsedSpace" />
+           <metric property="ClusterId" units="none" dataType="trait" description="ClusterId" />
+           <metric property="DeadNodes" displayName="Dead Nodes JSON" dataType="trait" defaultOn="false"/>
+           <metric property="DecomNodes" displayName="Decom Nodes JSON" dataType="trait" defaultOn="false"/>
+           <metric property="Free" displayName="Free" units="bytes"/>
+           <metric property="LiveNodes" displayName="Live Nodes JSON" dataType="trait" defaultOn="false"/>
+           <!-- calculated -->
+           <metric property="DeadNodesCount"  displayName="Dead Node Count" dataType="measurement"/>
+           <metric property="DecomNodesCount" displayName="Decomissioned Node Count" dataType="measurement"/>
+           <metric property="LiveNodesCount"  displayName="Live Node Count" dataType="measurement"/>
+           <!--  -->
+           <metric property="NameDirStatuses" units="none" dataType="trait" description="NameDirStatuses" defaultOn="false"/>
+           <metric property="NonDfsUsedSpace" units="none" dataType="measurement" description="NonDfsUsedSpace" />
+           <metric property="NumberOfMissingBlocks" units="none" dataType="measurement" description="NumberOfMissingBlocks" />
+           <metric property="PercentBlockPoolUsed" units="percentage" dataType="measurement" description="PercentBlockPoolUsed" />
+           <metric property="PercentRemaining" displayName="PercentRemaining" units="percentage"/>
+           <metric property="PercentUsed" displayName="PercentUsed" units="percentage"/>
+           <metric property="Safemode" units="none" dataType="trait" description="Safemode" />
+           <metric property="Threads" units="none" dataType="measurement" description="Threads" />
+           <metric property="Total" units="none" dataType="measurement" description="Total" />
+           <metric property="TotalBlocks" units="none" dataType="measurement" description="TotalBlocks" />
+           <metric property="TotalFiles" units="none" dataType="measurement" description="TotalFiles" />
+           <metric property="UpgradeFinalized" units="none" dataType="trait" description="UpgradeFinalized" />
+           <metric property="Used" units="bytes" dataType="measurement" description="Used" />
+           <metric property="Version" units="none" dataType="trait" description="Version" />
+       </service>
+       <service name="UgiMetrics" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:name=UgiMetrics,service=NameNode"/>
+                <c:simple-property name="nameTemplate" default="UgiMetrics" readOnly="true"/>
+            </plugin-configuration>
+           <metric property="tag.Context" units="none" dataType="trait" description="Metrics context" />
+           <metric property="tag.Hostname" units="none" dataType="trait" description="Local hostname" />
+           <metric property="LoginSuccessNumOps" units="milliseconds" dataType="measurement" description="Number of ops for rate of successful kerberos logins and latency (milliseconds)" />
+           <metric property="LoginSuccessAvgTime" units="milliseconds" dataType="measurement" description="Average time for rate of successful kerberos logins and latency (milliseconds)" />
+           <metric property="LoginFailureNumOps" units="milliseconds" dataType="measurement" description="Number of ops for rate of failed kerberos logins and latency (milliseconds)" />
+           <metric property="LoginFailureAvgTime" units="milliseconds" dataType="measurement" description="Average time for rate of failed kerberos logins and latency (milliseconds)" />
+           <metric property="GetGroupsNumOps" units="none" dataType="measurement" description="Number of ops for getGroups" />
+           <metric property="GetGroupsAvgTime" units="none" dataType="measurement" description="Average time for getGroups" />
+       </service>
+       <service name="MetricsSystem" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent" singleton="true" >
+           <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:name=MetricsSystem,service=NameNode,sub=Control"/>
+                <c:simple-property name="nameTemplate" default="MetricsSystem" readOnly="true"/>
+           </plugin-configuration>
+           <operation name="start"  description="start"/>
+           <operation name="stop"  description="stop"/>
+           <operation name="startMetricsMBeans"  description="startMetricsMBeans"> </operation>
+           <operation name="stopMetricsMBeans"  description="stopMetricsMBeans"> </operation>
+           <operation name="currentConfig"  description="currentConfig">
+              <results>
+                <c:simple-property name="java.lang.String"  type="string" />
+              </results>
+           </operation>
+       </service>
+       <!--
+
+       need to fix this to use partial query
+
+       <service name="IPCLoggerChannel" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent" singleton="false">
+           <plugin-configuration>
+               <c:simple-property name="objectName"   default="*:name=IPCLoggerChannel-%addr%,service=NameNode" />
+               <c:simple-property name="nameTemplate"   default="IPCLoggerChannel {addr}" />
+               <c:simple-property name="descriptionTemplate"   default="IPCLoggerChannel for address {addr}" />
+           </plugin-configuration>
+           <metric property="tag.Context" units="none" dataType="trait" description="Metrics context" />
+           <metric property="tag.IsOutOfSync" units="none" dataType="trait" description="Is the remote logger out of sync with the quorum" />
+           <metric property="tag.Hostname" units="none" dataType="trait" description="Local hostname" />
+           <metric property="QueuedEditsSize" units="bytes" dataType="measurement" description="The number of bytes of pending data to be sent to the remote node" />
+           <metric property="LagTimeMillis" units="milliseconds" dataType="measurement" description="The number of milliseconds the remote log is lagging behind the quorum" />
+           <metric property="CurrentLagTxns" units="none" dataType="measurement" description="The number of transactions the remote log is lagging behind the quorum" />
+       </service>
+       <service name="RpcActivityForPort" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent" singleton="false">
+           <plugin-configuration>
+               <c:simple-property name="objectName"   default="*:name=RpcActivityForPort%port%,service=NameNode" />
+               <c:simple-property name="nameTemplate"   default="RPC {port}" />
+               <c:simple-property name="descriptionTemplate"   default="RPC activity on port {port}" />
+           </plugin-configuration>
+
+           <metric property="tag.port" units="none" dataType="trait" description="RPC port" />
+           <metric property="tag.Context" units="none" dataType="trait" description="Metrics context" />
+           <metric property="tag.Hostname" units="none" dataType="trait" description="Local hostname" />
+           <metric property="ReceivedBytes" units="bytes" dataType="measurement" description="Number of received bytes" />
+           <metric property="SentBytes" units="bytes" dataType="measurement" description="Number of sent bytes" />
+           <metric property="RpcQueueTimeNumOps" units="none" dataType="measurement" description="Number of ops for queue time" />
+           <metric property="RpcQueueTimeAvgTime" units="none" dataType="measurement" description="Average time for queue time" />
+           <metric property="RpcProcessingTimeNumOps" units="none" dataType="measurement" description="Number of ops for processsing time" />
+           <metric property="RpcProcessingTimeAvgTime" units="none" dataType="measurement" description="Average time for processsing time" />
+           <metric property="RpcAuthenticationFailures" units="none" dataType="measurement" description="Number of authentication failures" />
+           <metric property="RpcAuthenticationSuccesses" units="none" dataType="measurement" description="Number of authentication successes" />
+           <metric property="RpcAuthorizationFailures" units="none" dataType="measurement" description="Number of authorization failures" />
+           <metric property="RpcAuthorizationSuccesses" units="none" dataType="measurement" description="Number of authorization sucesses" />
+           <metric property="NumOpenConnections" units="none" dataType="measurement" description="Number of open connections" />
+           <metric property="CallQueueLength" units="none" dataType="measurement" description="Length of the call queue" />
+       </service>
+       -->
+       <!--
+       <service name="*:name=RpcDetailedActivityForPortXXX,service=NameNode"
+            discovery="MBeanResourceDiscoveryComponent"
+            class="MBeanResourceComponent"
+            singleton="true"
+          >
+           <metric property="tag.port" units="none" dataType="trait" description="RPC port" />
+           <metric property="tag.Context" units="none" dataType="trait" description="Metrics context" />
+           <metric property="tag.Hostname" units="none" dataType="trait" description="Local hostname" />
+           <metric property="GetFileInfoNumOps" units="none" dataType="measurement" description="Number of ops for getFileInfo" />
+           <metric property="GetFileInfoAvgTime" units="none" dataType="measurement" description="Average time for getFileInfo" />
+           <metric property="CreateNumOps" units="none" dataType="measurement" description="Number of ops for create" />
+           <metric property="CreateAvgTime" units="none" dataType="measurement" description="Average time for create" />
+           <metric property="AddBlockNumOps" units="none" dataType="measurement" description="Number of ops for addBlock" />
+           <metric property="AddBlockAvgTime" units="none" dataType="measurement" description="Average time for addBlock" />
+           <metric property="GetServerDefaultsNumOps" units="none" dataType="measurement" description="Number of ops for getServerDefaults" />
+           <metric property="GetServerDefaultsAvgTime" units="none" dataType="measurement" description="Average time for getServerDefaults" />
+           <metric property="CompleteNumOps" units="none" dataType="measurement" description="Number of ops for complete" />
+           <metric property="CompleteAvgTime" units="none" dataType="measurement" description="Average time for complete" />
+           <metric property="GetBlockLocationsNumOps" units="none" dataType="measurement" description="Number of ops for getBlockLocations" />
+           <metric property="GetBlockLocationsAvgTime" units="none" dataType="measurement" description="Average time for getBlockLocations" />
+           <metric property="DeleteNumOps" units="none" dataType="measurement" description="Number of ops for delete" />
+           <metric property="DeleteAvgTime" units="none" dataType="measurement" description="Average time for delete" />
+           <metric property="MkdirsNumOps" units="none" dataType="measurement" description="Number of ops for mkdirs" />
+           <metric property="MkdirsAvgTime" units="none" dataType="measurement" description="Average time for mkdirs" />
+           <metric property="RenameNumOps" units="none" dataType="measurement" description="Number of ops for rename" />
+           <metric property="RenameAvgTime" units="none" dataType="measurement" description="Average time for rename" />
+           <metric property="GetListingNumOps" units="none" dataType="measurement" description="Number of ops for getListing" />
+           <metric property="GetListingAvgTime" units="none" dataType="measurement" description="Average time for getListing" />
+           <metric property="SetReplicationNumOps" units="none" dataType="measurement" description="Number of ops for setReplication" />
+           <metric property="SetReplicationAvgTime" units="none" dataType="measurement" description="Average time for setReplication" />
+           <metric property="SetPermissionNumOps" units="none" dataType="measurement" description="Number of ops for setPermission" />
+           <metric property="SetPermissionAvgTime" units="none" dataType="measurement" description="Average time for setPermission" />
+           <metric property="GetContentSummaryNumOps" units="none" dataType="measurement" description="Number of ops for getContentSummary" />
+           <metric property="GetContentSummaryAvgTime" units="none" dataType="measurement" description="Average time for getContentSummary" />
+           <metric property="RenewLeaseNumOps" units="none" dataType="measurement" description="Number of ops for renewLease" />
+           <metric property="RenewLeaseAvgTime" units="none" dataType="measurement" description="Average time for renewLease" />
+           <metric property="GetFsStatsNumOps" units="none" dataType="measurement" description="Number of ops for getFsStats" />
+           <metric property="GetFsStatsAvgTime" units="none" dataType="measurement" description="Average time for getFsStats" />
+       </service>
+       <service name="*:name=JvmMetrics,service=NameNode" discovery="MBeanResourceDiscoveryComponent" class="MBeanResourceComponent" singleton="true" >
+           <metric property="tag.Context" units="none" dataType="trait" description="Metrics context" />
+           <metric property="tag.ProcessName" units="none" dataType="trait" description="Process name" />
+           <metric property="tag.SessionId" units="none" dataType="trait" description="Session ID" />
+           <metric property="tag.Hostname" units="none" dataType="trait" description="Local hostname" />
+           <metric property="MemNonHeapUsedM" units="none" dataType="measurement" description="Non-heap memory used in MB" />
+           <metric property="MemNonHeapCommittedM" units="none" dataType="measurement" description="Non-heap memory committed in MB" />
+           <metric property="MemHeapUsedM" units="none" dataType="measurement" description="Heap memory used in MB" />
+           <metric property="MemHeapCommittedM" units="none" dataType="measurement" description="Heap memory committed in MB" />
+           <metric property="GcCountParNew" units="none" dataType="measurement" description="GC Count for ParNew" />
+           <metric property="GcTimeMillisParNew" units="none" dataType="measurement" description="GC Time for ParNew" />
+           <metric property="GcCountConcurrentMarkSweep" units="none" dataType="measurement" description="GC Count for ConcurrentMarkSweep" />
+           <metric property="GcTimeMillisConcurrentMarkSweep" units="none" dataType="measurement" description="GC Time for ConcurrentMarkSweep" />
+           <metric property="GcCount" units="none" dataType="measurement" description="Total GC count" />
+           <metric property="GcTimeMillis" units="none" dataType="measurement" description="Total GC time in milliseconds" />
+           <metric property="ThreadsNew" units="none" dataType="measurement" description="Number of new threads" />
+           <metric property="ThreadsRunnable" units="none" dataType="measurement" description="Number of runnable threads" />
+           <metric property="ThreadsBlocked" units="none" dataType="measurement" description="Number of blocked threads" />
+           <metric property="ThreadsWaiting" units="none" dataType="measurement" description="Number of waiting threads" />
+           <metric property="ThreadsTimedWaiting" units="none" dataType="measurement" description="Number of timed waiting threads" />
+           <metric property="ThreadsTerminated" units="none" dataType="measurement" description="Number of terminated threads" />
+           <metric property="LogFatal" units="none" dataType="measurement" description="Total number of fatal log events" />
+           <metric property="LogError" units="none" dataType="measurement" description="Total number of error log events" />
+           <metric property="LogWarn" units="none" dataType="measurement" description="Total number of warning log events" />
+           <metric property="LogInfo" units="none" dataType="measurement" description="Total number of info log events" />
+       </service>
+       -->
+    </server>
+
+    <server name="DataNode" discovery="HadoopDiscovery" class="HadoopComponent" singleton="true">
+        <process-scan name="DataNode" query="process|basename|match=^java.*,arg|org.apache.hadoop.hdfs.server.datanode.DataNode|match=.*"/>
+        <process-scan name="SecureDataNodeStarter" query="process|basename|match=^jsvc.*,arg|org.apache.hadoop.hdfs.server.datanode.SecureDataNodeStarter|match=.*"/>
+        <process-scan name="pid" query="process|pidfile|match=/var/hadoop/pids/hadoop-hadoop-datanode.pid"/>
+        <process-scan name="Dproc" query="process|basename|match=^java.*,arg|-Dproc_datanode|match=.*"/>
+        <service name="DataNodeActivity" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent"
+            description="Information on data node activity"
+            createDeletePolicy="neither" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default='*:service=DataNode,name=DataNodeActivity*'/>
+                <c:simple-property name="nameTemplate" default="DataNodeActivity" readOnly="true"/>
+            </plugin-configuration>
+            <metric property="BytesWritten" displayType="summary" units="bytes" measurementType="trendsup" defaultInterval="3600000"/>
+            <metric property="BytesRead" displayType="summary" units="bytes" measurementType="trendsup" defaultInterval="3600000"/>
+            <metric property="BlockVerificationFailures" displayType="summary" units="none" defaultInterval="3600000"/>
+            <metric property="BlocksRead" measurementType="trendsup" defaultInterval="3600000"/>
+            <metric property="BlocksWritten" measurementType="trendsup" defaultInterval="3600000"/>
+            <metric property="ReadBlockOpAvgTime" units="milliseconds" defaultInterval="3600000"/>
+            <metric property="WriteBlockOpAvgTime" units="milliseconds" defaultInterval="3600000"/>
+            <metric property="HeartbeatsAvgTime" units="milliseconds" defaultInterval="3600000"/>
+        </service>
+        <service name="DataNodeInfo" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent"
+            description="Information on data node activity"
+            createDeletePolicy="neither" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:service=DataNode,name=DataNodeInfo"/>
+                <c:simple-property name="nameTemplate" default="DataNodeInfo" readOnly="true"/>
+            </plugin-configuration>
+            <metric property="VolumeInfo" displayType="detail" dataType="trait"  defaultInterval="3600000"/>
+            <metric property="Version" dataType="trait" displayName="Version" units="none" defaultInterval="3600000"/>
+            <metric property="XceiverCount" dataType="measurement" />
+            <metric property="RpcPort" dataType="trait" />
+            <metric property="HttpPort" dataType="trait" />
+            <metric property="ClusterId" dataType="trait" />
+        </service>
+        <service name="FSDatasetState" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent"
+            description="Information on data node activity"
+            createDeletePolicy="neither" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:service=DataNode,name=FSDatasetState*"/>
+                <c:simple-property name="nameTemplate" default="FSDatasetState" readOnly="true"/>
+            </plugin-configuration>
+            <metric property="NumFailedVolumes" displayType="summary" units="none" measurementType="dynamic" defaultInterval="3600000"/>
+        </service>
+    </server>
+
+    <server name="JobTracker" discovery="HadoopDiscovery" class="HadoopComponent" singleton="true">
+        <process-scan name="JobTracker" query="process|basename|match=^java.*,arg|org.apache.hadoop.mapred.JobTracker|match=.*"/>
+        <process-scan name="Dproc" query="process|basename|match=^java.*,arg|-Dproc_jobtracker|match=.*"/>
+        <process-scan name="Dproc2" query="process|basename|match=^java.*,arg|-Dproc_jobtrackerha|match=.*"/>
+        <process-scan name="pid" query="process|pidfile|match=/var/hadoop/pids/hadoop-hadoop-jobtracker.pid"/>
+
+        <service name="JobTrackerInfo" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="JobTrackerInfo"
+            description="Information on job tracker"
+            createDeletePolicy="neither" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:service=JobTracker,name=JobTrackerInfo"/>
+                <c:simple-property name="nameTemplate" default="JobTrackerInfo" readOnly="true"/>
+            </plugin-configuration>
+            <metric property="ThreadCount" dataType="measurement" category="performance" displayType="summary" displayName="Thread Count" units="none"/>
+            <metric property="Version" dataType="trait" displayName="Version" units="none"/>
+            <!-- TODO digest JSON data -->
+
+            <!--
+            <metric property="SummaryJson" dataType="trait" units="none"/>
+            -->
+            <metric property="nodes" dataType="measurement" units="none"/>
+            <metric property="alive" dataType="measurement" units="none"/>
+            <metric property="blacklisted" dataType="measurement" units="none"/>
+            <metric property="map_slots" dataType="measurement" units="none"/>
+            <metric property="map_slots_used" dataType="measurement" units="none"/>
+            <metric property="reduce_slots" dataType="measurement" units="none"/>
+            <metric property="reduce_slots_used" dataType="measurement" units="none"/>
+            <metric property="jobs" dataType="measurement" units="none"/>
+
+            <!--
+            [{"hostname":"192.168.0.6","last_seen":1328137917846,"health":"OK","slots":
+             {"map_slots":2,"map_slots_used":0,"reduce_slots":2,"reduce_slots_used":0},"failures":0,"dir_failures":0}]
+            <metric property="health" dataType="trait" displayName="Summary" units="none"/>
+            -->
+
+            <metric property="AliveNodesInfoJson" dataType="trait" displayName="Alive Nodes" units="none"/>
+            <metric property="BlacklistedNodesInfoJson" dataType="trait" displayName="Blacklisted Nodes" units="none"/>
+            <metric property="QueueInfoJson" dataType="trait" displayName="Queue Info" units="none"/>
+        </service>
+        <service name="JobTrackerInfoHtml" discovery="JobTrackerInfoHtml" class="JobTrackerInfoHtml"
+            description="Information on job tracker from HTML page"
+            supportsManualAdd="true"
+            createDeletePolicy="both" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="url" default="http://localhost:50030/jobtracker.jsp"/>
+
+            </plugin-configuration>
+
+            <metric property="Running Map Tasks" displayType="summary" dataType="measurement" units="none"/>
+            <metric property="Running Reduce Tasks" displayType="summary" dataType="measurement" units="none"/>
+            <metric property="Total Submissions" displayType="summary" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="Nodes" displayType="detail" dataType="measurement" units="none"/>
+            <metric property="Map Task Capacity" displayType="detail" dataType="measurement" units="none"/>
+            <metric property="Reduce Task Capacity" displayType="detail" dataType="measurement" units="none"/>
+            <metric property="Blacklisted Nodes" displayType="summary" dataType="measurement" units="none"/>
+            <metric property="Excluded Nodes" displayType="detail" dataType="measurement" units="none"/>
+
+            <service name="JobTrackerQueue" discovery="JobTrackerQueueDiscovery" class="JobTrackerQueue" description="Information about Job Tracker queues">
+                <metric property="jobCount" displayType="summary" dataType="measurement" units="none"/>
+                <metric property="mapTotal" displayType="summary" dataType="measurement" units="none"/>
+                <metric property="mapComplete" displayType="summary" dataType="measurement" units="none"/>
+                <metric property="reducersTotal" displayType="summary" dataType="measurement" units="none"/>
+                <metric property="reducersComplete" displayType="summary" dataType="measurement" units="none"/>
+            </service>
+
+        </service>
+
+    </server>
+
+    <server name="TaskTracker" discovery="HadoopDiscovery" class="HadoopComponent" singleton="true">
+        <process-scan name="TaskTracker" query="process|basename|match=^java.*,arg|org.apache.hadoop.mapred.TaskTracker|match=.*"/>
+        <process-scan name="Dproc" query="process|basename|match=^java.*,arg|-Dproc_tasktracker|match=.*"/>
+        <process-scan name="pid" query="process|pidfile|match=/var/hadoop/pids/hadoop-hadoop-tasktracker.pid"/>
+        <service name="TaskTrackerInfo" class="TaskTrackerInfo" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent"
+            description="Information on task tracker"
+            createDeletePolicy="neither" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:service=TaskTracker,name=TaskTrackerInfo"/>
+                <c:simple-property name="nameTemplate" default="TaskTrackerInfo" readOnly="true"/>
+            </plugin-configuration>
+            <metric property="Healthy" dataType="trait" category="availability" displayType="summary" displayName="Healthy" units="none"/>
+            <metric property="JobTrackerUrl" dataType="trait" displayType="summary" displayName="Job Tracker URL" units="none"/>
+            <metric property="Version" dataType="trait" displayName="Version" units="none"/>
+            <metric property="HttpPort" dataType="trait" displayName="HttpPort" units="none"/>
+            <metric property="running" dataType="measurement" displayName="Running jobs"/>
+            <metric property="failed" dataType="measurement" measurementType="trendsup" displayName="Failed job count"/>
+            <metric property="commit_pending" dataType="measurement" measurementType="dynamic" displayName="Commit pending jobs"/>
+        </service>
+    </server>
+
+    <server name="HRegionServer" discovery="HadoopDiscovery" class="HadoopComponent" singleton="true">
+        <process-scan name="HRegionServer" query="process|basename|match=^java.*,arg|org.apache.hadoop.hbase.regionserver.HRegionServer|match=.*"/>
+        <process-scan name="HMaster" query="process|basename|match=^java.*,arg|org.apache.hadoop.hbase.master.HMaster|match=.*"/>
+        <process-scan name="pid" query="process|pidfile|match=/var/hadoop/pids/hbase-hbase-regionserver.pid"/>
+        <!-- hack for us -->
+        <process-scan name="HRegionLog" query="process|basename|match=^java.*,arg|-Dhbase.log.file|match=.*region.*"/>
+
+        <service name="RegionServerStatistics" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent"
+            description="Information on Region Server"
+            createDeletePolicy="neither" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:service=RegionServer,name=RegionServerStatistics"/>
+                <c:simple-property name="nameTemplate" default="RegionServerStatistics" readOnly="true"/>
+            </plugin-configuration>
+            <operation name="resetAllMinMax" displayName="Reset All Min Max" description="Rests min max statistics"/>
+            <metric property="atomicIncrementTimeNumOps" displayType="detail" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="blockCacheCount" displayType="detail" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="blockCacheEvictedCount" displayType="detail" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="blockCacheFree" displayType="summary" dataType="measurement" units="bytes" measurementType="dynamic"/>
+            <metric property="blockCacheHitCachingRatio" displayType="detail" dataType="measurement" units="none" measurementType="dynamic"/>
+            <metric property="blockCacheHitCount" displayType="detail" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="blockCacheHitRatio" displayType="detail" dataType="measurement" units="none" measurementType="dynamic"/>
+            <metric property="blockCacheMissCount" displayType="detail" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="blockCacheSize" displayType="summary" dataType="measurement" units="bytes" measurementType="dynamic"/>
+            <metric property="compactionQueueSize" displayType="summary" dataType="measurement" units="none" measurementType="dynamic"/>
+            <metric property="compactionSizeNumOps" displayType="detail" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="compactionTimeNumOps" displayType="detail" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="flushQueueSize" displayType="summary" dataType="measurement" units="none" measurementType="dynamic"/>
+            <metric property="flushSizeNumOps" displayType="detail" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="flushTimeNumOps" displayType="detail" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="fsReadLatencyAvgTime" displayType="detail" dataType="measurement" units="milliseconds" measurementType="dynamic"/>
+            <metric property="fsReadLatencyNumOps" displayType="detail" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="hdfsBlocksLocalityIndex" displayType="detail" dataType="measurement" units="none" measurementType="dynamic"/>
+            <metric property="memstoreSizeMB" displayType="summary" dataType="measurement" units="megabytes" measurementType="dynamic"/>
+            <metric property="readRequestsCount" displayType="summary" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="regions" displayType="summary" dataType="measurement" units="none" measurementType="dynamic"/>
+            <metric property="requests" displayType="summary" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="rootIndexSizeKB" displayType="summary" dataType="measurement" units="kilobytes" measurementType="dynamic"/>
+            <metric property="storefileIndexSizeMB" displayType="summary" dataType="measurement" units="megabytes" measurementType="dynamic"/>
+            <metric property="storefiles" displayType="detail" dataType="measurement" units="none" measurementType="dynamic"/>
+            <metric property="totalStaticBloomSizeKB" displayType="detail" dataType="measurement" units="kilobytes" measurementType="dynamic"/>
+            <metric property="totalStaticIndexSizeKB" displayType="detail" dataType="measurement" units="kilobytes" measurementType="dynamic"/>
+            <metric property="writeRequestsCount" displayType="summary" dataType="measurement" units="none" measurementType="trendsup"/>
+        </service>
+    </server>
+
+    <server name="HBaseMaster" discovery="HadoopDiscovery" class="HadoopComponent" singleton="true">
+        <process-scan name="HMaster" query="process|basename|match=^java.*,arg|org.apache.hadoop.hbase.master.HMaster|match=.*"/>
+        <!-- PID directory is distribution specific -->
+        <process-scan name="pid" query="process|pidfile|match=/var/hadoop/pids/hbase-hbase-master.pid"/>
+        <!-- hack for us -->
+        <process-scan name="HMasterLog" query="process|basename|match=^java.*,arg|-Dhbase.log.file|match=.*master.*"/>
+
+        <service name="Master" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent"
+            description="Information on HBase Master"
+            createDeletePolicy="neither" singleton="true">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="*:service=Master,name=MasterStatistics"/>
+                <c:simple-property name="nameTemplate" default="MasterStatistics" readOnly="true"/>
+            </plugin-configuration>
+            <operation name="resetAllMinMax" displayName="Reset All Min Max" description="Rests min max statistics"/>
+            <metric property="splitTimeNumOps" displayType="summary" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="splitSizeNumOps" displayType="summary" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="cluster_requests" displayType="summary" dataType="measurement" units="none" measurementType="trendsup"/>
+        </service>
+
+        <service name="HbaseMasterInfoHtml" discovery="HbaseMasterInfoHtml" class="HbaseMasterInfoHtml"
+            description="Information on job tracker from HTML page"
+            supportsManualAdd="true"
+            createDeletePolicy="both" singleton="true">
+            <plugin-configuration>
+                <!-- This URL is for 0.20.2-cdh3u4 -->
+                <c:simple-property name="url" default="http://localhost:60010/master-status"/>
+            </plugin-configuration>
+
+            <metric property="Load average" displayType="summary" dataType="measurement" units="none"/>
+            <metric property="requests" displayName="Total number of requests" displayType="summary" dataType="measurement" units="none"/>
+            <metric property="rserver" displayName="Average number of regions per server" displayType="summary" dataType="measurement" units="none"/>
+            <metric property="servers" displayName="Number of servers" displayType="summary" dataType="trait" units="none" />
+            <metric property="regions" displayName="Number of regions" displayType="detail" dataType="measurement" units="none"/>
+            <!--
+            <metric property="Regions On FS" displayType="summary" dataType="measurement" units="none"/>
+              -->
+        </service>
+    </server>
+
+    <server name="Zookeeper" discovery="HadoopDiscovery" class="HadoopComponent" singleton="true">
+        <process-scan name="Quorum" query="process|basename|match=^java.*,arg|org.apache.zookeeper.server.quorum.QuorumPeerMain|match=.*"/>
+        <service name="InMemoryDataTree" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent"
+            description="Information on Zookeeper in memory data"
+            createDeletePolicy="neither" singleton="false">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="org.apache.ZooKeeperService:name0=%name%,name1=InMemoryDataTree"/>
+                <c:simple-property name="nameTemplate" readOnly="true" default="InMemoryDataTree {name}"/>
+            </plugin-configuration>
+            <operation name="approximateDataSize" displayName="Approximate Data Size" description="Returns approximate data size of zookeeper data">
+                <results>
+                    <c:simple-property name="approximateDataSize" type="long" units="bytes"/>
+                </results>
+            </operation>
+            <operation name="countEphemerals" displayName="Count Ephermerals" description="Counts the number of ephermerals">
+                <results>
+                    <c:simple-property name="countEphemerals" type="integer"/>
+                </results>
+            </operation>
+            <metric property="LastZxid" displayType="detail" dataType="trait" units="none" measurementType="dynamic"/>
+            <metric property="NodeCount" displayType="summary" dataType="measurement" units="none" measurementType="dynamic"/>
+            <metric property="WatchCount" displayType="summary" dataType="measurement" units="none" measurementType="dynamic"/>
+        </service>
+        <service name="Zookeeper Server" discovery="org.rhq.plugins.jmx.MBeanResourceDiscoveryComponent" class="org.rhq.plugins.jmx.MBeanResourceComponent"
+            description="Information on Zookepeer Server"
+            createDeletePolicy="neither" singleton="false">
+            <plugin-configuration>
+                <c:simple-property name="objectName" readOnly="true" default="org.apache.ZooKeeperService:name0=%name%"/>
+                <c:simple-property name="nameTemplate" readOnly="true" default="Standalone Server {name}"/>
+            </plugin-configuration>
+            <operation name="resetStatistics" displayName="Reset Statistics" description="Reset statistics"/>
+            <operation name="resetLatency" displayName="Reset Latency" description="Reset latency"/>
+            <operation name="resetMaxLatency" displayName="Reset Max Latency" description="Reset max latency"/>
+
+            <metric property="Version"    displayType="detail"  dataType="trait" units="none" measurementType="dynamic"/>
+            <metric property="StartTime"  displayType="summary" dataType="trait" units="none" measurementType="dynamic"/>
+            <metric property="OutstandingRequests" displayType="summary" dataType="measurement" units="none" measurementType="dynamic"/>
+            <metric property="ClientPort"        displayType="detail"  dataType="trait" units="none" measurementType="dynamic"/>
+            <metric property="PacketsReceived"   displayType="summary" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="PacketsSent"       displayType="summary" dataType="measurement" units="none" measurementType="trendsup"/>
+            <metric property="AvgRequestLatency" displayType="detail"  dataType="measurement" units="milliseconds" measurementType="dynamic"/>
+            <metric property="MaxRequestLatency" displayType="summary" dataType="measurement" units="milliseconds" measurementType="dynamic"/>
+            <metric property="MinRequestLatency" displayType="detail"  dataType="measurement" units="milliseconds" measurementType="dynamic"/>
+
+            <resource-configuration>
+                <c:simple-property name="MaxSessionTimeout" readOnly="false" type="integer" units="milliseconds" required="false"/>
+                <c:simple-property name="MinSessionTimeout" readOnly="false" type="integer" units="milliseconds" required="false"/>
+                <c:simple-property name="MaxClientCnxnsPerHost" readOnly="false" type="integer" units="milliseconds" required="false"/>
+                <c:simple-property name="TickTime" readOnly="false" type="integer" units="milliseconds" required="false"/>
+            </resource-configuration>
+        </service>
+    </server>
+
+    <server name="HBaseThrift" discovery="HadoopDiscovery" class="HadoopComponent" singleton="true">
+        <process-scan name="pid" query="process|pidfile|match=/var/hadoop/pids/hbase-hbase-thrift.pid"/>
+        <process-scan name="log" query="process|basename|match=^java.*,arg|-Dhbase.log.file|match=.*thrift.*"/>
+    </server>
+
+    <service name="PathInfo" discovery="PathDiscovery" class="PathComponent" singleton="false" supportsManualAdd="true"
+        classLoader="instance"
+        description="
+          Monitors the availability and content (size) of a filesystem path;
+          usually HDFS paths but works with local filesystems as well.
+          Availability refers to if the path can be accessed or not.">
+        <plugin-configuration>
+            <c:simple-property name="url" default="hdfs://localhost:8020/tmp" description="For HDFS, begin with hdfs:// ; for files, begin with file:/"/>
+            <c:simple-property name="depth" default="100" type="integer" description="depth of subdirectories to include; 1 means the current directory only"/>
+            <c:simple-property name="hadoop.classpath.command" default="/usr/bin/hadoop classpath" description="Command to get location of hadoop *.jar file"/>
+        </plugin-configuration>
+
+        <metric property="size" units="bytes"
+            description="Size of files in this path"
+            displayType="summary" defaultOn="true"  defaultInterval="3600000"/>
+        <metric property="files"
+            displayType="summary" defaultOn="true"  defaultInterval="3600000"/>
+        <metric property="modificationRecency"
+            displayType="summary" defaultOn="true"  units="milliseconds" />
+        <metric property="modificationTime"
+            displayType="detail"  defaultOn="false" units="epoch_milliseconds"/>
+
+    </service>
+
+</plugin>

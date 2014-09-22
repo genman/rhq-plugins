@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<plugin name="SomeServices" displayName="Some services we need to monitor"
+    package="com.apple.iad.rhq.http"
+    description="Checks the details of components we'd like to monitor via HTTP"
+    ampsVersion="2.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:xmlns:rhq-plugin" xmlns:c="urn:xmlns:rhq-configuration">
+
+   <depends plugin="HTTP" />
+
+   <server name="Some Server" discovery="HttpDiscovery" class="HttpComponent" description="Some server component"
+       supportsManualAdd="true">
+
+      <plugin-configuration>
+         <!-- Can include file resources as well using file:/// -->
+         <c:simple-property name="url" required="true" default="http://localhost:1231" description="The url to request" />
+         <c:simple-property name="format" type="string" readOnly="true" default="json" description="The data format for extracting measurements" />
+      </plugin-configuration>
+
+      <metric property="entries" dataType="measurement" displayName="Entry Count"
+          description="Entries are counted as separate blog posts"
+          displayType="summary" />
+      <metric property="bytes" dataType="measurement" displayName="Bytes"
+          description="Bytes is a summation of all blog post content"
+          displayType="summary" />
+
+   </server>
+
+   <server name="post" discovery="HttpDiscovery" class="HttpComponent" description="Some server component"
+       supportsManualAdd="true">
+
+      <plugin-configuration>
+         <c:simple-property name="url" required="true" default="http://localhost:1231" description="The url to request" />
+         <c:simple-property name="method" default="POST" />
+         <c:simple-property name="body" default="posties" />
+      </plugin-configuration>
+
+      <metric property="entries" dataType="measurement" displayName="Entry Count"
+          description="Entries are counted as separate blog posts"
+          displayType="summary" />
+   </server>
+
+   <server name="file" discovery="HttpDiscovery" class="HttpComponent" description="HTTP host file"
+       supportsManualAdd="true">
+
+      <plugin-configuration>
+         <!-- Can include file resources as well using file:/// -->
+         <c:simple-property name="url" required="true" default="file:/etc/hosts" description="The file to request" />
+         <c:simple-property name="format" type="string" readOnly="true" default="regex" description="The data format for extracting measurements" />
+      </plugin-configuration>
+
+      <metric property="count (\d+)" dataType="measurement" displayName="Count digits"
+          displayType="summary" />
+      <metric property="#header" dataType="trait" displayType="detail" />
+
+   </server>
+
+   <server name="not here" discovery="HttpDiscovery" class="HttpComponent" description="HTTP not here file"
+       supportsManualAdd="true">
+
+      <plugin-configuration>
+         <!-- Can include file resources as well using file:/// -->
+         <c:simple-property name="url" required="true" default="file:/tmp/does_not_exist" description="The file to request" />
+      </plugin-configuration>
+
+   </server>
+
+   <server name="subclass" discovery="SubclassDiscovery" class="SubclassComponent" description="Subclass">
+
+      <plugin-configuration>
+         <!-- Can include file resources as well using file:/// -->
+         <c:simple-property name="url" required="true" default="file:/" description="The file to request" />
+      </plugin-configuration>
+
+   </server>
+
+</plugin>

@@ -1,0 +1,5 @@
+--
+-- TimesTen-MIB.txt
+--
+-- This file is available through TimesTen installation
+-- install_dir/mibs/TimesTen-MIB.txt

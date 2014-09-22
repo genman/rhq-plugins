@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+<plugin name="snmp" displayName="SNMP Monitoring Plugin"
+    description="Monitor SNMP"
+    package="com.apple.iad.rhq.snmp"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:xmlns:rhq-plugin"
+    xmlns:c="urn:xmlns:rhq-configuration"
+    pluginLifecycleListener="SnmpPluginLifecycleListener"
+    >
+
+   <server name="SNMP Component" discovery="SnmpDiscovery" class="SnmpComponent" supportsManualAdd="true" singleton="false">
+      <plugin-configuration>
+
+         <c:group name="trans" displayName="Transport options">
+            <c:simple-property name="version" type="integer" default="1" description="Version">
+               <c:property-options>
+                  <c:option value="0" name="1" />
+                  <c:option value="1" name="2c" />
+                  <c:option value="3" name="3" />
+               </c:property-options>
+            </c:simple-property>
+            <c:simple-property name="transport" type="string" default="UDP" description="SNMP transport time">
+               <c:property-options>
+                  <c:option value="UDP" />
+                  <c:option value="TCP" />
+                  <c:option value="TLS" />
+               </c:property-options>
+            </c:simple-property>
+            <c:simple-property name="transportAddress" type="string" default="localhost" description="SNMP transport address; append with / and port, e.g. /123 to indicate port 123." />
+            <c:simple-property name="retries" type="integer" default="1" description="The number of retries used for requests. A zero value will send out a request exactly once." />
+            <c:simple-property name="timeout" type="integer" default="1000" description="The time between retries." units="milliseconds" />
+            <c:simple-property name="maxSizeResponsePDU" type="integer" default="65535" description="Maximum size of a PDU to accept." units="bytes" />
+            <c:simple-property name="engineBootCount" type="integer" default="0" description="The engine boot count." />
+            <c:simple-property name="contextEngineID" type="string" default="" required="false"
+               description="Sets the context engine ID used for the SNMPv3 scoped
+                        PDU. The authoritative engine ID will be used for the
+                        context engine ID, if the latter is not specified." />
+            <c:simple-property name="contextName" type="string" default="" required="false" description="Sets the target context name for SNMPv3 messages.
+                        Default is the empty string." />
+            <c:simple-property name="authoritativeEngineID" type="string" default="" required="false"
+               description="Sets the authoritative engine ID of the command
+                        responder used for SNMPv3 request messages. If not
+                        supplied, the engine ID will be discovered." />
+         </c:group>
+
+         <c:group name="priv" displayName="Privacy Encryption">
+            <c:simple-property name="privProtocol" type="string" default="NONE" description="Privacy Protocol">
+               <c:property-options>
+                  <c:option value="NONE" />
+                  <c:option value="DES" />
+                  <c:option value="AES128" />
+                  <c:option value="AES192" />
+                  <c:option value="AES256" />
+                  <c:option value="_3DES" name="3DES" />
+               </c:property-options>
+            </c:simple-property>
+            <c:simple-property name="privPassphrase" type="password" default="" required="false" description="Privacy Passphrase" />
+         </c:group>
+
+         <c:group name="auth" displayName="Authorization">
+            <c:simple-property name="authProtocol" type="string" default="NONE" description="Authorization Protocol used to authenticate SNMPv3 messages.">
+               <c:property-options>
+                  <c:option value="NONE" />
+                  <c:option value="MD5" />
+                  <c:option value="SHA" />
+               </c:property-options>
+            </c:simple-property>
+            <c:simple-property name="securityName" type="string" default="public" required="false" description="Security name. In SNMP v2 and v1 this sets the community name." />
+            <c:simple-property name="authPassphrase" type="password" default="" required="false" description="Authorization Passphrase" />
+         </c:group>
+
+      </plugin-configuration>
+
+      <operation name="set" description="Performs a SNMP SET operation on a single variable">
+         <parameters>
+            <c:simple-property name="oid" required="true" description="The OID to set, which can be a string or numeric ID or combination." />
+            <c:simple-property name="value" required="true" default="" description="The value to set. Prefix with 0x to indicate a HEX value. " />
+            <c:simple-property name="format" required="false" default="GET"
+            description="The value format. If 'GET', the OID variable type will be obtained from SNMP GET and used.">
+               <c:property-options allowCustomValue="false">
+                  <c:option value="GET" />
+                  <c:option value="Integer32" />
+                  <c:option value="OctetString" />
+                  <c:option value="Null" />
+                  <c:option value="OID" />
+                  <c:option value="IpAddress" />
+                  <c:option value="Counter32" />
+                  <c:option value="Opaque" />
+                  <c:option value="Counter64" />
+                  <c:option value="BitString" />
+               </c:property-options>
+            </c:simple-property>
+         </parameters>
+         <results>
+            <c:simple-property name="errorStatus" type="integer" required="false" description="The SNMP error status returned when SET is done" />
+            <c:simple-property name="errorIndex" type="integer" required="false" description="The SNMP error index." />
+            <c:simple-property name="errorStatusText" type="string" required="false" description="The SNMP error status string." />
+         </results>
+      </operation>
+
+
+      <metric property="sysUpTime" description="The time since the network management portion of the system was last re-initialized." displayType="summary" units="milliseconds" dataType="measurement" />
+      <metric property="sysName" displayType="summary" dataType="trait" description="An administratively-assigned name for this managed node. By convention, this is the node's fully-qualified domain name." />
+      <metric property="sysDescr" description="A textual description of the entity." displayType="summary" dataType="trait" />
+      <metric property="sysContact" displayType="summary" description="The textual identification of the contact person for this managed node, together with information on how to contact this person." dataType="trait" />
+      <metric property="sysLocation" displayType="summary" dataType="trait" description="The physical location of this node (e.g., 'telephone closet, 3rd floor'" />
+      <metric property="sysObjectID" description="The vendor's authoritative identification of the network management subsystem contained in the entity. This value is allocated within the SMI enterprises subtree (1.3.6.1.4.1)." displayType="detail" dataType="trait" />
+      <metric property="sysServices" description="A value which indicates the set of services that this entity may potentially offer. The value is a sum. This sum initially takes the value zero." displayType="detail" dataType="trait" />
+      <metric property="snmpInPkts" description="The total number of messages delivered to the SNMP entity from the transport service." displayType="detail" dataType="measurement" measurementType="trendsup" />
+
+<!-- The following could be added to this plugin. -->
+
+<!--
+      <metric property="sysORLastChange" description="The value of sysUpTime at the time of the most recent change in state or value of any instance of sysORID." displayType="detail" dataType="measurement" units="milliseconds" />
+      <metric property="snmpInBadVersions" description="The total number of SNMP messages which were delivered to the SNMP entity and were for an unsupported SNMP version." displayType="detail" dataType="measurement" measurementType="dynamic" />
+      <metric property="snmpInBadCommunityNames" description="The total number of community-based SNMP messages (for example,  SNMPv1) delivered to the SNMP entity which used an SNMP community name not known to said entity. Also, implementations which authenticate community-based SNMP messages using check(s) in addition to matching the community name (for example, by also checking whether the message originated from a transport address allowed to use a specified community name) MAY include in this value the number of messages which failed the additional check(s).  It is strongly RECOMMENDED that    the documentation for any security model which is used to authenticate community-based SNMP messages specify the precise conditions that contribute to this value."
+         displayType="detail" dataType="measurement" measurementType="dynamic" />
+      <metric property="snmpInBadCommunityUses" description="The total number of community-based SNMP messages (for example, SNMPv1) delivered to the SNMP entity which represented an SNMP operation that was not allowed for the SNMP community named in the message.  The precise conditions under which this counter is incremented (if at all) depend on how the SNMP entity implements its access control mechanism and how its applications interact with that access control mechanism.  It is strongly RECOMMENDED that the documentation for any access control mechanism which is used to control access to and visibility of MIB instrumentation specify the precise conditions that contribute to this value."
+         displayType="detail" dataType="measurement" measurementType="dynamic" />
+      <metric property="snmpInASNParseErrs" description="The total number of ASN.1 or BER errors encountered by the SNMP entity when decoding received SNMP messages."
+          displayType="detail" dataType="measurement" measurementType="dynamic" />
+      <metric property="snmpEnableAuthenTraps" description="Indicates whether the SNMP entity is permitted to generate authenticationFailure traps.  The value of this object overrides any configuration information; as such, it provides a means whereby all authenticationFailure traps may be disabled.  Note that it is strongly recommended that this object be stored in non-volatile memory so that it remains constant across re-initializations of the network management system."
+         displayType="detail" dataType="trait" />
+      <metric property="snmpSilentDrops" description="The total number of Confirmed Class PDUs (such as GetRequest-PDUs, GetNextRequest-PDUs, GetBulkRequest-PDUs, SetRequest-PDUs, and InformRequest-PDUs) delivered to the SNMP entity which were silently dropped because the size of a reply containing an alternate Response Class PDU (such as a Response-PDU) with an empty variable-bindings field was greater than either a local constraint or the maximum message size associated with the originator of the request."
+         displayType="detail" dataType="measurement" measurementType="trendsup" />
+      <metric property="snmpProxyDrops" description="The total number of Confirmed Class PDUs (such as GetRequest-PDUs, GetNextRequest-PDUs, GetBulkRequest-PDUs, SetRequest-PDUs, and InformRequest-PDUs) delivered to the SNMP entity which were silently dropped because the transmission of the (possibly translated) message to a proxy target failed in a manner (other than a time-out) such that no Response Class PDU (such as a Response-PDU) could be returned."
+         displayType="detail" dataType="measurement" measurementType="trendsup" />
+      <metric property="snmpSetSerialNo" description="An advisory lock used to allow several cooperating command generator applications to coordinate their use of the SNMP set operation.  This object is used for coarse-grain coordination. To achieve fine-grain coordination, one or more similar objects might be defined within each MIB group, as appropriate."
+         displayType="detail" dataType="trait" />
+      <service name="sysORTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="sysORID" description="An authoritative identification of a capabilities statement with respect to various MIB modules supported by the local SNMP application acting as a command responder." displayType="detail" dataType="trait" />
+         <metric property="sysORDescr" description="A textual description of the capabilities identified by the corresponding instance of sysORID." displayType="detail" dataType="trait" />
+         <metric property="sysORUpTime" description="The value of sysUpTime at the time this conceptual row was last instantiated." displayType="detail" dataType="measurement" units="milliseconds" />
+      </service>
+ -->
+
+   </server>
+
+
+</plugin>

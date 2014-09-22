@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+<plugin name="datatorrent" displayName="DataTorrent Monitoring Plugin" description="Monitor Data Torrent" package="com.apple.iad.rhq.datatorrent" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:xmlns:rhq-plugin" xmlns:c="urn:xmlns:rhq-configuration">
+
+   <depends plugin="HTTP" useClasses="true"/>
+
+   <server name="dtgateway" discovery="GWDiscovery" class="GWComponent" description="Data Torrent Gateway"
+          createDeletePolicy="neither" singleton="true">
+
+      <plugin-configuration>
+         <c:simple-property name="url" default="http://hostname:9090/ws/v1/about" />
+         <c:simple-property name="status" readOnly="true" default="200" type="integer" />
+         <c:simple-property name="format" type="string" default="json" readOnly="true" />
+         <c:simple-property name="appUrl" default="/ws/v1/applications?state=RUNNING" />
+      </plugin-configuration>
+
+      <process-scan name="gw" query="process|basename|match=^java.*,arg|com.datatorrent.gateway.DTGateway|match=.*"/>
+
+      <metric property="version" dataType="trait" displayType="summary"/>
+      <metric property="date" dataType="trait" displayType="detail" defaultOn="true"/>
+      <metric property="revision" dataType="trait" displayType="detail"/>
+      <metric property="buildVersion" dataType="trait" displayType="detail"/>
+      <metric property="user" dataType="trait" displayType="detail" defaultOn="true"/>
+      <metric property="javaVersion" dataType="trait" displayType="detail"/>
+
+      <service name="dtmetrics" discovery="MetricsDiscovery" class="MetricsComponent" description="Data Torrent Metrics"
+              createDeletePolicy="neither" singleton="true">
+
+          <plugin-configuration>
+             <c:simple-property name="url" default="/ws/v1/cluster/metrics" />
+             <c:simple-property name="status" readOnly="true" default="200" type="integer" />
+             <c:simple-property name="format" readOnly="true" default="json" />
+          </plugin-configuration>
+
+          <metric property="averageAge" description="average running application age in milliseconds" units="milliseconds"/>
+          <metric property="cpuPercentage" displayType="detail" defaultOn="true"/>
+          <metric property="currentMemoryAllocatedMB" displayType="summary" units="megabytes" defaultOn="true"/>
+          <metric property="maxMemoryAllocatedMB" displayType="summary" units="megabytes" defaultOn="true"/>
+          <metric property="numAppsFailed" dataType="measurement" displayType="summary" measurementType="trendsup"/>
+          <metric property="numAppsFinished" dataType="measurement" displayType="detail" defaultOn="true"/>
+          <metric property="numAppsKilled" dataType="measurement" displayType="detail" measurementType="trendsup"/>
+          <metric property="numAppsPending" dataType="measurement" displayType="detail" defaultOn="true"/>
+          <metric property="numAppsRunning" dataType="measurement" displayType="summary"/>
+          <metric property="numAppsSubmitted" dataType="measurement" displayType="detail" measurementType="trendsup"/>
+          <metric property="numContainers" dataType="measurement" displayType="detail"/>
+          <metric property="numOperators" dataType="measurement" displayType="detail"/>
+          <metric property="tuplesEmittedPSMA" dataType="measurement" displayType="detail"/>
+          <metric property="tuplesProcessedPSMA" dataType="measurement" displayType="detail"/>
+
+      </service>
+
+      <service name="app" class="AppComponent" discovery="AppDiscovery" singleton="false">
+
+          <plugin-configuration>
+             <c:simple-property name="format" type="string" default="json" readOnly="true" />
+          </plugin-configuration>
+
+          <metric property="rhq.availability" defaultInterval="60000" defaultOn="true" />
+          <metric property="id" dataType="trait" displayType="detail"/>
+          <metric property="user" dataType="trait" displayType="detail"/>
+          <metric property="startedTime" dataType="trait" displayType="detail"/>
+          <metric property="elapsedTime" dataType="measurement" displayType="summary" units="milliseconds"/>
+          <metric property="appPath" dataType="trait" displayType="detail" />
+          <metric property="gatewayAddress" dataType="trait" displayType="detail" />
+          <metric property="licenseId" dataType="trait" displayType="detail"  defaultOn="true"/>
+          <metric property="remainingLicensedMB" dataType="measurement" displayType="detail" units="megabytes" defaultOn="true"/>
+          <metric property="totalLicensedMB" dataType="measurement" displayType="detail" units="megabytes" defaultOn="true"/>
+          <metric property="allocatedMB" dataType="measurement" displayType="summary" units="megabytes" defaultOn="true"/>
+          <metric property="licenseInfoLastUpdate" dataType="measurement" displayType="detail" units="milliseconds"/>
+          <metric property="appMasterTrackingUrl" dataType="trait" displayType="detail" />
+          <metric property="version" dataType="trait" displayType="detail" />
+          <metric property="numOperators" dataType="measurement" displayType="detail" defaultOn="true"/>
+          <metric property="currentWindowId" dataType="measurement" displayType="summary" measurementType="trendsup"  defaultInterval="60000"/>
+          <metric property="recoveryWindowId" dataType="measurement" displayType="summary" measurementType="trendsup"/>
+          <metric property="tuplesProcessedPSMA" dataType="measurement" displayType="detail" />
+          <metric property="totalTuplesProcessed" dataType="measurement" displayType="summary" measurementType="trendsup"/>
+          <metric property="tuplesEmittedPSMA" dataType="measurement" displayType="detail" />
+          <metric property="totalBufferServerReadBytesPSMA" dataType="measurement" displayType="detail" measurementType="trendsup" units="bytes"/>
+          <metric property="latency" dataType="measurement" displayType="summary" measurementType="dynamic" units="milliseconds" defaultInterval="60000"/>
+          <metric property="failedContainers" dataType="measurement" displayType="summary" measurementType="trendsup" />
+
+          <service name="container" class="ContainerComponent" discovery="ContainerDiscovery" singleton="false">
+
+             <operation name="kill" description="Kill this container"/>
+
+             <metric property="rhq.availability" defaultInterval="60000" defaultOn="true" />
+             <metric property="host" dataType="trait" displayType="detail" />
+             <metric property="jvmName" dataType="trait" displayType="summary" />
+             <metric property="lastHeartbeat" dataType="measurement" displayType="summary" measurementType="trendsup"/>
+             <metric property="memoryMBAllocated" dataType="measurement" displayType="summary" units="megabytes"/>
+             <metric property="numOperators" dataType="measurement" displayType="summary" />
+             <metric property="containerLogsUrl" dataType="trait" displayType="detail" />
+             <metric property="state" dataType="trait" displayType="summary" />
+
+          </service>
+
+          <service name="operator" class="OperatorComponent" discovery="OperatorDiscovery" singleton="false">
+
+             <metric property="rhq.availability" defaultInterval="60000" defaultOn="true" />
+             <metric property="host" dataType="trait" displayType="detail" defaultOn="true" />
+             <metric property="status" dataType="trait" displayType="detail" />
+             <metric property="container" dataType="trait" displayType="detail" defaultOn="true" />
+             <metric property="totalTuplesProcessed" dataType="measurement" displayType="summary" measurementType="trendsup"/>
+             <metric property="totalTuplesEmitted" dataType="measurement" displayType="summary" measurementType="trendsup"/>
+             <metric property="cpuPercentageMA" dataType="measurement" displayType="summary" />
+             <metric property="currentWindowId" dataType="measurement" displayType="summary" measurementType="trendsup"/>
+             <metric property="recoveryWindowId" dataType="measurement" displayType="summary" measurementType="trendsup"/>
+
+          </service>
+
+        </service>
+    </server>
+
+   <service name="AdEventForkOp" class="OperatorCounterComponent" discovery="OperatorCounterDiscovery" singleton="true">
+      <runs-inside>
+         <parent-resource-type name="operator" plugin="datatorrent" />
+      </runs-inside>
+      <metric displayName="Actions" property="ACTIONS" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Click Events" property="CLICK_EVENTS" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Clicks" property="CLICKS" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Events" property="EVENTS" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Impressions" property="IMPRESSIONS" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Playback Duration" property="PLAYBACK_DUR" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Radio Events" property="RADIO_EVENTS" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Spend" property="SPEND" displayType="summary" measurementType="trendsup" />
+   </service>
+
+   <service name="ConvTrackingOp" class="OperatorCounterComponent" discovery="OperatorCounterDiscovery" singleton="true">
+      <runs-inside>
+         <parent-resource-type name="operator" plugin="datatorrent" />
+      </runs-inside>
+      <metric displayName="Clicks" property="CLICKS" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Actions" property="ACTIONS" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Converted" property="CONVERTED" displayType="summary" measurementType="trendsup" />
+   </service>
+
+   <service name="Deduper" class="OperatorCounterComponent" discovery="OperatorCounterDiscovery" singleton="true">
+      <runs-inside>
+         <parent-resource-type name="operator" plugin="datatorrent" />
+      </runs-inside>
+      <!-- important -->
+      <metric displayName="Events in memory" property="EVENTS_IN_MEMORY" displayType="summary" measurementType="dynamic" />
+      <metric displayName="Events commited last window" property="EVENTS_COMMITTED_LAST_WINDOW" displayType="summary" measurementType="dynamic" />
+      <metric displayName="Ignored Events" property="IGNORED_EVENTS" displayType="summary" measurementType="trendsup" />
+      <!-- less so -->
+      <metric displayName="Buckets in memory" property="BUCKETS_IN_MEMORY" measurementType="dynamic" />
+      <metric displayName="Deleted buckets" property="DELETED_BUCKETS" measurementType="trendsup" />
+      <metric displayName="Evicted buckets" property="EVICTED_BUCKETS" measurementType="trendsup" />
+      <metric displayName="High" property="HIGH" measurementType="trendsup" />
+      <metric displayName="Low" property="LOW" measurementType="trendsup" />
+   </service>
+
+   <service name="OraUpsertOp" class="OperatorCounterComponent" discovery="OperatorCounterDiscovery" singleton="true">
+      <runs-inside>
+         <parent-resource-type name="operator" plugin="datatorrent" />
+      </runs-inside>
+
+      <plugin-configuration>
+         <c:simple-property name="operator" type="string" default=".*OraUpsertOp" readOnly="true" />
+      </plugin-configuration>
+
+      <!-- important -->
+      <metric displayName="Files" property="ADEVENTS" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Errors" property="ERROR" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Success" property="ADEVENTS" displayType="summary" measurementType="trendsup" />
+      <metric displayName="Adv Cost Per File" property="ADVCOST_PERFILE" measurementType="dynamic" />
+      <!-- less so -->
+      <metric displayName="Ad Events" property="ADEVENTS" measurementType="trendsup" />
+      <metric displayName="Per File Time" property="PERFILE_TIME" measurementType="trendsup" />
+      <metric displayName="Upsert Time" property="UPSERT_TIME" measurementType="trendsup" />
+      <metric displayName="Adv Cost Total" property="ADVCOST_TOTAL" measurementType="trendsup" />
+   </service>
+
+</plugin>

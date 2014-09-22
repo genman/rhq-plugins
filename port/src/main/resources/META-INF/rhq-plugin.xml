@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<plugin name="port"
+        displayName="Port Monitoring Plugin"
+        description="Monitor TCP, UDP ports and addresses; discover ports in conf files"
+        package="com.apple.iad.rhq.port"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+    <service name="Port" discovery="PortDiscovery" class="PortComponent" singleton="false"
+             description="Generic network port monitor component"
+             supportsManualAdd="true" createDeletePolicy="neither">
+
+        <plugin-configuration>
+            <c:simple-property name="address" readOnly="false" default="" required="false" description="Listening address; either a port or address:port"/>
+            <c:simple-property name="source" readOnly="false" required="false" default="file:/dev/null" description="File or URL to connect to which discover ports or addresses"/>
+            <c:simple-property name="pattern" readOnly="false" required="false" default=".*=\s*(\d+)"
+                   description="Regular expression to use to discover the port from the source.
+                   Uses the last capture group as the port number. Must match the whole line."/>
+                   <!--
+            <c:simple-property name="protocol" default="TCP">
+                <c:property-options>
+                    <c:option value="TCP"/>
+                    <c:option value="UDP"/>
+                </c:property-options>
+            </c:simple-property>
+            -->
+        </plugin-configuration>
+        <metric property="connectTime" units="nanoseconds" description="Time taken to connect to this address" displayType="summary" dataType="measurement" defaultOn="false"/>
+    </service>
+
+</plugin>

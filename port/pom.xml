@@ -1,0 +1,46 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>com.apple.iad</groupId>
+      <artifactId>iad-plugins-parent</artifactId>
+      <version>5.0.5-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
+
+   <groupId>com.apple.iad</groupId>
+   <artifactId>rhq-port-plugin</artifactId>
+   <packaging>jar</packaging>
+
+   <name>Apple iAd RHQ Port Monitoring Plugin</name>
+   <description>Monitor TCP (UDP?) Ports</description>
+
+   <properties>
+   </properties>
+
+   <build>
+      <plugins>
+      </plugins>
+   </build>
+
+   <dependencies>
+     <dependency>
+       <groupId>com.apple.iad</groupId>
+       <artifactId>rhq-plugin-testing</artifactId>
+     </dependency>
+     <!-- could be simpler for testing I guess ... -->
+     <dependency>
+       <groupId>net.noderunner</groupId>
+       <artifactId>http</artifactId>
+       <version>1.0.3</version>
+       <scope>test</scope>
+     </dependency>
+     <dependency>
+       <groupId>javax.servlet</groupId>
+       <artifactId>servlet-api</artifactId>
+       <version>2.5</version>
+       <scope>test</scope>
+     </dependency>
+   </dependencies>
+</project>

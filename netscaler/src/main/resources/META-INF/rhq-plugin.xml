@@ -1,0 +1,1067 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="urn:xmlns:rhq-plugin" xmlns:c="urn:xmlns:rhq-configuration" name="netscaler" displayName="Netscaler Plugin" description="Netscaler plugin monitoring via SNMP" package="com.apple.iad.rhq.snmp">
+
+   <!-- classLoader='instance' below means snmptrapd classes won't load -->
+   <depends plugin="snmp" useClasses="true"/>
+
+   <service name="Netscaler" discovery="MibDiscovery" class="MibComponent" singleton="true" classLoader="instance">
+      <runs-inside>
+         <parent-resource-type name="SNMP Component" plugin="snmp" />
+      </runs-inside>
+      <plugin-configuration>
+         <c:simple-property name="mibs" default="NS-MIB-smiv1.mib" />
+      </plugin-configuration>
+
+      <!--
+        Discovery needs a few OIDs to check if this is a Netscaler.
+        Could also do manual add but not as cool :-)
+        <service name="Netscaler System" discovery="MibDiscovery" class="MibComponent" singleton="true">
+      -->
+      <metric property="sysBuildVersion" description="This shows the version of the kernel build running on the netscaler." displayType="detail" dataType="trait" />
+      <metric property="sysIpAddress" description="This shows the configured ipaddress of the NetScaler" displayType="detail" dataType="trait" />
+      <metric property="sysNetmask" description="This shows the configured netmask of the NetScaler" displayType="detail" dataType="trait" />
+      <!--sysHighAvailabilityMode values: {0=standalone, 1=primary, 2=secondary, 3=unknown}-->
+      <metric property="sysHighAvailabilityMode" description="This shows whether NetScaler is in standalone mode or whether it is primary or secondary in case of failover mode." displayType="detail" dataType="trait" />
+      <metric property="sysGateway" description="This represents the default gateway configured on the NetScaler" displayType="detail" dataType="trait" />
+      <metric property="sysCurMappedIpCount" description="This represents the number of Mapped IPs currently configured on the NetScaler system" displayType="detail" dataType="measurement" />
+      <metric property="sysCustomID" description="Configurable Identifier for the system" displayType="detail" dataType="trait" />
+      <metric property="sysHardwareVersionId" description="The hardware version ID of the NetScaler system" displayType="detail" dataType="trait" />
+      <metric property="sysHardwareVersionDesc" description="The hardware version description of the NetScaler system" displayType="detail" dataType="trait" />
+      <metric property="sysTotConfigChanges" description="The number of times a configuration change was made on the NetScaler" displayType="detail" dataType="measurement" />
+      <metric property="sysTotSaveConfigs" description="The number of times config was saved" displayType="detail" dataType="measurement" />
+      <metric property="numCPUs" description="The number of CPUs on the system" displayType="detail" dataType="trait" />
+      <metric property="memSizeMB" description="Total amount of system memory, in megabytes" displayType="detail" dataType="trait" units="megabytes" />
+      <metric property="numSSLCards" description="Number of SSL Cards on the system" displayType="detail" dataType="trait" />
+      <metric property="resCpuUsage" description="CPU utilization percentage" displayType="detail" dataType="measurement" />
+      <metric property="resMemUsage" description="This represents the percentage of memory utilization on NetScaler." displayType="detail" dataType="measurement" />
+
+      <!-- Doesn't work due to a bug.
+      <service name="Netscaler Trap Receiver" sourcePlugin="snmptrapd" sourceType="SnmpTrapd" singleton="true">
+          <plugin-configuration>
+              <c:simple-property name="port" default="11162" type="integer" />
+          </plugin-configuration>
+      </service>
+      -->
+
+      <service name="Netscaler ACL" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="aclTotPktsBridged" description="Total packets that matched an ACL with action BRIDGE and got bridged by NetScaler." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="aclTotPktsDenied" description="Total packets that matched an ACL with action DENY and got dropped by NetScaler." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="aclTotPktsAllowed" description="Total packets that matched the an ACL with action ALLOW and got consumed by NetScaler." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="aclTotHits" description="Total packets that matched any ACL" displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="aclTotMisses" description="Total packets that did not match any ACL" displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="aclTotPktsNAT" description="Total packets that matched the an ACL with action ALLOW NAT and got consumed by NetScaler." displayType="detail" dataType="measurement" measurementType="trendsup" />
+      </service>
+      <service name="Netscaler HA" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="haPeerId" description="The unique identifier to represent the failover peer NetScaler" displayType="detail" dataType="trait" />
+         <metric property="haTotStateTransitions" description="This represents the total number of master state changes that the NetScaler has made from primary to secondary and vice-versa" displayType="detail" dataType="measurement" />
+         <metric property="haTotStateTransitions" description="This represents the total number of master state changes that the NetScaler has made from primary to secondary and vice-versa" displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="haTimeofLastStateTransition" description="This represents the time since the NetScaler underwent a state change from primary to secondary or vice-versa" displayType="detail" dataType="measurement" units="milliseconds" />
+         <metric property="haTotStateFail" description="Number of times state changed to PARTIAL_FAIL/PARTIAL_FAIL_SSL/ROUTEMONITOR_FAIL/COMPLETE_FAIL" displayType="detail" dataType="measurement" />
+         <metric property="haErrSyncFailure" description="Indicates that synchronization of configuration from primary to secondary has failed and has not yet succeeded." displayType="detail" dataType="trait" />
+         <metric property="haErrTotNodeDown" description="Total number of times the peer node went DOWN. This counter is incremented when heartbeat packets are not received from the peer node during the dead interval." displayType="detail" dataType="measurement" />
+         <metric property="haErrPropMemFail" description="Total number of times memory allocation failed during command propagation." displayType="detail" dataType="measurement" />
+         <metric property="haErrNsbMemFail" description="Total number of times memory allocation failed while sending heartbeats." displayType="detail" dataType="measurement" />
+         <metric property="haErrPortSilent" description="Total number of times heartbeat packets were not received on any enabled interface for the duration of the Dead Interval." displayType="detail" dataType="measurement" />
+         <metric property="haTotTimerRecoveries" description="Total number of times HA engine recovered from tight loops (i.e., Total number of times HA timers are not called for max down time)." displayType="detail" dataType="measurement" />
+         <metric property="haErrSwMonitorFail" description="Total number of times heartbeats were not received from the peer node within the Hello Interval time." displayType="detail" dataType="measurement" />
+         <metric property="haNicsMonitorFailed" description="Interfaces on which HA heartbeats are not being seen" displayType="detail" dataType="trait" />
+         <metric property="haLastMasterStateTransitionReason" description="The reason for the last master state transition. This gives the conditions under which this node assumed the current state. The current state         is available at the oid sysHighAvailabilityMode.0" displayType="detail" dataType="trait" />
+      </service>
+      <service name="Netscaler IP" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="ipTotRxPkts" description="Total number of IP packets received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotRxBytes" description="Total number of IP bytes received by NetScaler." displayType="detail" dataType="measurement" units="bytes"/>
+         <metric property="ipTotRxMbits" description="Total number of IP bits received by NetScaler, in megabits." displayType="detail" dataType="measurement" />
+         <metric property="ipTotTxPkts" description="Total number of IP packets transmitted by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotTxBytes" description="Total number of IP bytes transmitted by NetScaler." displayType="detail" dataType="measurement" units="bytes"/>
+         <metric property="ipTotTxMbits" description="Total number of IP bits transmitted by NetScaler, in megabits." displayType="detail" dataType="measurement" />
+         <metric property="ipTotFragments" description="Total number of IP fragments received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotBadlens" description="Total number of IP packets received by NetScaler with length &gt; 1514." displayType="detail" dataType="measurement" />
+         <metric property="ipTotBadMacAddrs" description="Total number of transmitted IP packets received by NetScaler with bad MAC addresses." displayType="detail" dataType="measurement" />
+         <metric property="ipTotMaxClients" description="Total number of times one tries to open a new connection to a service having maximum number of allowed open client connections." displayType="detail" dataType="measurement" />
+         <metric property="ipTotUnknownSvcs" description="Total number of packets received for a NetScaler owned IP, but an un-configured port/service." displayType="detail" dataType="measurement" />
+         <metric property="ipTotLandattacks" description="Total number of land attack packets received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotBadChecksums" description="Total number of packets reveived by NetScaler with bad IP checksums." displayType="detail" dataType="measurement" />
+         <metric property="ipTotReassemblyAttempt" description="Total number of IP packets for which reassembly was attempted by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotSuccReassembly" description="Total number of IP packets for which successful reassembly was done by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotUnsuccReassembly" description="Total number of IP packets for which reassembly failed in NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotTooBig" description="Total number of IP packets received by NetScaler for which reassembled data was too big." displayType="detail" dataType="measurement" />
+         <metric property="ipTotZeroFragmentLen" description="Total number of IP packets received by NetScaler with fragment length zero." displayType="detail" dataType="measurement" />
+         <metric property="ipTotDupFragments" description="Total number of duplicate IP fragments received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotOutOfOrderFrag" description="Total number of out of order fragments received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotUnknownDstRcvd" description="Total number of unknown destinations received by NetScaler, cannot route packet to NSIP." displayType="detail" dataType="measurement" />
+         <metric property="ipTotBadTransport" description="Total number of packets received by NetScaler for which the service handler is unknown." displayType="detail" dataType="measurement" />
+         <metric property="ipTotVIPDown" description="Total number of packets received by NetScaler for which the VIP down for natpcb sessions." displayType="detail" dataType="measurement" />
+         <metric property="ipTotFixHeaderFail" description="Total number of IP packets received by NetScaler in which there is an error in the IP header." displayType="detail" dataType="measurement" />
+         <metric property="ipTotAddrLookup" description="Total number of IP address lookups done by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotAddrLookupFail" description="Total number of IP address lookups done in NetScaler which failed." displayType="detail" dataType="measurement" />
+         <metric property="ipTotUDPfragmentsFwd" description="Total number of UDP fragments forwarded by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotTCPfragmentsFwd" description="Total number TCP fragments forwarded by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotFragPktsGen" description="Total number of fragmentation packets created by NS applications." displayType="detail" dataType="measurement" />
+         <metric property="ipTotInvalidHeaderSz" description="Total number of packets received by NetScaler with invalid IP header size." displayType="detail" dataType="measurement" />
+         <metric property="ipTotInvalidPacketSize" description="Total number of packets received by NetScaler with invalid IP packet size." displayType="detail" dataType="measurement" />
+         <metric property="ipTotTruncatedPackets" description="Total number of truncated IP packets received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="ipTotZeroNextHop" description="Total number of IP packets received by NetScaler with ZERO next hop." displayType="detail" dataType="measurement" />
+         <metric property="ipTotTtlExpired" description="Total number of IP packets received by NetScaler for which TTL expired during transit." displayType="detail" dataType="measurement" />
+         <metric property="nonIpTotTruncatedPackets" description="Total number of truncated non-IP packet received by NetScaler." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler ICMP" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="icmpCurRateThreshold" description="This contains the value set for 10ms rate threshold for icmp packets. This implies that within 10ms range , NetScaler can allow (receive or pass through ) the set number of ICMP packets. " displayType="detail" dataType="measurement" />
+         <metric property="icmpTotRxPkts" description="Total number of ICMP packets received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotRxBytes" description="Total number of ICMP bytes received by NetScaler." displayType="detail" dataType="measurement" units="bytes"/>
+         <metric property="icmpTotTxPkts" description="Total number of ICMP packets transmitted by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotTxBytes" description="Total number of ICMP bytes transmitted by NetScaler." displayType="detail" dataType="measurement" units="bytes"/>
+         <metric property="icmpTotRxEchoReply" description="Total number of ICMP echo replies received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotTxEchoReply" description="Total number of ICMP echo replies transmitted by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotRxEcho" description="Total number of ICMP echos received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotPktsDropped" description="Total number of ICMP packets dropped by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotThresholdExceeds" description="Total number of time ICMP rate threshold was exceeded." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotPortUnreachableRx" description="Total number of ICMP port unreachable packets received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotPortUnreachableTx" description="Total number of ICMP port unreachable packets generated by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotBadChecksum" description="Total number of packets with bad ICMP checksum received by Netscaler." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotNeedFragRx" description="Total number of ICMP error message: need fragmentation received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotNonFirstIpFrag" description="Total number of non-first IP fragments resulting in path MTU error." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotInvalidBodyLen" description="Total number of invalid body length received on a need fragmentation ICMP error message." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotNoTcpConn" description="Total number of packets with no tcp connection on src/dst, ip/port information received on a need fragmentation ICMP error message." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotNoUdpConn" description="Total number of packets with no udp connection on src/dst, ip/port information received on a need fragmentation ICMP error message." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotInvalidTcpSeqno" description="Total number of invalid tcp seqno received on need fragmentation ICMP error message." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotInvalidNextMTUval" description="Total number of inval (&lt;576|&gt;1500) next MTU value received on a need fragmentation ICMP error message." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotDstIpLookup" description="Total number of MTU lookup on destination IP info received on a need fragmentation ICMP error message failed." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotBigNextMTU" description="Total number of next MTU information received on a need fragmentation ICMP error message greater than current MTU." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotInvalidProtocol" description="Total number of invalid protocol type received on a need fragmentation ICMP error message." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotBadPMTUIpChecksum" description="Total number of IP checksum error on the IP fragment in the need fragmentation ICMP error message body." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotPMTUnoLink" description="Total number of need fragmentation ICMP error message received on a pcb with no link." displayType="detail" dataType="measurement" />
+         <metric property="icmpTotPMTUDiscoveryDisabled" description="Total number of need fragmentation ICMP error message received for which PMTU Discovery is disabled." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler UDP" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="udpCurRateThreshold" description="This contains the value set for 10ms rate threshold for udp packets. This implies that within 10ms range , NetScaler can allow (receive or pass through ) the set number of UDP packets. " displayType="detail" dataType="measurement" />
+         <metric property="udpTotUnknownSvcPkts" description="Total number of UDP packets received by NetScaler to unconfigured services." displayType="detail" dataType="measurement" />
+         <metric property="udpTotRxPkts" description="Total number of UDP packets received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="udpTotRxBytes" description="Total number of UDP bytes received by NetScaler." displayType="detail" dataType="measurement" units="bytes"/>
+         <metric property="udpTotTxPkts" description="Total number of UDP packets transmitted by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="udpTotTxBytes" description="Total number of UDP bytes transmitted by NetScaler." displayType="detail" dataType="measurement" units="bytes"/>
+         <metric property="udpCurRateThresholdExceeds" description="Number of time UDP rate threshold was exceeded." displayType="detail" dataType="measurement" />
+         <metric property="udpBadChecksum" description="Number of packets with bad UDP checksum received by NetScaler." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler TCP" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="tcpCurServerConn" description="Number of server connections in NetScaler" displayType="detail" dataType="measurement" />
+         <metric property="tcpCurClientConn" description="Number of client connections in NetScaler" displayType="detail" dataType="measurement" />
+         <metric property="tcpActiveServerConn" description="Number of connections currently serving requests" displayType="detail" dataType="measurement" />
+         <metric property="tcpCurClientConnClosing" description="Number of client connections in NetScaler in closing states" displayType="detail" dataType="measurement" />
+         <metric property="tcpCurServerConnEstablished" description="Number of server connections in NetScaler in established state" displayType="detail" dataType="measurement" />
+         <metric property="tcpCurClientConnOpening" description="Number of client connections in NetScaler in opening states" displayType="detail" dataType="measurement" />
+         <metric property="tcpCurClientConnEstablished" description="Number of client connections in NetScaler in established state" displayType="detail" dataType="measurement" />
+         <metric property="tcpCurServerConnClosing" description="Number of server connections in NetScaler in closing states" displayType="detail" dataType="measurement" />
+         <metric property="tcpSpareConn" description="Number of spare connections ready to be used" displayType="detail" dataType="measurement" />
+         <metric property="tcpSurgeQueueLen" description="Number of connections in surge queue" displayType="detail" dataType="measurement" />
+         <metric property="tcpCurServerConnOpening" description="Number of server connections in NetScaler in opening states" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotServerConnOpened" description="Total number of opened server connections" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotServerConnClosed" description="Total number of closed server connections" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotClientConnOpened" description="Total number of opened client connections" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotClientConnClosed" description="Total number of closed client connections" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotSyn" description="Number of SYN packets received" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotSynProbe" description="Number of times auto-discovered servers were probed" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotSvrFin" description="Number of FIN packet was received from a server" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotCltFin" description="Number of FIN packet was received from a client" displayType="detail" dataType="measurement" />
+         <metric property="tcpWaitToSyn" description="Number of times data was received on a connection in TIME_WAIT state" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotZombieCltConnFlushed" description="Number of idle client connections flushed" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotZombieSvrConnFlushed" description="Number of idle server flushed" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotZombieHalfOpenCltConnFlushed" description="Number of half opened client connections flushed" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotZombieHalfOpenSvrConnFlushed" description="Number of half opened server connections flushed" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotZombieActiveHalfCloseCltConnFlushed" description="Number of active half closed client connections flushed" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotZombieActiveHalfCloseSvrConnFlushed" description="Number of active half closed server connections flushed" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotZombiePassiveHalfCloseCltConnFlushed" description="Number of passive half closed client connections flushed" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotZombiePassiveHalfCloseSrvConnFlushed" description="Number of passive half closed server connections flushed" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrBadCheckSum" description="Number of bad TCP checksums received" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSynInSynRcvd" description="Number of SYN packets was received on a connection in SYN_RCVD state" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSynInEst" description="Number of SYN packets received on a connection in ESTABLISHED state" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSynGiveUp" description="Number of times connection establishment timed out" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSynSentBadAck" description="Number incorrect ACK packets received on a connection in SYN_SENT state" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSynRetry" description="Number of times SYN packet was retried" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrFinRetry" description="Number of times FIN packet was retried" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrFinGiveUp" description="Number of times connection closing timed out" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrFinDup" description="Number of duplicate FIN packets was recieved" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrRst" description="Number of RST packets recieved" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrRstNonEst" description="Number of RST packets recieved on a connection in not ESTABLISHED state" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrRstOutOfWindow" description="Number of RST packets recieved on a connection out of current TCP window" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrRstInTimewait" description="Number of RST packets recieved on a connection in TIME_WAIT state" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSvrRetrasmit" description="Number of retransmission packets from servers" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrCltRetrasmit" description="Number of retransmission packets from clients" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrFullRetrasmit" description="Number of full retransmission packets" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrPartialRetrasmit" description="Number of full retransmission packets" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSvrOutOfOrder" description="Number of out of order TCP packets, received from servers" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrCltOutOfOrder" description="Number of out of order TCP packets, received from clients" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrCltHole" description="Number of TCP holes on client connnections" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSvrHole" description="Number of TCP holes on server connnections" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrCookiePktSeqReject" description="Number of TCP SYN cookie packets rejected due to incorrect sequence number" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrCookiePktSigReject" description="Number of TCP SYN cookie packets rejected due to incorrect signature" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrCookiePktSeqDrop" description="Number of TCP SYN cookie packets dropped due to out of window sequence number" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrCookiePktMssReject" description="Number of TCP SYN cookie packets rejected due to incorrect MSS" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrRetransmit" description="Number of TCP retransmissions sent" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrRetransmitGiveUp" description="Number of times TCP retransmission giveups" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotRxPkts" description="Number of TCP packets received" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotRxBytes" description="Number TCP bytes received" displayType="detail" dataType="measurement"  units="bytes" />
+         <metric property="tcpTotTxPkts" description="Number TCP packets transmitted" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotTxBytes" description="Number TCP bytes transmitted" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="tcpTotZombieCall" description="Number times Zombie cleanup is called" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotSynHeld" description="Number of SYN packets held, waiting for server connection" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotSynFlush" description="Number of held SYN packets flushed due to no server response" displayType="detail" dataType="measurement" />
+         <metric property="tcpTotFinWaitClosed" description="Number of connections closed because there were too many connections in TIME_WAIT state" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrAnyPortFail" description="Number of port allocation failure on any IP address" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrIpPortFail" description="Number of packets received on non existant connection" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSentRst" description="Number of RST packets sent" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrBadStateConn" description="Number of connections in non of known TCP states" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrFastRetransmissions" description="Number of fast TCP restransmissions done" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrFirstRetransmissions" description="Number of first restransmissions done" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSecondRetransmissions" description="Number of second restransmissions done" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrThirdRetransmissions" description="Number of third restransmissions done" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrForthRetransmissions" description="Number of forth restransmissions done" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrFifthRetransmissions" description="Number of fifth restransmissions done" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSixthRetransmissions" description="Number of sixth restransmissions done" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSeventhRetransmissions" description="Number of seventh restransmissions done" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrDataAfterFin" description="Number of times data was received after FIN packet" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrRstThreshold" description="Number of RST packets dropped dor to RST threshold" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrOutOfWindowPkts" description="Number of packets out of TCP advertised window" displayType="detail" dataType="measurement" />
+         <metric property="tcpErrSynDroppedCongestion" description="Number of SYN packets dropped because of network congestion" displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler SSL" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="sslCardStatus" description="Status of the  SSL card (1=UP, 0=DOWN)" displayType="detail" dataType="measurement" />
+         <metric property="sslEngineStatus" description="Status of the SSL Engine (1=UP/0=DOWN). This state is decided based on SSL Feature/License status and minimum number of cards UP" displayType="detail" dataType="measurement" />
+         <metric property="sslTotTransactions" description="Number of SSL transactions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSSLv2Transactions" description="Number of SSLv2 transactions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSSLv3Transactions" description="Total number of SSLv3 Transactions." displayType="detail" dataType="measurement" />
+         <metric property="sslTotTLSv1Transactions" description="Number of TLSv1 transactions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSessions" description="Number of SSL sessions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSSLv2Sessions" description="Number of SSLv2 sessions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSSLv3Sessions" description="Number of SSLv3 sessions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotTLSv1Sessions" description="Number of TLSv1 sessions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotExpiredSessions" description="Total number of Expired SSL Sessions." displayType="detail" dataType="measurement" />
+         <metric property="sslTotNewSessions" description="Number of new SSL sessions created." displayType="detail" dataType="measurement" />
+         <metric property="sslTotSessionHits" description="Number of SSL session reuse hits" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSessionMiss" description="Number of SSL session reuse misses" displayType="detail" dataType="measurement" />
+         <metric property="sslTotRenegSessions" description="Number of SSL session renegotiations" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSSLv3RenegSessions" description="Number of session renegotiations done on SSLv3" displayType="detail" dataType="measurement" />
+         <metric property="sslTotTLSv1RenegSessions" description="Number of SSL session renegotiations done on TLSv1" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSSLv2Handshakes" description="Number of handshakes on SSLv2" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSSLv3Handshakes" description="Number of handshakes on SSLv3" displayType="detail" dataType="measurement" />
+         <metric property="sslTotTLSv1Handshakes" description="Number of SSL handshakes on TLSv1" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSSLv2ClientAuthentications" description="Number of client authentications done on SSLv2" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSSLv3ClientAuthentications" description="Number of client authentications done on SSLv3" displayType="detail" dataType="measurement" />
+         <metric property="sslTotTLSv1ClientAuthentications" description="Number of client authentications done on TLSv1" displayType="detail" dataType="measurement" />
+         <metric property="sslTotRSA512keyExchanges" description="Number of RSA 512-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslTotRSA1024keyExchanges" description="Number of RSA 1024-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslTotRSA2048keyExchanges" description="Number of RSA 2048-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslTotDH512keyExchanges" description="Number of Diffie-Helman 512-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslTotDH1024keyExchanges" description="Number of Diffie-Helman 1024-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslTotDH2048keyExchanges" description="Number of Diffie-Helman 2048-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslTotRSAAuthorizations" description="Number of RSA authentications" displayType="detail" dataType="measurement" />
+         <metric property="sslTotDHAuthorizations" description="Number of Diffie-Helman authentications" displayType="detail" dataType="measurement" />
+         <metric property="sslTotDSSAuthorizations" description="Total number of times DSS authorization used." displayType="detail" dataType="measurement" />
+         <metric property="sslTotNULLAuthorizations" description="Number of Null authentications" displayType="detail" dataType="measurement" />
+         <metric property="sslTot40BitRC4Ciphers" description="Number of RC4 40-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTot56BitRC4Ciphers" description="Number of RC4 56-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTot64BitRC4Ciphers" description="Number of RC4 64-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTot128BitRC4Ciphers" description="Number of RC4 128-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTot40BitDESCiphers" description="Number of DES 40-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTot56BitDESCiphers" description="Number of DES 56-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTot168Bit3DESCiphers" description="Number of DES 168-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTot40BitRC2Ciphers" description="Number of RC2 40-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTot56BitRC2Ciphers" description="Number of RC2 56-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTot128BitRC2Ciphers" description="Number of RC2 128-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTot128BitIDEACiphers" description="Number of IDEA 128-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotNULLCiphers" description="Number of Null cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotMD5Mac" description="Number of MD5 hashes" displayType="detail" dataType="measurement" />
+         <metric property="sslTotSHAMac" description="Number of SHA hashes" displayType="detail" dataType="measurement" />
+         <metric property="sslTotOffloadBulkDES" description="Number of DES encryptions offloaded to crypto card" displayType="detail" dataType="measurement" />
+         <metric property="sslTotOffloadRSAKeyExchanges" description="Number of RSA key exchanges offloaded to crypto card" displayType="detail" dataType="measurement" />
+         <metric property="sslTotOffloadDHKeyExchanges" description="Number of DH key exchanges offloaded to crypto card" displayType="detail" dataType="measurement" />
+         <metric property="sslTotOffloadSignRSA" description="Number of RSA sign operations offloaded to crypto card" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotSessions" description="Number of Backend SSL sessions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotSSLv3Sessions" description="Number of Backend SSLv3 sessions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotTLSv1Sessions" description="Number of Backend TLSv1 sessions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeExpiredSessions" description="Number of Backend export sessions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotSessionMultiplexAttempts" description="Number of Backend SSL session multiplex attempts" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotSessionMultiplexAttemptSuccess" description="Number of Backend SSL session multiplex successes" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotSessionMultiplexAttemptFails" description="Number of Backend SSL session multiplex failures" displayType="detail" dataType="measurement" />
+         <metric property="sslBeMaxMultiplexedSessions" description="Number of Backend SSL sessions reused" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotSSLv3Handshakes" description="Number of Backend SSLv3 handshakes" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotTLSv1Handshakes" description="Number of Backend TLSv1 handshakes" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotSSLv3ClientAuthentications" description="Number of Backend SSLv3 client authentications" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotTLSv1ClientAuthentications" description="Number of Backend TLSv1 client authentications" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotRSA512keyExchanges" description="Number of Backend RSA 512-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotRSA1024keyExchanges" description="Number of Backend RSA 1024-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotRSA2048keyExchanges" description="Number of Backend RSA 2048-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotDH512keyExchanges" description="Number of Backend DH 512-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotDH1024keyExchanges" description="Number of Backend DH 1024-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotDH2048keyExchanges" description="Number of Backend DH 2048-bit key exchanges" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotRSAAuthorizations" description="Number of Backend RSA authentications" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotDHAuthorizations" description="Number of Backend DH authentications" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotDSSAuthorizations" description="Number of Backend DSS authentications" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotNULLAuthorizations" description="Number of Backend null authentications" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTot40BitRC4Ciphers" description="Number of Backend RC4 40-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTot56BitRC4Ciphers" description="Number of Backend RC4 56-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTot64BitRC4Ciphers" description="Number of Backend RC4 64-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTot128BitRC4Ciphers" description="Number of Backend RC4 128-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTot40BitDESCiphers" description="Number of Backend DES 40-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTot56BitDESCiphers" description="Number of Backend DES 56-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTot168Bit3DESCiphers" description="Number of Backend 3DES 168-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTot40BitRC2Ciphers" description="Number of Backend RC2 40-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTot56BitRC2Ciphers" description="Number of Backend RC2 56-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTot128BitRC2Ciphers" description="Number of Backend RC2 128-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTot128BitIDEACiphers" description="Number of Backend IDEA 128-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotNULLCiphers" description="Number of Backend null cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotMD5Mac" description="Number of Backend MD5 hashes" displayType="detail" dataType="measurement" />
+         <metric property="sslBeTotSHAMac" description="Number of Backend SHA hashes" displayType="detail" dataType="measurement" />
+         <metric property="sslCurSessions" description="Number of active SSL sessions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotOffloadBulkAES" description="Number of AES encryptions offloaded to crypto card" displayType="detail" dataType="measurement" />
+         <metric property="sslTotOffloadBulkRC4" description="Number of RC4 encryptions offloaded to crypto card" displayType="detail" dataType="measurement" />
+         <metric property="sslNumCardsUP" description="Number of ssl cards UP. If number of cards UP is lower than a threshold, a failover will be initiated." displayType="detail" dataType="measurement" />
+         <metric property="sslCards" description="Number of SSL crypto cards present in the system" displayType="detail" dataType="measurement" />
+         <metric property="sslTotBkendSessionReNegotiate" description="Number of Backend SSL session renegotiations" displayType="detail" dataType="measurement" />
+         <metric property="sslTotCipherAES128" description="Number of AES 128-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotBkendSslV3Renego" description="Number of Backend SSLv3 session renegotiations" displayType="detail" dataType="measurement" />
+         <metric property="sslTotBkendTlSvlRenego" description="Number of Backend TLSv1 session renegotiations" displayType="detail" dataType="measurement" />
+         <metric property="sslTotCipherAES256" description="Number of AES 256-bit cipher encryptions" displayType="detail" dataType="measurement" />
+         <metric property="sslTotBkendCipherAES128" description="Backend AES 128-bit cipher encryptions" displayType="detail" dataType="trait" />
+         <metric property="sslTotBkendCipherAES256" description="Backend AES 256-bit cipher encryptions" displayType="detail" dataType="trait" />
+         <metric property="sslTotHwEncBE" description="Number of bytes encrypted in hardware on back-end" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotDec" description="Number of bytes decrypted" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotSwEncFE" description="Number of bytes encrypted in software on front-end" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotEncFE" description="Number of bytes encrypted on front-end" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotEnc" description="Number of bytes encrypted" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotDecHw" description="Number of bytes decrypted in hardware" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotSwDecBE" description="Number of bytes decrypted in software on back-end" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotHwDecFE" description="Number of bytes decrypted in hardware on front-end" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotEncHw" description="Number of bytes encrypted in hardware" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotDecSw" description="Number of bytes decrypted in software" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotSwEncBE" description="Number of bytes encrypted in software on back-end" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotEncSw" description="Number of bytes encrypted in software" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotSwDecFE" description="Number of bytes decrypted in software on front-end" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotEncBE" description="Number of bytes encrypted on back-end" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotDecBE" description="Number of bytes decrypted on back-end" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotHwDecBE" description="Number of bytes decrypted in hardware on back-end" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotDecFE" description="Number of bytes decrypted on front-end" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="sslTotHwEncFE" description="Number of bytes encrypted in hardware on front-end" displayType="detail" dataType="measurement" units="bytes" />
+      </service>
+      <service name="Netscaler HTTP" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="httpTotGets" description="Number of HTTP GET requests received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTotPosts" description="Number of HTTP POST requests received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTotOthers" description="Number of non-GET/POST HTTP methods received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTotRxRequestBytes" description="Data received in request including headers (in bytes)" displayType="detail" dataType="measurement" units="bytes" measurementType="trendsup"/>
+         <metric property="httpTotRxResponseBytes" description="Data received in the response including headers (in bytes)" displayType="detail" dataType="measurement" units="bytes" measurementType="trendsup"/>
+         <metric property="httpTotTxRequestBytes" description="Data transmitted in request including headers(in bytes)" displayType="detail" dataType="measurement" units="bytes" measurementType="trendsup"/>
+         <metric property="httpTotTxResponseBytes" description="Data transmitted in response including headers (in bytes)" displayType="detail" dataType="measurement" units="bytes" measurementType="trendsup"/>
+         <metric property="httpTot10Requests" description="Number of HTTP/1.0 requests received from clients" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTotResponses" description="Number of HTTP responses received from servers" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTot10Responses" description="Number of HTTP/1.0 responses received from servers" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTotClenResponses" description="Number of HTTP requests/responses received with content-length headers" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTotChunkedResponses" description="Number of HTTP requests/responses received with chunked encoding" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpErrIncompleteRequests" description="Number of incomplete request headers received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpErrIncompleteResponses" description="Number of incomplete response headers received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpErrIncompleteHeaders" description="Number of incomplete header reassembly failures" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpErrServerBusy" description="Number of 500 Server BUSY responses received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTotChunkedRequests" description="Number of chunked requests received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTotClenRequests" description="Number of content-length requests received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpErrLargeContent" description="Number of large/invalid requests/responses received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpErrLargeCtlen" description="Number of large/invalid content-length requests/responses received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpErrLargeChunk" description="Number of large/invalid requests/responses received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTotRequests" description="Total number HTTP requests received from clients" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTot11Requests" description="Number of HTTP/1.1 requests received from clients" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTot11Responses" description="Number of HTTP/1.1 responses received from servers" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpTotNoClenChunkResponses" description="Number of FIN-terminated responses" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="httpErrNoreuseMultipart" description="Number of HTTP multi-part header requests/responses received" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+      </service>
+      <service name="Netscaler Cache" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="cacheErrMemAlloc" description="Total number of times the cache failed to allocate memory to store transactions" displayType="detail" dataType="measurement" />
+         <metric property="cacheCurHits" description="This number should be close to the number of hits being served currently." displayType="detail" dataType="measurement" />
+         <metric property="cacheCurMisses" description="Number of clients that are being served by the origin via the cache. This number should be close to the number of requests being served at present and that had experienced a store-able miss. It does not include those requests that had experienced a non-store-able miss." displayType="detail" dataType="measurement" />
+         <metric property="cachePercent304Hits" description="Ratio of 304 hits to total hits expressed as percentage" displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="cacheRecentPercent304Hits" description="Recently recorded ratio of 304 hits to all hits expressed as percentage" displayType="detail" dataType="measurement" />
+         <metric property="cachePercentStoreAbleMiss" description="Ratio of store-able misses to all misses expressed as percentage" displayType="detail" dataType="measurement" />
+         <metric property="cacheRecentPercentStoreAbleMiss" description="Recently recorded ratio of store-able misses to all misses expressed as percentage." displayType="detail" dataType="measurement" />
+         <metric property="cachePercentSuccessfulRevalidation" description="Percentage of times stored content was successfully revalidated by a 304 response rather than by a full response" displayType="detail" dataType="measurement" />
+         <metric property="cacheRecentPercentSuccessfulRevalidation" description="Recently recorded percentage of times stored content was successfully revalidated by a 304 response rather than by a full response" displayType="detail" dataType="measurement" />
+         <metric property="cachePercentByteHit" description="Cache byte hit ratio expressed as percentage. Here we define byte hit ratio as ((number of bytes served from the cache)/(total number of bytes served to the client)). This is the standard definition of Byte Hit Ratio. If compression is turned ON in NS then this ratio doesn't mean much." displayType="detail" dataType="measurement" />
+         <metric property="cacheRecentPercentByteHit" description="Recently recorded cache byte hit ratio expressed as percentage. Here we define byte hit ratio as ((number of bytes served from the cache)/(total number of bytes served to the client)). This is the standard definition of Byte Hit Ratio. If compression is turned ON in NS then this ratio doesn't mean much." displayType="detail" dataType="measurement" />
+         <metric property="cachePercentOriginBandwidthSaved" description="Percentage of bandwidth saved at the origin is given by ((number of extra bytes that would have been served by the origin if the cache were absent)/(extra bytes that would have been served by the origin + number of bytes served by the origin). With this definition we are able to show benefits of integrated compression. The assumption here is that all the compression has been done in NetScaler, otherwise the b/w saving might get over estimated." displayType="detail" />
+         <metric property="cacheRecentPercentOriginBandwidthSaved" description="Recently Recorded Cache byte hit ratio expressed as percentage. Here we define byte hit ratio as ((number of extra bytes that would have been served by the origin)/(total number of bytes served to the client)). With this definition we are able to show benefits of integrated compression. The byte hit ratio can be greater than 1 because of integrated cmp. The assumption here is that all the compression has been done in NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="cacheErrMemAlloc" description="Total number of times the cache failed to allocate memory to store transactions" displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="cacheTotRequests" description="Total requests. (= Total hits + Total misses)" displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="cacheTotHits" description="Total number of hits. (= 304 hits + Non-304 hits)" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="cacheTotMisses" description="Total number of misses to the server" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="cacheTot304Hits" description="Total number of 304 Not Modified responses served from the cache." displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="cacheTotNon304Hits" description="Total number of full responses served from the cache." displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="cacheTotStoreAbleMisses" description="Total number of misses where the response was considered cacheable." displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="cacheTotNonStoreAbleMisses" description="Total number of misses where the response was considered non-cacheable." displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="cacheTotRevalidationMiss" description="Number of times cache generated a conditional request to the origin" displayType="detail" dataType="measurement" measurementType="trendsup"/>
+         <metric property="cacheTotFullToConditionalRequest" description="Number of times cache converted a full request from the client to a conditional request to the origin" displayType="detail" dataType="measurement" />
+         <metric property="cacheTotSuccessfulRevalidation" description="Total number of times stored content was successfully revalidated by a 304 Not Modified response from the origin" displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="cacheTotResponseBytes" description="Total number of HTTP response bytes served by NetScaler" displayType="detail" dataType="measurement" units="bytes"  measurementType="trendsup"/>
+         <metric property="cacheBytesServed" description="Total number of bytes served from the cache" displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+         <metric property="cacheCompressedBytesServed" description="Total number of compressed bytes served from the cache" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="cacheTotPetRequests" description="Total number of PET requests" displayType="detail" dataType="measurement" />
+         <metric property="cacheTotPetHits" description="Total number of PET hits" displayType="detail" dataType="measurement" />
+         <metric property="cacheTotParameterizedRequests" description="Total number of parameterized requests" displayType="detail" dataType="measurement" />
+         <metric property="cacheTotParameterizedHits" description="Total number of hits for parameterized requests (= Parameterized 304 hits + Parameterized non-304 hits)" displayType="detail" dataType="measurement" />
+         <metric property="cacheTotParameterizedNon304Hits" description="Total number of full responses served from cache for parameterized requests" displayType="detail" dataType="measurement" />
+         <metric property="cacheTotParameterized304Hits" description="Total number of 304 responses served from cache for parameterized requests" displayType="detail" dataType="measurement" />
+         <metric property="cacheTotInvalidationRequests" description="Total number of invalidation requests. This happens when an incoming request matches a cache INVAL policy. A request can perform both parameterized and full invalidarion." displayType="detail" dataType="measurement" />
+         <metric property="cacheTotNonParameterizedInvalidationRequests" description="Total number of requests which performed full invalidation. Full invalidation happens when the INVAL policy has the invalGroups parameter specified." displayType="detail" dataType="measurement" />
+         <metric property="cacheTotParameterizedInvalidationRequests" description="Total number of requests which performed parameterized invalidation. Parameterized invalidation happens when the INVAL policy has the invalObjects parameter specified." displayType="detail" dataType="measurement" />
+         <metric property="cacheTotFlashcacheMisses" description="Total number of FlashCache misses" displayType="detail" dataType="measurement" />
+         <metric property="cacheTotFlashcacheHits" description="Total number of FlashCache hits" displayType="detail" dataType="measurement" />
+         <metric property="cacheTotExpireAtLastByte" description="Total number of objects that were expired at last byte" displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler Compression" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="compTotalRequests" description="Total number of compression requests done by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="compTotalTxBytes" description="Total number of compressed bytes transmitted by NetScaler." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="compTotalRxBytes" description="Total number of compressible bytes received by NetScaler." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="compTotalTxPackets" description="Total number of compressed packets transmitted by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="compTotalRxPackets" description="Total number of compressible packets received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="compTcpTotalTxBytes" description="Total number of compressed bytes transmitted by NetScaler." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="compTcpTotalRxBytes" description="Total number of compressible bytes received by NetScaler." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="compTcpTotalTxPackets" description="Total number of compressed packets transmitted by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="compTcpTotalRxPackets" description="Total number of compressible packets received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="compTotalDataCompressionRatio" description="" displayType="detail" dataType="measurement" />
+         <metric property="compTcpTotalTxBytes" description="Total number of compressed bytes transmitted by NetScaler." displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+         <metric property="compTcpTotalRxBytes" description="Total number of compressible bytes received by NetScaler." displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+         <metric property="compTcpTotalTxPackets" description="Total number of compressed packets transmitted by NetScaler." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="compTcpTotalRxPackets" description="Total number of compressible packets received by NetScaler." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="compTcpTotalQuantum" description="Number of times compression done on receiving quantum worth of data." displayType="detail" dataType="measurement" />
+         <metric property="compTcpTotalPush" description="Number of times compression done on receiving TCP PSH flag." displayType="detail" dataType="measurement" />
+         <metric property="compTcpTotalEoi" description="Number of times compression done on receiving End Of Input (FIN packet)." displayType="detail" dataType="measurement" />
+         <metric property="compTcpTotalTimer" description="Number of times compression done on expiration of data accumulation timer." displayType="detail" dataType="measurement" />
+         <metric property="compTcpRatio" description="Ratio of compressible data received to compressed data transmitted." displayType="detail" dataType="measurement" />
+         <metric property="compTcpBandwidthSaving" description="Bandwidth saving from TCP compression expressed as percentage." displayType="detail" dataType="measurement" />
+         <metric property="deCompTcpRxPackets" description="Total number of compressed packets received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="deCompTcpTxPackets" description="Total number of decompressed packets transmitted by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="deCompTcpRxBytes" description="Total number of compressed bytes received by NetScaler." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="deCompTcpTxBytes" description="Total number of decompressed bytes transmitted by NetScaler." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="deCompTcpErrData" description="Number of data errors encountered while decompressing." displayType="detail" dataType="measurement" />
+         <metric property="deCompTcpErrLessData" description="Number of times NetScaler received less data than declared by protocol." displayType="detail" dataType="measurement" />
+         <metric property="deCompTcpErrMoreData" description="Number of times NetScaler received more data than declared by protocol." displayType="detail" dataType="measurement" />
+         <metric property="deCompTcpErrMemory" description="Number of times memory failures occurred while decompressing." displayType="detail" dataType="measurement" />
+         <metric property="deCompTcpErrUnknown" description="Number of times unknown errors occurred while decompressing." displayType="detail" dataType="measurement" />
+         <metric property="deCompTcpRatio" description="Ratio of decompressed data transmitted to compressed data received." displayType="detail" dataType="measurement" />
+         <metric property="deCompTcpBandwidthSaving" description="Bandwidth saving from compression expressed as percentage." displayType="detail" dataType="measurement" />
+         <metric property="delCompTotalRequests" description="Total number of delta compression requests received by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="delCompFirstAccess" description="Total number of delta compression first accesses." displayType="detail" dataType="measurement" />
+         <metric property="delCompDone" description="Total number of delta compressions done by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="delCompTcpRxBytes" description="Total number of delta-compressible bytes received by NetScaler." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="delCompTcpTxBytes" description="Total number of delta-compressed bytes transmitted by NetScaler." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="delCompTcpRxPackets" description="Number of delta-compressible packets received." displayType="detail" dataType="measurement" />
+         <metric property="delCompTcpTxPackets" description="Total number of delta-compressed packets transmitted by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="delCompBaseServed" description="Total number of basefile requests served by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="delCompBaseTcpTxBytes" description="Number of basefile bytes transmitted by NetScaler." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="delCompErrBypassed" description="Number of times delta-compression bypassed by NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="delCompErrBFileWHdrFailed" description="Number of times basefile could not be updated in NetScaler cache." displayType="detail" dataType="measurement" />
+         <metric property="delCompErrNostoreMiss" description="Number of times basefile was not found in NetScaler cache." displayType="detail" dataType="measurement" />
+         <metric property="delCompErrReqinfoToobig" description="Number of times basefile request URL was too large." displayType="detail" dataType="measurement" />
+         <metric property="delCompErrReqinfoAllocfail" description="Number of times requested basefile could not be allocated." displayType="detail" dataType="measurement" />
+         <metric property="delCompErrSessallocFail" description="Number of times delta compression session could not be allocated." displayType="detail" dataType="measurement" />
+         <metric property="delCmpRatio" description="" displayType="detail" dataType="measurement" />
+         <metric property="delBwSaving" description="" displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler DNS" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="dnsTotQueries" description="Total number of DNS queries received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotAnswers" description="Total number of DNS responses received" displayType="detail" dataType="measurement" />
+         <metric property="dnsTotArecQueries" description="Total number of A queries received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotAresponse" description="Total number of A responses received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotNSrecQueries" description="Total number of NS queries received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotNSresponse" description="Total number of NS responses received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotMXrecQueries" description="Total number of MX queries received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotMXresponse" description="Total number of MX responses received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotSOArecQueries" description="Total number of SOA queries received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotSOAresponse" description="Total number of SOA responses received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotCNAMErecQueries" description="Total number of CNAME queries received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotCNAMEresponse" description="Total number of CNAME responses received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotUnsupportedResponseClass" description="Total number of responses for which response types were unsupported." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotUnsupportedResponseType" description="Total number of responses for which response type requested was unsupported." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotUnsupportedQueries" description="Total number of requests for which query type requested was unsupported." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotUnsupportedQueryClass" description="Total number of queries for which query class was unsupported." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotInvalidQueryFormat" description="Total number of queries whose format was invalid." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotNonAuthNoDatas" description="Total number of responses for which there was a format error." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotMultiQuery" description="Total number of Multi Query request received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotStrayAnswer" description="Total number of stray answers." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotCacheFlush" description="Total number of times cache was flushed." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotCacheEntriesFlush" description="Total number of cache entries flushed." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotServerQuery" description="Total number of Server queries sent." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotServerResponse" description="Total number of Server responses received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotArecFailed" description="Total number of times A record lookup failed." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotNSrecFailed" description="Total number of times NS record lookup failed." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotMXrecFailed" description="Total number of times MX record lookup failed." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotCNAMErecFailed" description="Total number of times CNAME record lookup failed." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotArecUpdate" description="Total number of A record updates." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotNSrecUpdate" description="Total number of NS record updates." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotMXrecUpdate" description="Total number of MX record updates." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotSOArecUpdate" description="Total number of SOA record updates." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotCNAMErecUpdate" description="Total number of CNAME record updates." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotRecUpdate" description="Total number of record updates." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotMultiQueryDisableError" description="Total number of times a multi query was disabled and received a multi query." displayType="detail" dataType="measurement" />
+         <metric property="dnsCurArecord" description="Total number of A records." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="dnsCurNSrecord" description="Total number of NS records." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="dnsCurMXrecord" description="Total number of MX records." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="dnsCurSOArecord" description="Total number of SOA records." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="dnsCurCNAMErecord" description="Total number of CNAME records." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="dnsCurAuthEntries" description="Total number of authoritative entries." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="dnsCurNoAuthEntries" description="Total number of non-authoritative entries." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="dnsTotAuthAns" description="Number of queries which were authoritatively answered." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotAuthNoNames" description="Number of queries for which no record was found." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotNoDataResps" description="Number of DNS responses received without answer." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotResponseBadLen" description="Number of DNS responses received with invalid resoure data length." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotReqRefusals" description="Number of DNS requests refused." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotOtherErrors" description="Total number of other errors." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotPTRrecQueries" description="Total number of PTR queries received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotPTRresponse" description="Total number of PTR responses received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotPTRrecUpdate" description="Total number of PTR record updates." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotPTRrecFailed" description="Total number of times PTR record lookup failed." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotSRVrecQueries" description="Total number of SRV queries received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotSRVresponse" description="Total number of SRV responses received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotSRVrecUpdate" description="Total number of SRV record updates." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotSRVrecFailed" description="Total number of times SRV record lookup failed." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotAAAArecQueries" description="Total number of AAAA queries received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotAAAAresponse" description="Total number of AAAA responses received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotAAAArecUpdate" description="Total number of AAAA record updates." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotAAAArecFailed" description="Total number of times AAAA record lookup failed." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotANYqueries" description="Total number of ANY queries received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotANYresponse" description="Total number of ANY responses received." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotANYrecFailed" description="Total number of times ANY query lookup failed." displayType="detail" dataType="measurement" />
+         <metric property="dnsTotSOArecFailed" description="Total number of times SOA record lookup failed." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler SureConnect" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="scPolicyUrlHits" description="This counter gives the number of times netscaler matched an incoming request with a Configured sureconnect policy." displayType="detail" dataType="measurement" />
+         <metric property="scPopUps" description="This counter gives the number of times netscaler served the in-memory java script which throws up the pop up window." displayType="detail" dataType="measurement" />
+         <metric property="scAltContUrls" description="This gives the number of requests which are required to load the alternate content in the pop up window." displayType="detail" dataType="measurement" />
+         <metric property="scSessionReqs" description="This counter gives the number of requests which came in a SureConnect session." displayType="detail" dataType="measurement" />
+         <metric property="scPostReqs" description="This counter gives the number of times a post request triggered SureConnect." displayType="detail" dataType="measurement" />
+         <metric property="scThresholdFail" description="This counter gives the number of times netscaler did not serve the in-memory response because the thresholds conditions had failed." displayType="detail" dataType="measurement" />
+         <metric property="scFaultyCookies" description="This counter gives the number of times netscaler encountered corrupted SureConnect Cookies." displayType="detail" dataType="measurement" />
+         <metric property="scUnSupBrow" description="This counter gives the number of times requests came from unsupported browsers." displayType="detail" dataType="measurement" />
+         <metric property="scResetStats" description="This gives the number of times SureConnect statistics were reset." displayType="detail" dataType="measurement" />
+         <metric property="scTotCondTriggered" description="This counter gives the number of times the SC conditions were triggered." displayType="detail" dataType="measurement" />
+         <metric property="scTotReissuedRequests" description="This counter gives the number of SC reissued requests that Netscaler received." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler DOS PQ" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="dosTotConditionTriggered" description="This counter gives the number of times Netscaler triggered the DOS JavaScript due to a condition match" displayType="detail" dataType="measurement" />
+         <metric property="dosTotValidCookies" description="This counter gives the number of clients from whom Netscaler received a valid DOS cookie." displayType="detail" dataType="measurement" />
+         <metric property="dosTotDosPriorityClients" description="This counter gives the number of valid clients that were given DOS priority." displayType="detail" dataType="measurement" />
+         <metric property="dosAvgValidClients" description="This counter gives the average number of DOS clients that retruned with a valid DOS cookie." displayType="detail" dataType="measurement" />
+         <metric property="dosAvgDospriClients" description="This counter gives the average number of clients that were given DOS priority" displayType="detail" dataType="measurement" />
+         <metric property="pqTotalPolicyMatches" description="This counter gives the number of times Netscaler matched an incoming request with any PQ policy." displayType="detail" dataType="measurement" />
+         <metric property="pqTotalThresholdFailed" description="This counter gives the number of times the priority queue threshold criteria was not met." displayType="detail" dataType="measurement" />
+         <metric property="pqPriority1Requests" description="This counter gives the number of priority 1 requests that Netscaler received." displayType="detail" dataType="measurement" />
+         <metric property="pqPriority2Requests" description="This counter gives the number of priority 2 requests that Netscaler received." displayType="detail" dataType="measurement" />
+         <metric property="pqPriority3Requests" description="This counter gives the number of priority 3 requests that Netscaler received." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler Monitor" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="monitorCount" description="Number of monitors in the system" displayType="detail" dataType="measurement" />
+         <metric property="monitorBindCount" description="Number of monitor bindings in the system" displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler HTML" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="htmlInjectedBytes" description="Number of Bytes Injected" displayType="detail" dataType="measurement" />
+         <metric property="htmlInjectionSessions" description="Number of HTML Injection Sessions" displayType="detail" dataType="measurement" />
+         <metric property="htmlInjectionTotalSessions" description="Number of HTML Injection Sessions" displayType="detail" dataType="measurement" />
+         <metric property="htmlInjectMemAllocFailed" description="Number of times Memory Allocation Failed" displayType="detail" dataType="measurement" />
+         <metric property="htmlInitFailed" description="Number of times Initialization Failed" displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler Firewall" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="appFirewallRequests" description="Number of requests received by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallResponses" description="Number of responses handled by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallAborts" description="Number of requests aborted by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallRedirects" description="Number of requests redirected by the application firewall (HTTP 302)" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallViolStartURL" description="Number of start URL violations seen by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallViolDenyURL" description="Number of deny URL violations seen by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallViolBufferOverflow" description="Number of buffer overflow violations seen by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallViolCookie" description="Number of cookie violations seen by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallViolXSS" description="Number of Cross-site scripting violations seen by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallViolSQL" description="Number of SQL violations seen by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallViolFieldformat" description="Number of field format violations seen by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallViolFieldConsistency" description="Number of field consistency violations seen by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallViolCreditCard" description="Number of credit card violations seen by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallViolSafeObject" description="Number of safe object violations seen by the application firewall" displayType="detail" dataType="measurement" />
+         <metric property="appFirewallTotalViol" description="Number of violations seen by the application firewall" displayType="detail" dataType="measurement" />
+      </service>
+      <service name="Netscaler Service Binding" discovery="MibDiscovery" class="MibComponent" singleton="true">
+         <metric property="svcCount" description="Number of services in the system" displayType="detail" dataType="measurement" />
+         <metric property="serverCount" description="Number of servers in the system" displayType="detail" dataType="measurement" />
+         <metric property="svcgroupCount" description="Number of service groups in the system" displayType="detail" dataType="measurement" />
+         <metric property="svcgroupmemCount" description="Number of service group members in the system" displayType="detail" dataType="measurement" />
+         <metric property="curConfigVservers" description="Total number of vservers configured on the NetScaler." displayType="detail" dataType="measurement" />
+         <metric property="vsvrBindCount" description="Number of vserver bindings in the system" displayType="detail" dataType="measurement" />
+         <metric property="vsvrSvcGrpBindCount" description="Number of vserver, servicegroup bindings in the system" displayType="detail" dataType="measurement" />
+      </service>
+        <!-- Unaccessible
+        <metric property="entityName" description="This represents the name of the entity whose state has changed." displayType="detail" dataType="trait" />
+        <metric property="nsUserName" description="This represents the name of the system user." displayType="detail" dataType="trait" />
+        <metric property="configurationCmd" description="This represents the configuartion command that was issued." displayType="detail" dataType="trait" />
+        <metric property="unackSynCount" description="The number of un-acknowledged SYNs NetScaler has received in the past synFlood time-interval." displayType="detail" dataType="measurement" />
+         -->
+
+      <service name="nsAclTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="aclName" description="The name of the ACL" displayType="detail" dataType="trait" />
+         <metric property="aclPriority" description="The priority of the ACL" displayType="detail" dataType="trait" />
+         <metric property="aclHits" description="Number of times the acl was hit" displayType="detail" dataType="measurement" />
+      </service>
+      <service name="vlanTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="vlanId" description="This represents the unique id of the vlan" displayType="detail" dataType="trait" />
+         <metric property="vlanMemberInterfaces" description="This represents the list of interfaces on the NetScaler that are members of the vlan" displayType="detail" dataType="trait" />
+         <metric property="vlanTaggedInterfaces" description="This represents the list of interfaces on the NetScaler that are members of the vlan that carry tagged packets" displayType="detail" dataType="trait" />
+         <metric property="vlanTotRxPkts" description="Number of packets received on the VLAN." displayType="detail" dataType="measurement" />
+         <metric property="vlanTotRxBytes" description="Number of bytes received on the VLAN." displayType="detail" units="bytes" dataType="measurement" />
+         <metric property="vlanTotTxPkts" description="Number of packets transmitted on the VLAN." displayType="detail" dataType="measurement" />
+         <metric property="vlanTotTxBytes" description="Number of bytes transmitted on the VLAN." displayType="detail" units="bytes" dataType="measurement" />
+         <metric property="vlanTotDroppedPkts" description="Number of packets dropped on the VLAN." displayType="detail" dataType="measurement" />
+         <metric property="vlanTotBroadcastPkts" description="Number of Broadcast packets sent and received by the VLAN." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="nsIpAddrTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="ipAddr" description="This represents an IP address configured on the NetScaler" displayType="detail" dataType="trait" />
+         <metric property="ipNetmask" description="This represents the Netmask" displayType="detail" dataType="trait" />
+            <!--ipType values: {1=netScalerIp, 2=mappedIp, 4=subnetIp}-->
+         <metric property="ipType" description="This represents the IP address type" displayType="detail" dataType="trait" />
+            <!--ipMode values: {1=active, 2=passive}-->
+         <metric property="ipMode" description="This represents the IP address mode" displayType="detail" dataType="trait" />
+         <metric property="ipFreePorts" description="This represents the number of unused ports free on this IP" displayType="detail" dataType="measurement" />
+         <metric property="ipVlan" description="The vlan to which this ip address is bound." displayType="detail" dataType="trait" />
+      </service>
+      <service name="nsCPUTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="nsCPUname" description="The name of the CPU." displayType="detail" dataType="trait" />
+         <metric property="nsCPUusage" description="CPU utilization percentage" displayType="detail" dataType="measurement" />
+      </service>
+      <service name="nsSysHealthTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="sysHealthCounterName" description="This is the health counter name. The counter name is composed with the type of the counter and what it is intended to carry. All voltage counters stats with 'v', fan counters starts with 'fan' and temperature counters starts with 't'. Eg:'v50p' is a volta" displayType="detail" dataType="trait" />
+         <metric property="sysHealthCounterValue" description="The health counters value. The units are 'mv', RPM and degrees Celsius for voltage, fan and temperatures respectively." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="nsSysHealthDiskTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="sysHealthDiskName" description="The disk name. Disk name always starts with the 'disk' keyword. Eg: disk0, disk1. Currently disk0 is mapped to /flash and disk1 mapped to /var partitions." displayType="detail" dataType="trait" />
+         <metric property="sysHealthDiskSize" description="The total disk space in MBytes (includes available and used spaces also)." displayType="detail" dataType="measurement" units="megabytes" />
+         <metric property="sysHealthDiskAvail" description="The total disk space available in MBytes." displayType="detail" dataType="measurement" units="megabytes" />
+         <metric property="sysHealthDiskUsed" description="The total disk space used in MBytes." displayType="detail" dataType="measurement" units="megabytes" />
+         <metric property="sysHealthDiskPerusage" description="The Percentage of the disk space used." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="gslbSitesTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="siteName" description="This is the name of the gslb site" displayType="detail" dataType="trait" />
+         <metric property="siteIp" description="This is the private IP address of the site" displayType="detail" dataType="trait" />
+            <!--siteType values: {1=localSite, 2=remoteSite}-->
+         <metric property="siteType" description="This indicates whether the Gslb site is local or remote." displayType="detail" dataType="trait" />
+            <!--siteMetricExchange values: {3=disabled, 4=enabled}-->
+         <metric property="siteMetricExchange" description="This indicates whether metric exchange is enabled or disabled at this site." displayType="detail" dataType="trait" />
+            <!--siteMepStatus values: {5=mepInactive, 6=mepActive, 7=mepDown}-->
+         <metric property="siteMepStatus" description="This indicates the status of the Metric Exchange Policy at the site." displayType="detail" dataType="trait" />
+         <metric property="sitePublicIp" description="This is the public IP address of the GSLB site." displayType="detail" dataType="trait" />
+         <metric property="siteTotalRequests" description="The total number of requests received on the Vservers represented by all GSLB services associated with this site." displayType="detail" dataType="measurement" />
+         <metric property="siteTotalRequestBytes" description="The total number of request bytes received on the Vservers represented by all GSLB services associated with this site." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="siteTotalResponses" description="Number of responses received on the Vservers represented by all GSLB services associated with this site." displayType="detail" dataType="measurement" />
+         <metric property="siteTotalResponseBytes" description="Number of response bytes received on the Vservers represented by all GSLB services associated with this site." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="siteCurSrvrConnections" description="The number of current connections to the real servers behind the Vservers represented by all the GSLB services associated with this site." displayType="detail" dataType="measurement" />
+         <metric property="siteCurClntConnections" description="The number of current client connections to the Vservers represented by all GSLB services associated with this site." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="gslbPoliciesTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="gslbPolicyName" description="This is the policy name" displayType="detail" dataType="trait" />
+         <metric property="totalHits" description="This is the total hits for the policy" displayType="detail" dataType="measurement" measurementType="trendsup" />
+      </service>
+      <service name="nsDomainTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="domainName" description="The domain name" displayType="detail" dataType="trait" />
+         <metric property="dnsTotalQueries" description="Total number of DNS queries received." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="nsPolicyStatsTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="pengPolicyName" description="Name of the policy" displayType="detail" dataType="trait" />
+         <metric property="pengPolicyHits" description="Total policy hits count" displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="pengBytesIn" description="Input traffic of a compression policy" displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+         <metric property="pengBytesOut" description="Output traffic of a compression policy" displayType="detail" dataType="measurement" measurementType="trendsup" units="bytes" />
+      </service>
+      <service name="nsIfStatsTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="ifName" description="The name of the interface." displayType="detail" dataType="trait" />
+         <metric property="ifMedia" description="The media type of the interface." displayType="detail" dataType="trait" />
+         <metric property="ifTotRxBytes" description="Number of bytes received by this interface" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="ifRxAvgBandwidthUsage" description="The average rx bandwidth on interface in bitsps." displayType="detail" dataType="measurement" />
+         <metric property="ifTotRxPkts" description="Number of packets received by this interface" displayType="detail" dataType="measurement" />
+         <metric property="ifRxAvgPacketRate" description="The average rate of incoming packets on the interface since the system start." displayType="detail" dataType="measurement" />
+         <metric property="ifTotTxBytes" description="Number of bytes transmitted by this interface" displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="ifTxAvgBandwidthUsage" description="The average tx bandwidth on interface in bitsps." displayType="detail" dataType="measurement" />
+         <metric property="ifTotTxPkts" description="Number of packets transmitted by this interface" displayType="detail" dataType="measurement" />
+         <metric property="ifTxAvgPacketRate" description="The average rate of outgoing packets on the interface since the system start." displayType="detail" dataType="measurement" />
+         <metric property="ifRxCRCErrors" description="Number of received packets with CRC errors (alignment or FCS)" displayType="detail" dataType="measurement" />
+         <metric property="ifRxFrameErrors" description="Number of too long packets received on the interface." displayType="detail" dataType="measurement" />
+         <metric property="ifRxAlignmentErrors" description="The number of alignment errors received on the interface." displayType="detail" dataType="measurement" />
+         <metric property="ifTxCollisions" description="Number of collisions in transmission (half-duplex only)" displayType="detail" dataType="measurement" />
+         <metric property="ifTxExcessCollisions" description="Number of excess collisions in transmission (half-duplex only)" displayType="detail" dataType="measurement" />
+         <metric property="ifTxLateCollisions" description="Number of late collisions in transmission (half-duplex only)" displayType="detail" dataType="measurement" />
+         <metric property="ifTxMultiCollisionErrors" description="Number of multi collision during transmission (half-duplex only)" displayType="detail" dataType="measurement" />
+         <metric property="ifTxCarrierError" description="Number of carrier errors during transmission" displayType="detail" dataType="measurement" />
+         <metric property="ifTotRxMbits" description="Number of megabits received by this interface" displayType="detail" dataType="measurement" />
+         <metric property="ifTotTxMbits" description="Number of megabits transmitted by this interface" displayType="detail" dataType="measurement" />
+         <metric property="ifTotNetScalerPkts" description="Number of NetScaler packets received by this interface" displayType="detail" dataType="measurement" />
+         <metric property="ifErrDroppedRxPkts" description="Number of received packets dropped by this interface" displayType="detail" dataType="measurement" />
+         <metric property="ifErrLinkHangs" description="Number of NIC hangs detected" displayType="detail" dataType="measurement" />
+         <metric property="ifLinkReinits" description="Number of link re-initializations (attempts to establish the link)" displayType="detail" dataType="measurement" />
+         <metric property="ifErrDuplexMismatch" description="Number of duplex mismatches detected" displayType="detail" dataType="measurement" />
+         <metric property="ifErrCongestedPktsDrops" description="Number of output packets dropped due to congestion" displayType="detail" dataType="measurement" />
+         <metric property="ifErrCongestionLimitPktDrops" description="Number of output packets dropped during the congestion time" displayType="detail" dataType="measurement" />
+         <metric property="ifErrPktRx" description="Number of erroneous packets received by this interface" displayType="detail" dataType="measurement" />
+         <metric property="ifErrRxFIFO" description="NIC receive FIFO memory overruns" displayType="detail" dataType="measurement" />
+         <metric property="ifErrRxNoBuffs" description="Number of times there was no memory for Rx replacement buffers" displayType="detail" dataType="measurement" />
+         <metric property="ifErrTxNoNSB" description="Number of times there was not enough memory for processing of the received data" displayType="detail" dataType="measurement" />
+         <metric property="ifErrRxFCS" description="Number of packets received with Frame Check Sequence (FCS) errors" displayType="detail" dataType="measurement" />
+         <metric property="ifErrPktTx" description="Number of errors encountered during transmitting by this interface" displayType="detail" dataType="measurement" />
+         <metric property="ifErrTxFIFO" description="NIC transmission FIFO underruns" displayType="detail" dataType="measurement" />
+         <metric property="ifErrTxHeartBeat" description="Number 10Mb link heartbeats (Informational - 10Mb half-duplex only)" displayType="detail" dataType="measurement" />
+         <metric property="ifErrTxOverflow" description="Number of times we had an overflow of the Tx ring (Informational)" displayType="detail" dataType="measurement" />
+         <metric property="ifErrTxDeferred" description="Number of times a packet transmission was deferred (Informational - half-duplex only)" displayType="detail" dataType="measurement" />
+         <metric property="ifErrDroppedTxPkts" description="Number of packets dropped in transmission by this interface" displayType="detail" dataType="measurement" />
+         <metric property="ifTotRxXonPause" description="Number of XON pause frames received" displayType="detail" dataType="measurement" />
+         <metric property="ifTotRxXoffPause" description="Number of XOFF pause frames received" displayType="detail" dataType="measurement" />
+         <metric property="ifTotXoffStateEntered" description="Number of times the XOFF state was entered" displayType="detail" dataType="measurement" />
+         <metric property="ifTotXonSent" description="Number of XON pause frames sent" displayType="detail" dataType="measurement" />
+         <metric property="ifTotXoffSent" description="Number of XOFF pause frames sent" displayType="detail" dataType="measurement" />
+         <metric property="ifnicStsStalls" description="Number of Status stalls detected" displayType="detail" dataType="measurement" />
+         <metric property="ifnicTxStalls" description="Number of Transmit stalls detected" displayType="detail" dataType="measurement" />
+         <metric property="ifnicRxStalls" description="Number of Receive stalls detected" displayType="detail" dataType="measurement" />
+         <metric property="ifnicErrDisables" description="Number of times link has been error-disabled" displayType="detail" dataType="measurement" />
+         <metric property="ifThroughput" description="Interface throughput in Mbps" displayType="detail" dataType="measurement" />
+         <metric property="ifMinThroughput" description="Interface minimum throughput in Mbps" displayType="detail" dataType="measurement" />
+      </service>
+      <service name="scPolicyConfigTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="scPolicyName" description="The name of Sure Connect policy." displayType="detail" dataType="trait" />
+         <metric property="scPolUrl" description="The URL in the IOH Policy." displayType="detail" dataType="trait" />
+         <metric property="scDelayThreshold" description="The delay threshold for sc policy." displayType="detail" dataType="measurement" />
+         <metric property="scMaxConnections" description="The max connections for sc policy." displayType="detail" dataType="measurement" />
+            <!--scActionType values: {1=ns, 2=acs, 3=noAction}-->
+         <metric property="scActionType" description="The type of action that NetScaler takes when initiating on-hold." displayType="detail" dataType="trait" />
+         <metric property="scAlternateContentServiceName" description="The alternate service name for the content." displayType="detail" dataType="trait" />
+         <metric property="scRuleName" description="The rule that the NetScaler matches with the incoming request." displayType="detail" dataType="trait" />
+         <metric property="scAlternateContentPath" description="The alternate path for the content." displayType="detail" dataType="trait" />
+      </service>
+      <service name="sslCertKeyTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="sslCertKeyName" description="The certificate key pair Name." displayType="detail" dataType="trait" />
+         <metric property="sslCertPath" description="The certificate path." displayType="detail" dataType="trait" />
+         <metric property="sslKeyPath" description="The private key path." displayType="detail" dataType="trait" />
+            <!--sslInputFormat values: {1=der, 3=pem}-->
+         <metric property="sslInputFormat" description="The input format of the certificate key pair." displayType="detail" dataType="trait" />
+         <metric property="sslDaysToExpire" description="Number of days remaining for the certificate to expire." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="sslCrlTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="sslCrlName" description="The name of CRL." displayType="detail" dataType="trait" />
+         <metric property="sslCrlPath" description="The CRL path." displayType="detail" dataType="trait" />
+            <!--sslCrlInputFormat values: {1=der, 3=pem}-->
+         <metric property="sslCrlInputFormat" description="The input format of CRL." displayType="detail" dataType="trait" />
+      </service>
+      <service name="sslCipherGroupTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="sslCipherGroupName" description="The Cipher group name." displayType="detail" dataType="trait" />
+         <metric property="sslCipherName" description="The Cipher name." displayType="detail" dataType="trait" />
+         <metric property="sslCipherDesc" description="The Cipher description." displayType="detail" dataType="trait" />
+      </service>
+      <service name="dosPolicyTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="dosPolicyName" description="Name of the policy" displayType="detail" dataType="trait" />
+         <metric property="thresholdValue" description="Threshold surge count to detect an attack, for this DosPolicy" displayType="detail" dataType="measurement" />
+      </service>
+      <service name="nsExpressionTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="expressionName" description="Name of the expression." displayType="detail" dataType="trait" />
+         <metric property="expressionTotalHits" description="Total number of hits to this expression." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="pqPolicyConfigTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="pqName" description="The name of the PQ policy bound to Load Balancing vserver." displayType="detail" dataType="trait" />
+         <metric property="pqRuleName" description="The Rule Name configuration for PQ policy." displayType="detail" dataType="trait" />
+         <metric property="pqQdepthThreshold" description="The vip threshold value for qdepth in PQ policy." displayType="detail" dataType="measurement" />
+         <metric property="pqPolQdepthThreshold" description="The policy threshold value for qdepth in PQ policy." displayType="detail" dataType="measurement" />
+         <metric property="pqPriority" description="The priority of this PQ policy." displayType="detail" dataType="measurement" />
+         <metric property="pqPolicyWeight" description="The weight of this PQ policy." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="crPolicyMapConfigTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="crMapName" description="The name of the map policy." displayType="detail" dataType="trait" />
+         <metric property="crMapSrcName" description="The name of the source domain hosted by the map." displayType="detail" dataType="trait" />
+         <metric property="crMapDstName" description="The name of the destination domain hosted by the map." displayType="detail" dataType="trait" />
+         <metric property="crMapSrcUrl" description="The Url to be modified under the given source domain." displayType="detail" dataType="trait" />
+         <metric property="crMapDstUrl" description="The Url after mapping." displayType="detail" dataType="trait" />
+      </service>
+      <service name="serviceTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="svcServiceName" description="The name of the service." displayType="detail" dataType="trait" />
+         <metric property="svcIpAddress" description="The ip address at which the service is running." displayType="detail" dataType="trait" />
+         <metric property="svcPort" description="The port at which the service is running." displayType="detail" dataType="trait" />
+            <!--svcServiceType values: {0=http, 1=ftp, 2=tcp, 3=udp, 4=sslBridge, 5=monitor, 6=monitorUdp, 7=nntp, 8=httpserver, 9=httpclient, 10=rpcserver, 11=rpcclient, 12=nat, 13=any, 14=ssl, 15=dns, 17=snmp, 16=adns, 19=monitorPing, 18=ha, 21=aaa, 20=sslOtherTcp, 23=sslvpnUdp, 22=secureMonitor, 25=dnsClient, 24=rip, 27=rpcClient, 26=rpcServer, 28=serviceUnknown}-->
+         <metric property="svcServiceType" description="The protocol type of the service" displayType="detail" dataType="trait" />
+            <!--svcState values: {1=down, 2=unknown, 3=busy, 4=outOfService, 5=transitionToOutOfService, 7=up}-->
+         <metric property="svcState" description="Current state of the server." displayType="detail" dataType="trait" />
+         <metric property="svcMaxReqPerConn" description="The maximum requests per connection allowed on this service." displayType="detail" dataType="measurement" />
+         <metric property="svcAvgTransactionTime" description="Average transaction time between netscaler and the service behind it." displayType="detail" dataType="measurement" units="milliseconds" />
+         <metric property="svcEstablishedConn" description="The number of established connections." displayType="detail" dataType="measurement" />
+         <metric property="svcActiveConn" description="The number of established connections that are currently active." displayType="detail" dataType="measurement" />
+         <metric property="svcSurgeCount" description="The number requests in the surge queue." displayType="detail" dataType="measurement" />
+         <metric property="svcTotalRequests" description="The total number of requests received on this service/vserver(This is applicable for HTTP/SSL servicetype)." displayType="detail" dataType="measurement" />
+         <metric property="svcTotalRequestBytes" description="The total number of request bytes received on this service/vserver." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="svcTotalResponses" description="Number of responses received on this service/vserver(This is applicable for HTTP/SSL servicetype)." displayType="detail" dataType="measurement" />
+         <metric property="svcTotalResponseBytes" description="Number of response bytes received on this service/vserver." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="svcTotalPktsRecvd" description="The total number of packets received on this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="svcTotalPktsSent" description="The total number of packets sent." displayType="detail" dataType="measurement" />
+         <metric property="svcTotalSynsRecvd" description="The total number of syns received from clients on this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="svcGslbSiteName" description="The name of the gslb site on which this service is defined." displayType="detail" dataType="trait" />
+         <metric property="svcAvgSvrTTFB" description="The average TTFB between the netscaler and the server." displayType="detail" dataType="measurement" />
+         <metric property="svctotalJsTransactions" description="Total number of javascripts sent to geniune clients." displayType="detail" dataType="measurement" />
+         <metric property="svcdosQDepth" description="The number of geniune client on this service." displayType="detail" dataType="measurement" />
+         <metric property="svcCurClntConnections" description="The number of current client connections." displayType="detail" dataType="measurement" />
+         <metric property="svcRequestRate" description="This represents the request rate in requests per second for this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="svcRxBytesRate" description="This represents the request rate in bytes per second for this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="svcTxBytesRate" description="This represents the response rate in bytes per second for this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="svcSynfloodRate" description="This represents the rate of unacknowledged SYNs for this service/vserver." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="serverTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="serverName" description="The name of the server." displayType="detail" dataType="trait" />
+         <metric property="serverIpAddress" description="The IP address of the server." displayType="detail" dataType="trait" />
+            <!--serverState values: {1=down, 2=unknown, 3=busy, 4=outOfService, 5=transitionToOutOfService, 7=up}-->
+         <metric property="serverState" description="The state of the server." displayType="detail" dataType="trait" />
+         <metric property="serverDelay" description="Specifies time in seconds after which all services in this server are brought down." displayType="detail" dataType="trait" units="seconds" />
+      </service>
+      <service name="serviceScpolicyTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="svcscpolicyPrimaryIPAddress" description="The ip address of the vserver/service to which the scpolicy is bound." displayType="detail" dataType="trait" />
+         <metric property="svcscpolicyPrimaryPort" description="The port of the vserver/service to which the scpolicy is bound." displayType="detail" dataType="trait" />
+         <metric property="svcscpolicydesIpAddress" description="IP address of destination physical service." displayType="detail" dataType="trait" />
+         <metric property="svcscpolicydestPort" description="Port number of destination physical service." displayType="detail" dataType="trait" />
+         <metric property="svcscpolicyavgServerTransactionTime" description="Average Server transaction time." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicytotClientTransaction" description="Total number of client transactions for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicytotOpenConn" description="Total number of open connections for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscPhysicalServiceIP" description="The IP address of the physical service for which this statistics is maintained." displayType="detail" dataType="trait" />
+         <metric property="svcscpolicyscPhysicalServicePort" description="The port of the physical service for which this statistics is maintained." displayType="detail" dataType="trait" />
+         <metric property="svcscpolicyscCurrentWaitingTime" description="This counter gives the value of the currently estimated waiting time for the configured URL." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscCurrentClientConnections" description="This counter gives the number of clients that were allowed a server connection for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscTotalClientConnections" description="This counter gives the total number of clients that were allowed a server connection for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscTotalServerConnections" description="This counter gives the total number of server connections that were established for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscTotalRequestsReceived" description="This counter gives the total number of requests received for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscTotalRequestBytes" description="This counter gives the total number of request bytes received for this policy." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="svcscpolicyscTotalResponsesReceived" description="This counter gives the total number of server responses received for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscTotalResponseBytes" description="This counter gives the total number of response bytes received for this policy." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="svcscpolicyscCurrentSurgeQClients" description="This counter gives the number of clients that matched the SC policy but are in the surge queue." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscCurrentWaitingClients" description="This counter gives the current number of SC priority clients that are waiting for a server connection for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscTotalServerTransactions" description="This counter gives the number of 200 OK responses received from the server for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscTotalServerTTFBTransactions" description="This counter gives the number of TTFB transcations from the server for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscTotalServerTTLB" description="This counter gives the server TTLB calculated for this policy." displayType="detail" dataType="trait" />
+         <metric property="svcscpolicyscTotalClientTTLB" description="This counter gives the client TTLB calculated for this policy." displayType="detail" dataType="trait" />
+         <metric property="svcscpolicyscTotalServerTTFB" description="This counter gives the server TTFB calculated for this policy." displayType="detail" dataType="trait" />
+         <metric property="svcscpolicyscAverageClientTTLB" description="This counter gives the average value of the client TTLB for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcscpolicyscAverageServerTTFB" description="This counter gives the average value of the server TTFB for this policy." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="serviceAdvanceSslConfigTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <!--svcSslDH values: {1=disabled, 2=enabled}-->
+         <metric property="svcSslDH" description="Whether DH is enabled/disabled." displayType="detail" dataType="trait" />
+         <metric property="svcSslDHCount" description="The DH refresh count to re-generate public/private key." displayType="detail" dataType="measurement" />
+         <metric property="svcSslDHFilePath" description="The DH file path name." displayType="detail" dataType="trait" />
+            <!--svcSsleRSA values: {1=disabled, 2=enabled}-->
+         <metric property="svcSsleRSA" description="The ephimeral RSA support for service." displayType="detail" dataType="trait" />
+         <metric property="svcSsleRSACount" description="The eRSA refresh count to re-generate RSA temporary key." displayType="detail" dataType="measurement" />
+            <!--svcSslv2Protocol values: {1=disabled, 2=enabled}-->
+         <metric property="svcSslv2Protocol" description="The support for SSLv2 protocol for service." displayType="detail" dataType="trait" />
+            <!--svcSslv3Protocol values: {1=disabled, 2=enabled}-->
+         <metric property="svcSslv3Protocol" description="The support for SSLv3 protocol for service." displayType="detail" dataType="trait" />
+            <!--svcSslTLSv1Protocol values: {1=disabled, 2=enabled}-->
+         <metric property="svcSslTLSv1Protocol" description="The support for  TLSv1 protocol for service." displayType="detail" dataType="trait" />
+            <!--svcSslRedirectSupport values: {1=disabled, 2=enabled}-->
+         <metric property="svcSslRedirectSupport" description="The support for ssl redirect for service." displayType="detail" dataType="trait" />
+         <metric property="svcSslClearTextPort" description="The clear text port on the backend webserver." displayType="detail" dataType="trait" />
+      </service>
+      <service name="serviceCipherBindingTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="svcSslCipherBindName" description="The cipher name bound to this service." displayType="detail" dataType="trait" />
+         <metric property="svcSslCipherBindDesc" description="The Cipher description." displayType="detail" dataType="trait" />
+      </service>
+      <service name="serviceGroupMemberTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="svcGrpMemberGroupName" description="The name of the service Group" displayType="detail" dataType="trait" />
+         <metric property="svcGrpMemberName" description="The name of the service group member" displayType="detail" dataType="trait" />
+         <metric property="svcGrpMemberPrimaryIPAddress" description="The ip address at which the service is running." displayType="detail" dataType="trait" />
+         <metric property="svcGrpMemberPrimaryPort" description="The port at which the service is running." displayType="detail" dataType="trait" />
+            <!--svcGrpMemberServiceType values: {0=http, 1=ftp, 2=tcp, 3=udp, 4=sslBridge, 5=monitor, 6=monitorUdp, 7=nntp, 8=httpserver, 9=httpclient, 10=rpcserver, 11=rpcclient, 12=nat, 13=any, 14=ssl, 15=dns, 17=snmp, 16=adns, 19=monitorPing, 18=ha, 21=aaa, 20=sslOtherTcp, 23=sslvpnUdp, 22=secureMonitor, 25=dnsClient, 24=rip, 27=rpcClient, 26=rpcServer, 28=serviceUnknown}-->
+         <metric property="svcGrpMemberServiceType" description="The type of the service." displayType="detail" dataType="trait" />
+            <!--svcGrpMemberState values: {1=down, 2=unknown, 3=busy, 4=outOfService, 5=transitionToOutOfService, 7=up}-->
+         <metric property="svcGrpMemberState" description="Current state of the server." displayType="detail" dataType="trait" />
+         <metric property="svcGrpMemberWeight" description="The weight of the service group member tied to the vserver." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberMaxReqPerConn" description="The maximum requests per connection allowed on this service." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberAvgTransactionTime" description="Average transaction time between netscaler and the service behind it." displayType="detail" dataType="measurement" units="milliseconds" />
+         <metric property="svcGrpMemberEstablishedConn" description="The number of established connections." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberActiveConn" description="The number of established connections that are currently active." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberSurgeCount" description="The number requests in the surge queue." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberTotalRequests" description="The total number of requests received on this service/vserver(This is applicable for HTTP/SSL servicetype)." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberTotalRequestBytes" description="The total number of request bytes received on this service/vserver." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="svcGrpMemberTotalResponses" description="Number of responses received on this service/vserver(This is applicable for HTTP/SSL servicetype)." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberTotalResponseBytes" description="Number of response bytes received on this service/vserver." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="svcGrpMemberTotalPktsRecvd" description="The total number of packets received on this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberTotalPktsSent" description="The total number of packets sent." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberTotalSynsRecvd" description="The total number of syns received from clients on this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberGslbSiteName" description="The name of the gslb site on which this service is defined." displayType="detail" dataType="trait" />
+         <metric property="svcGrpMemberAvgSvrTTFB" description="The average TTFB between the netscaler and the server." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMembertotalJsTransactions" description="Total number of javascripts sent to geniune clients." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberdosQDepth" description="The number of geniune client on this service." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberCurClntConnections" description="The number of current client connections." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberRequestRate" description="This represents the request rate in requests per second for this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberRxBytesRate" description="This represents the request rate in bytes per second for this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberTxBytesRate" description="This represents the response rate in bytes per second for this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="svcGrpMemberSynfloodRate" description="This represents the rate of unacknowledged SYNs for this service/vserver." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="serviceDospolicyTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="svcdospolicydosTotJSSent" description="This counter gives the total number of DOS JavaScript transactions performed for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcdospolicydosTotJSBytesSent" description="This counter gives the total number of DOS JS bytes sent for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcdospolicydosTotJSRefused" description="This counter gives the number of times the DOS JS was not sent because the set JS rate was not met for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcdospolicydosTotNonGetPostRequests" description="This counter gives the number of non GET, POST requests for which DOS JS was sent." displayType="detail" dataType="measurement" />
+         <metric property="svcdospolicydosPhysicalServiceIP" description="IP address of the physical service to which this policy is bound." displayType="detail" dataType="trait" />
+         <metric property="svcdospolicydosPhysicalServicePort" description="Port address of the physical service to which this policy is bound." displayType="detail" dataType="trait" />
+         <metric property="svcdospolicydosCurrentQueueSize" description="This counter gives the current queue size of the server to which this policy is bound." displayType="detail" dataType="measurement" />
+         <metric property="svcdospolicydosCurrentJSRate" description="This counter gives the current rate at which JS is being sent in response to client requests." displayType="detail" dataType="measurement" />
+         <metric property="svcdospolicydosTotValidClients" description="This counter gives the total number of valid DOS cookies reveived for this policy." displayType="detail" dataType="measurement" />
+         <metric property="svcdospolicydosCurServerRespRate" description="This counter gives the current rate at which the server to which this policy is bound is responding." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="monitorMemberTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="monitorName" description="Monitor name" displayType="detail" dataType="trait" />
+         <metric property="responseTimeoutThreshold" description="Monitor Response timeout threshold, above which snmp trap will be fired.It is expressed in milliseconds." displayType="detail" dataType="measurement" units="milliseconds"/>
+            <!--monitorType values: {1=ping, 2=tcp, 3=http, 4=tcpEcv, 5=httpEcv, 6=udpEcv, 7=dns, 8=ftp, 9=https, 10=tcps, 11=ldnsPing, 12=ldnsTcp, 13=ldnsDns, 14=radius, 15=dbsResolver, 17=httpInline, 16=user, 19=sipTcp, 18=sipUdp}-->
+         <metric property="monitorType" description="Type of the monitor." displayType="detail" dataType="trait" />
+         <metric property="monitorInterval" description="Interval between monitoring probes.It is expressed in milliseconds." displayType="detail" dataType="measurement" units="milliseconds" />
+         <metric property="monitorResponseTimeout" description="Maximum time a monitor probe can take to respond.It is expressed in milliseconds." displayType="detail" dataType="measurement" units="milliseconds" />
+         <metric property="monitorDowntime" description="Time for which the monitor probes are not fired once it is down.It is expressed in milliseconds." displayType="detail" dataType="measurement" units="milliseconds" />
+         <metric property="monitorRetrys" description="Number of failed attempts to make server DOWN." displayType="detail" dataType="measurement" />
+         <metric property="destinationIP" description="Destination IP address that is used for monitoring." displayType="detail" dataType="trait" />
+         <metric property="destinationPort" description="Destination port that is used for monitoring." displayType="detail" dataType="trait" />
+         <metric property="drtmDeviation" description="Tolerable Deviation of response time for DRTM.It is expressed in milliseconds." displayType="detail" dataType="measurement" units="milliseconds" />
+         <metric property="drtmActiveMonitors" description="Number of monitors contributing to DRTM average." displayType="detail" dataType="measurement" />
+         <metric property="drtmCumResponseTimeout" description="Total cumulative response time of all active DRTM monitors.It is expressed in milliseconds." displayType="detail" dataType="measurement" measurementType="trendsup" units="milliseconds" />
+      </service>
+      <service name="monServiceMemberTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="monServiceName" description="The name of the service to which the monitor is bound." displayType="detail" dataType="trait" />
+         <metric property="monitorRTO" description="Smooth response time calculated using LRTM. It is expressed in microseconds." displayType="detail" dataType="measurement" />
+            <!--monitorState values: {1=monitorStateDown, 2=monitorStateUnknown, 7=monitorStateUp}-->
+         <metric property="monitorState" description="State of the monitor." displayType="detail" dataType="trait" />
+         <metric property="drtmRTO" description="DRTM response timeout average over all drtm active monitors.It is expressed in milliseconds." displayType="detail" dataType="measurement" />
+         <metric property="drtmLearningProbes" description="Current, number of monitoring probes yet to be done to move to dynamic mode in case of DRTM monitors." displayType="detail" dataType="measurement" />
+         <metric property="monitorCurFailedCount" description="Current, continuous monitoring probe failure count. gets reset on success only." displayType="detail" dataType="measurement" />
+         <metric property="monitorWeight" description="Weight of the monitor binding." displayType="detail" dataType="measurement" />
+         <metric property="monitorProbes" description="Number of monitoring probes sent." displayType="detail" dataType="measurement" />
+         <metric property="monitorFailed" description="Number of monitoring probes failed." displayType="detail" dataType="measurement" />
+         <metric property="monitorMaxClient" description="Number of monitoring probes that were not sent due to MaxClients." displayType="detail" dataType="measurement" />
+         <metric property="monitorFailedCon" description="Number of failed monitoring probes due to failed connections." displayType="detail" dataType="measurement" />
+         <metric property="monitorFailedCode" description="Number of failed monitoring probes due to improper response code." displayType="detail" dataType="measurement" />
+         <metric property="monitorFailedStr" description="Number of failed monitoring probes due to invalid response string." displayType="detail" dataType="measurement" />
+         <metric property="monitorFailedTimeout" description="Number of failed monitoring probes due to timeout." displayType="detail" dataType="measurement" />
+         <metric property="monitorFailedSend" description="Number of failed monitoring probes due to inability to send the data." displayType="detail" dataType="measurement" />
+         <metric property="monitorFailedFTP" description="Number of failed monitoring probes due to ftp protocol violation." displayType="detail" dataType="measurement" />
+         <metric property="monitorFailedPort" description="Number of failed monitoring probes due to port unreachable response." displayType="detail" dataType="measurement" />
+         <metric property="monitorFailedResponse" description="Number of failed monitoring probes due to invalid response." displayType="detail" dataType="measurement" />
+         <metric property="monitorFailedId" description="Number of failed monitoring probes due to response id mismatch." displayType="detail" dataType="measurement" />
+         <metric property="monitorProbesNoChange" description="Number of monitoring probes which did not change the state." displayType="detail" dataType="measurement" />
+         <metric property="monitorResponseTimeoutThreshExceed" description="Number of times the response time has exceeded the configured threshold." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="vserverTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="vsvrName" description="The name of the vserver" displayType="detail" dataType="trait" />
+         <metric property="vsvrIpAddress" description="IP address of the vserver" displayType="detail" dataType="trait" />
+         <metric property="vsvrPort" description="the port of the vserver" displayType="detail" dataType="trait" />
+            <!--vsvrType values: {0=http, 1=ftp, 2=tcp, 3=udp, 4=sslBridge, 5=monitor, 6=monitorUdp, 7=nntp, 8=httpserver, 9=httpclient, 10=rpcserver, 11=rpcclient, 12=nat, 13=any, 14=ssl, 15=dns, 17=snmp, 16=adns, 19=monitorPing, 18=ha, 21=aaa, 20=sslOtherTcp, 23=sslvpnUdp, 22=secureMonitor, 25=dnsClient, 24=rip, 27=rpcClient, 26=rpcServer, 28=serviceUnknown}-->
+         <metric property="vsvrType" description="Protocol associated with the vserver" displayType="detail" dataType="trait" />
+            <!--vsvrState values: {1=down, 2=unknown, 3=busy, 4=outOfService, 5=transitionToOutOfService, 7=up}-->
+         <metric property="vsvrState" description="Current state of the server." displayType="detail" dataType="trait" />
+         <metric property="vsvrCurClntConnections" description="The number of current client connections." displayType="detail" dataType="measurement" />
+         <metric property="vsvrCurSrvrConnections" description="The number of current connections to the real servers behind the vserver." displayType="detail" dataType="measurement" />
+         <metric property="vsvrTotalRequests" description="The total number of requests received on this service/vserver(This is applicable for HTTP/SSL servicetype)." displayType="detail" dataType="measurement" />
+         <metric property="vsvrTotalRequestBytes" description="The total number of request bytes received on this service/vserver." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="vsvrTotalResponses" description="Number of responses received on this service/vserver(This is applicable for HTTP/SSL servicetype)." displayType="detail" dataType="measurement" />
+         <metric property="vsvrTotalResponseBytes" description="Number of response bytes received on this service/vserver." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="vsvrTotalPktsRecvd" description="The total number of packets received on this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="vsvrTotalPktsSent" description="The total number of packets sent." displayType="detail" dataType="measurement" />
+         <metric property="vsvrTotalSynsRecvd" description="The total number of syns received from clients on this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="vsvrCurServicesDown" description="The current number of services which are bound to this vserver and are in the state 'down'." displayType="detail" dataType="measurement" />
+         <metric property="vsvrCurServicesUnKnown" description="The current number of services which are bound to this vserver and are in the state 'unKnown'." displayType="detail" dataType="measurement" />
+         <metric property="vsvrCurServicesOutOfSvc" description="The current number of services which are bound to this vserver and are in the state 'outOfService'." displayType="detail" dataType="measurement" />
+         <metric property="vsvrCurServicesTransToOutOfSvc" description="The current number of services which are bound to this vserver and are in the state 'transitionToOutOfService'." displayType="detail" dataType="measurement" />
+         <metric property="vsvrCurServicesUp" description="The current number of services which are bound to this vserver and are in the state 'up'." displayType="detail" dataType="measurement" />
+         <metric property="vsvrTotMiss" description="Total vserver misses" displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="vsvrRequestRate" description="This represents the request rate in requests per second for this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="vsvrRxBytesRate" description="This represents the request rate in bytes per second for this service/vserver." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="vsvrTxBytesRate" description="This represents the response rate in bytes per second for this service/vserver." displayType="detail" dataType="measurement" units="bytes" />
+         <metric property="vsvrSynfloodRate" description="This represents the rate of unacknowledged SYNs for this service/vserver." displayType="detail" dataType="measurement" />
+         <metric property="vsvrIp6Address" description="IPv6 address of the v server" displayType="detail" dataType="trait" />
+         <metric property="vsvrTotHits" description="Total vserver hits" displayType="detail" dataType="measurement" measurementType="trendsup" />
+      </service>
+      <service name="vserverServiceTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="vsvrServiceHits" description="This represents the number of times that the service has been provided." displayType="detail" dataType="measurement" />
+         <metric property="servicePersistentHits" description="The total number of persistent hits." displayType="detail" dataType="measurement" />
+         <metric property="serviceWeight" description="The weight of the service tied to the vserver." displayType="detail" dataType="measurement" />
+         <metric property="vsvrServiceName" description="The name of the service to which the vserver is bound." displayType="detail" dataType="trait" />
+      </service>
+      <service name="vserverCspolicyTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="cspolicyName" description="This represents the name of the policy bound to content switching vserver" displayType="detail" dataType="trait" />
+         <metric property="cspolicyDestVserverName" description="This represents the name of the destination vserver to which the request has to be directed to if the content switching policy evaluates to true." displayType="detail" dataType="trait" />
+         <metric property="cspolicyHits" description="This represents the number of hits on this policy." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="vserverCrpolicyTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="crpolicyName" description="This represents the name of the policy bound to cache-redirection vserver" displayType="detail" dataType="trait" />
+         <metric property="crpolicyHits" description="This represents the hits on the cr policy." displayType="detail" dataType="trait" />
+      </service>
+      <service name="lbvserverTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <!--lbvsvrLBMethod values: {1=weightedRoundRobin, 2=leastConnections, 3=leastResponse, 4=asynchronousMAC, 5=urlHashed, 6=domainHashed, 7=destinationIPHashed, 8=sourceIPHashed, 9=leastBandwidth, 10=leastPackets, 11=customLoad, 12=token, 13=staticProximity, 14=rtt, 15=sourceIPDestinationIPHashed, 17=lrtm, 16=sourceIPSourcePort, 18=callIDHashed}-->
+         <metric property="lbvsvrLBMethod" description="The Policy used for Load Balancing." displayType="detail" dataType="trait" />
+            <!--lbvsvrPersistanceType values: {1=sourceIp, 2=cookieInsert, 3=cookieDelete, 4=cookieRead, 5=cookieHash, 6=sessionId, 7=server, 8=rule, 9=urlPassive, 10=customServerID, 11=groupSourceID, 12=groupCookieInsert, 13=destinationIP, 14=spillOver, 15=sourceIPdestinationIP, 17=none, 16=callerID}-->
+         <metric property="lbvsvrPersistanceType" description="The type of persistence used." displayType="detail" dataType="trait" />
+         <metric property="lbvsvrPersistenceTimeOut" description="The timeout set for persistence." displayType="detail" dataType="measurement" />
+         <metric property="lbvsvrActiveConn" description="The number of established connections that are currently active." displayType="detail" dataType="measurement" />
+         <metric property="lbvsvrAvgSvrTTFB" description="The average TTFB between the netscaler and the server." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="vserverPqpolicyTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="pqpolicytotClientTransactionTime" description="Total client transaction time in microsec." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="pqpolicytotClientTransactions" description="Total number of client transactions." displayType="detail" dataType="measurement" />
+         <metric property="pqpolicypqDropped" description="Number of dropped transactions." displayType="detail" dataType="measurement" />
+         <metric property="pqpolicypqQdepth" description="Number of waiting clients." displayType="detail" dataType="measurement" />
+         <metric property="pqpolicypqAvgClientTransactionTime" description="This counter gives the average time taken by a PQ client to complete its transaction." displayType="detail" dataType="measurement" />
+         <metric property="pqpolicypqVserverIP" description="Gives the IP address of the vserver to which this policy is bound." displayType="detail" dataType="trait" />
+         <metric property="pqpolicypqVserverPort" description="Gives the port of the vserver to which this policy is bound." displayType="detail" dataType="trait" />
+         <metric property="pqpolicypqCurrentClientConnections" description="This counter gives the current number of server connections established for this policy." displayType="detail" dataType="measurement" />
+         <metric property="pqpolicypqTotQueueDepth" description="This counter gives the total queue depth for this policy." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="pqpolicypqTotClientConnections" description="This counter gives the total number of server connections established for this policy." displayType="detail" dataType="measurement" />
+         <metric property="pqpolicypqTotQueueWaitTime" description="This counter gives the amount of time spent by PQ clients in the priority queue." displayType="detail" dataType="trait" />
+         <metric property="pqpolicypqTotAvgQueueDepth" description="This counter gives the average queue depth for this priority queue policy." displayType="detail" dataType="measurement" />
+         <metric property="pqpolicypqTotAvgQueueWaitTime" description="This counter gives the average waiting time for this priority queue policy." displayType="detail" dataType="measurement" />
+         <metric property="pqpolicytotClientTransactionTimems" description="Total client transaction time in microsec." displayType="detail" dataType="measurement" measurementType="trendsup" />
+         <metric property="pqpolicypqAvgClientTransactionTimems" description="This counter gives the average time taken by a PQ client to complete its transaction." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="vserverScpolicyTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="vsvrscpolicyPrimaryIPAddress" description="The ip address at which the service is running." displayType="detail" dataType="trait" />
+         <metric property="vsvrscpolicyPrimaryPort" description="The port at which the service is running." displayType="detail" dataType="trait" />
+         <metric property="vsvrscpolicydesIpAddress" description="IP address of destination physical service." displayType="detail" dataType="trait" />
+         <metric property="vsvrscpolicydestPort" description="Port number of destination physical service." displayType="detail" dataType="trait" />
+         <metric property="vsvrscpolicyavgServerTransactionTime" description="Average Server transaction time." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicytotClientTransaction" description="Total number of client transactions for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicytotOpenConn" description="Total number of open connections for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscPhysicalServiceIP" description="The IP address of the physical service for which this statistics is maintained." displayType="detail" dataType="trait" />
+         <metric property="vsvrscpolicyscPhysicalServicePort" description="The port of the physical service for which this statistics is maintained." displayType="detail" dataType="trait" />
+         <metric property="vsvrscpolicyscCurrentWaitingTime" description="This counter gives the value of the currently estimated waiting time for the configured URL." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscCurrentClientConnections" description="This counter gives the number of clients that were allowed a server connection for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscTotalClientConnections" description="This counter gives the total number of clients that were allowed a server connection for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscTotalServerConnections" description="This counter gives the total number of server connections that were established for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscTotalRequestsReceived" description="This counter gives the total number of requests received for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscTotalRequestBytes" description="This counter gives the total number of request bytes received for this policy." displayType="detail" dataType="measurement" units="bytes"/>
+         <metric property="vsvrscpolicyscTotalResponsesReceived" description="This counter gives the total number of server responses received for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscTotalResponseBytes" description="This counter gives the total number of response bytes received for this policy." displayType="detail" dataType="measurement" units="bytes"/>
+         <metric property="vsvrscpolicyscCurrentSurgeQClients" description="This counter gives the number of clients that matched the SC policy but are in the surge queue." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscCurrentWaitingClients" description="This counter gives the current number of SC priority clients that are waiting for a server connection for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscTotalServerTransactions" description="This counter gives the number of 200 OK responses received from the server for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscTotalServerTTFBTransactions" description="This counter gives the number of TTFB transcations from the server for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscTotalServerTTLB" description="This counter gives the server TTLB calculated for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscTotalClientTTLB" description="This counter gives the client TTLB calculated for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscTotalServerTTFB" description="This counter gives the server TTFB calculated for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscAverageClientTTLB" description="This counter gives the average value of the client TTLB for this policy." displayType="detail" dataType="measurement" />
+         <metric property="vsvrscpolicyscAverageServerTTFB" description="This counter gives the average value of the server TTFB for this policy." displayType="detail" dataType="measurement" />
+      </service>
+      <service name="vserverAdvanceSslConfigTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+            <!--vsvrSslDH values: {1=disabled, 2=enabled}-->
+         <metric property="vsvrSslDH" description="Whether DH is enabled/disabled." displayType="detail" dataType="trait" />
+         <metric property="vsvrSslDHCount" description="The DH refresh count to re-generate public/private key." displayType="detail" dataType="measurement" />
+         <metric property="vsvrSslDHFilePath" description="The DH file path name." displayType="detail" dataType="trait" />
+            <!--vsvrSsleRSA values: {1=disabled, 2=enabled}-->
+         <metric property="vsvrSsleRSA" description="The ephimeral RSA support for service." displayType="detail" dataType="trait" />
+         <metric property="vsvrSsleRSACount" description="The eRSA refresh count to re-generate RSA temporary key." displayType="detail" dataType="measurement" />
+            <!--vsvrSslv2Protocol values: {1=disabled, 2=enabled}-->
+         <metric property="vsvrSslv2Protocol" description="The support for SSLv2 protocol for service." displayType="detail" dataType="trait" />
+            <!--vsvrSslv3Protocol values: {1=disabled, 2=enabled}-->
+         <metric property="vsvrSslv3Protocol" description="The support for SSLv3 protocol for service." displayType="detail" dataType="trait" />
+            <!--vsvrSslTLSv1Protocol values: {1=disabled, 2=enabled}-->
+         <metric property="vsvrSslTLSv1Protocol" description="The support for  TLSv1 protocol for service." displayType="detail" dataType="trait" />
+            <!--vsvrSslRedirectSupport values: {1=disabled, 2=enabled}-->
+         <metric property="vsvrSslRedirectSupport" description="The support for ssl redirect for service." displayType="detail" dataType="trait" />
+         <metric property="vsvrSslClearTextPort" description="The clear text port on the backend webserver." displayType="detail" dataType="trait" />
+      </service>
+      <service name="vserverCipherBindingTable" discovery="MibTableDiscovery" class="MibTableComponent" singleton="false">
+         <metric property="vsvrSslCipherBindName" description="The cipher name bound to this service." displayType="detail" dataType="trait" />
+         <metric property="vsvrSslCipherBindDesc" description="The Cipher description." displayType="detail" dataType="trait" />
+      </service>
+   </service>
+</plugin>

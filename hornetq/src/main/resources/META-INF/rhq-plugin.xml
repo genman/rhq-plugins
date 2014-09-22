@@ -1,0 +1,940 @@
+<?xml version="1.0"?>
+<!DOCTYPE plugin [
+    <!ENTITY runsin '
+    <runs-inside>
+         <parent-resource-type name="HornetQ" plugin="hornetq" />
+         <parent-resource-type name="HornetQEmbedded" plugin="hornetq" />
+      </runs-inside>
+    '>
+]>
+
+<plugin name="hornetq" displayName="HornetQ Plugin" description="Monitors stand-alone HornetQ Plugin via JMX" pluginLifecycleListener="JMXPluginLifecycleListener" package="org.rhq.plugins.jmx"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:xmlns:rhq-plugin" xmlns:c="urn:xmlns:rhq-configuration">
+
+   <depends plugin="JMX" useClasses="true" />
+
+   <server name="HornetQEmbedded"
+       discovery="com.apple.iad.rhq.jmx.ApplicationMBeansDiscoveryComponent"
+       class="com.apple.iad.rhq.jmx.ApplicationMBeansComponent"
+       description="HornetQ running inside a JVM" singleton="true">
+      <runs-inside>
+         <parent-resource-type name="Tomcat Server" plugin="Tomcat" />
+      </runs-inside>
+      <plugin-configuration>
+         <c:simple-property name="beansQueryString" readOnly="true" default="org.hornetq:*" />
+         <c:simple-property name="resourceKey" readOnly="true" default="hq" />
+         <c:simple-property name="resourceName" readOnly="true" default="HornetQ Embedded" />
+      </plugin-configuration>
+   </server>
+
+   <server name="HornetQ" discovery="com.apple.iad.rhq.hornetq.HornetQDiscovery" class="JMXServerComponent">
+      <plugin-configuration>
+         <c:simple-property name="connectorAddress" default="service:jmx:rmi:///jndi/rmi://localhost:8016/jmxrmi" />
+         <c:simple-property name="type" default="org.mc4j.ems.connection.support.metadata.JSR160ConnectionTypeDescriptor" />
+      </plugin-configuration>
+
+      <process-scan name="hpid" query="process|pidfile|match=/var/run/hornetq/hornetq.pid" />
+      <process-scan name="hproc" query="process|basename|match=^java.*,arg|org.hornetq.integration.bootstrap.HornetQBootstrapServer|match=.*" />
+   </server>
+
+   <service name="Core" discovery="MBeanResourceDiscoveryComponent" class="MBeanResourceComponent" singleton="true">
+
+      &runsin;
+
+      <plugin-configuration>
+         <c:simple-property name="objectName" default="org.hornetq:module=Core,type=Server" />
+         <c:simple-property name="nameTemplate" default="HornetQ Core Server" />
+                <!-- The template section is only for manual resource additions, and default parameters and the ones presented to the user. -->
+      </plugin-configuration>
+
+      <operation name="addAddressSettings" description="Add address settings for addresses matching the addressMatch">
+         <parameters>
+            <c:simple-property name="addressMatch" description="an address match" type="string" />
+            <c:simple-property name="DLA" description="the dead letter address setting" type="string" />
+            <c:simple-property name="expiryAddress" description="the expiry address setting" type="string" />
+            <c:simple-property name="lastValueQueue" description="are any queues created for this address a last value queue" type="boolean" />
+            <c:simple-property name="deliveryAttempts" description="the delivery attempts" type="integer" />
+            <c:simple-property name="maxSizeBytes" description="the max size in bytes" type="long" units="bytes" />
+            <c:simple-property name="pageSizeBytes" description="the page size in bytes" type="integer" units="bytes" />
+            <c:simple-property name="pageMaxCacheSize" description="the max number of pages in the soft memory cache" type="integer" />
+            <c:simple-property name="redeliveryDelay" description="the redelivery delay" type="long" units="milliseconds" />
+            <c:simple-property name="redistributionDelay" description="the redistribution delay" type="long" units="milliseconds" />
+            <c:simple-property name="sendToDLAOnNoRoute" description="do we send to the DLA when there is no where to route the message" type="boolean" />
+            <c:simple-property name="addressFullMessagePolicy" description="the ploicy to use when the address is full" type="string" />
+         </parameters>
+      </operation>
+      <operation name="addSecuritySettings" description="Add security settings for addresses matching the addressMatch">
+         <parameters>
+            <c:simple-property name="addressMatch" description="an address match" type="string" />
+            <c:simple-property name="send" description="a comma-separated list of roles allowed to send messages" type="string" />
+            <c:simple-property name="consume" description="a comma-separated list of roles allowed to consume messages" type="string" />
+            <c:simple-property name="createDurableQueueRoles" description="a comma-separated list of roles allowed to create durable queues" type="string" />
+            <c:simple-property name="deleteDurableQueueRoles" description="a comma-separated list of roles allowed to delete durable queues" type="string" />
+            <c:simple-property name="createNonDurableQueueRoles" description="a comma-separated list of roles allowed to create non durable queues" type="string" />
+            <c:simple-property name="deleteNonDurableQueueRoles" description="a comma-separated list of roles allowed to delete non durable queues" type="string" />
+            <c:simple-property name="manage" description="a comma-separated list of roles allowed to send management messages messages" type="string" />
+         </parameters>
+      </operation>
+      <operation name="closeConnectionsForAddress" description="Closes all the connections for the given IP Address">
+         <parameters>
+            <c:simple-property name="ipAddress" description="an IP address" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="boolean" type="boolean" />
+         </results>
+      </operation>
+      <operation name="commitPreparedTransaction" description="Commit a prepared transaction">
+         <parameters>
+            <c:simple-property name="transactionAsBase64" description="the Base64 representation of a transaction" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="boolean" type="boolean" />
+         </results>
+      </operation>
+      <operation name="createBridge" description="Create a Bridge">
+         <parameters>
+            <c:simple-property name="name" description="Name of the bridge" type="string" />
+            <c:simple-property name="queueName" description="Name of the source queue" type="string" />
+            <c:simple-property name="forwardingAddress" description="Forwarding address" type="string" />
+            <c:simple-property name="filterstring" description="Filter of the brdige" type="string" />
+            <c:simple-property name="transformerClassName" description="Class name of the bridge transformer" type="string" />
+            <c:simple-property name="retryInterval" description="Connection retry interval" type="long" units="milliseconds" />
+            <c:simple-property name="retryIntervalMultiplier" description="Connection retry interval multiplier" type="string" />
+            <c:simple-property name="reconnectAttempts" description="Number of reconnection attempts" type="integer" />
+            <c:simple-property name="useDuplicateDetection" description="Use duplicate detection" type="boolean" />
+            <c:simple-property name="confirmationWindowSize" description="Confirmation window size" type="integer" />
+            <c:simple-property name="clientFailureCheckPeriod" description="Period to check client failure" type="long" units="milliseconds" />
+            <c:simple-property name="staticConnectorNames" description="comma separated list of connector names or name of discovery group if 'useDiscoveryGroup' is set to true"
+               type="string" />
+            <c:simple-property name="useDiscoveryGroup" description="use discovery  group" type="boolean" />
+            <c:simple-property name="ha" description="Is it using HA" type="boolean" />
+            <c:simple-property name="user" description="User name" type="string" />
+            <c:simple-property name="password" description="User password" type="string" />
+         </parameters>
+      </operation>
+      <operation name="createDivert" description="Create a Divert">
+         <parameters>
+            <c:simple-property name="name" description="Name of the divert" type="string" />
+            <c:simple-property name="routingName" description="Routing name of the divert" type="string" />
+            <c:simple-property name="address" description="Address to divert from" type="string" />
+            <c:simple-property name="forwardingAddress" description="Adress to divert to" type="string" />
+            <c:simple-property name="exclusive" description="Is the divert exclusive?" type="boolean" />
+            <c:simple-property name="filterstring" description="Filter of the divert" type="string" />
+            <c:simple-property name="transformerClassName" description="Class name of the divert's transformer" type="string" />
+         </parameters>
+      </operation>
+           <!--
+           <operation name="createQueue" description="Create a queue with the specified address">
+              <parameters>
+                <c:simple-property name="address" description="Address of the queue" type="string"  />
+                <c:simple-property name="name" description="Name of the queue" type="string"  />
+              </parameters>
+           </operation>
+           <operation name="createQueue" description="Create a queue with the specified address, name and durability">
+              <parameters>
+                <c:simple-property name="address" description="Address of the queue" type="string"  />
+                <c:simple-property name="name" description="Name of the queue" type="string"  />
+                <c:simple-property name="durable" description="Is the queue durable?" type="boolean"  />
+              </parameters>
+           </operation>
+            -->
+      <operation name="createQueue" description="Create a queue">
+         <parameters>
+            <c:simple-property name="address" description="Address of the queue" type="string" />
+            <c:simple-property name="name" description="Name of the queue" type="string" />
+            <c:simple-property name="filter" description="Filter of the queue" type="string" />
+            <c:simple-property name="durable" description="Is the queue durable?" type="boolean" />
+         </parameters>
+      </operation>
+           <!--
+           <operation name="deployQueue" description="Deploy a queue">
+              <parameters>
+                <c:simple-property name="address" description="Address of the queue" type="string"  />
+                <c:simple-property name="name" description="Name of the queue" type="string"  />
+                <c:simple-property name="filter" description="Filter of the queue" type="string"  />
+              </parameters>
+           </operation>
+            -->
+      <operation name="deployQueue" description="Deploy a queue">
+         <parameters>
+            <c:simple-property name="address" description="Address of the queue" type="string" />
+            <c:simple-property name="name" description="Name of the queue" type="string" />
+            <c:simple-property name="filter" description="Filter of the queue" type="string" />
+            <c:simple-property name="durable" description="Is the queue durable?" type="boolean" />
+         </parameters>
+      </operation>
+      <operation name="destroyBridge" description="Destroy a bridge">
+         <parameters>
+            <c:simple-property name="name" description="Name of the bridge" type="string" />
+         </parameters>
+      </operation>
+      <operation name="destroyDivert" description="Destroy a Divert">
+         <parameters>
+            <c:simple-property name="name" description="Name of the divert" type="string" />
+         </parameters>
+      </operation>
+      <operation name="destroyQueue" description="Destroy a queue">
+         <parameters>
+            <c:simple-property name="name" description="Name of the queue to destroy" type="string" />
+         </parameters>
+      </operation>
+      <operation name="disableMessageCounters" description="Disable message counters">
+      </operation>
+      <operation name="enableMessageCounters" description="Enable message counters">
+      </operation>
+      <operation name="forceFailover" description="force the server to stop and notify clients to failover">
+      </operation>
+      <operation name="getAddressSettingsAsJSON" description="returns the address settings as a JSON string for an address match">
+         <parameters>
+            <c:simple-property name="addressMatch" description="an address match" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="getRoles" description="get roles for a specific address match">
+         <parameters>
+            <c:simple-property name="addressMatch" description="an address match" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="(list of roles)" type="string" />
+         </results>
+      </operation>
+      <operation name="getRolesAsJSON" description="get roles (as a JSON string) for a specific address match">
+         <parameters>
+            <c:simple-property name="addressMatch" description="an address match" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listConnectionIDs" description="List all the connection IDs">
+         <results>
+            <c:simple-property name="(string array)" type="string" />
+         </results>
+      </operation>
+      <operation name="listHeuristicCommittedTransactions" description="listHeuristicCommittedTransactions">
+         <results>
+            <c:simple-property name="(string array)" type="string" />
+         </results>
+      </operation>
+      <operation name="listHeuristicRolledBackTransactions" description="listHeuristicRolledBackTransactions">
+         <results>
+            <c:simple-property name="(string array)" type="string" />
+         </results>
+      </operation>
+      <operation name="listPreparedTransactionDetailsAsHTML" description="List all the prepared transaction, sorted by date, oldest first, with details, in HTML format">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listPreparedTransactionDetailsAsJSON" description="List all the prepared transaction, sorted by date, oldest first, with details, in JSON format">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listPreparedTransactions" description="List all the prepared transaction, sorted by date, oldest first">
+         <results>
+            <c:simple-property name="(string array)" type="string" />
+         </results>
+      </operation>
+      <operation name="listProducersInfoAsJSON" description="listProducersInfoAsJSON">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+           <!--  -->
+      <operation name="listRemoteAddresses" description="List the client addresses">
+         <results>
+            <c:simple-property name="(string array)" type="string" />
+         </results>
+      </operation>
+           <!--
+           <operation name="listRemoteAddresses" description="List the client addresses which match the given IP Address">
+              <parameters>
+                <c:simple-property name="ipAddress" description="an IP address" type="string"  />
+              </parameters>
+              <results>
+                <c:simple-property name="(string array)"  type="string" />
+              </results>
+           </operation>
+            -->
+      <operation name="listSessions" description="List the sessions for the given connectionID">
+         <parameters>
+            <c:simple-property name="connectionID" description="a connection ID" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="(string array)" type="string" />
+         </results>
+      </operation>
+      <operation name="removeAddressSettings" description="removeAddressSettings">
+         <parameters>
+            <c:simple-property name="p 1" description="parameter 1" type="string" />
+         </parameters>
+      </operation>
+      <operation name="removeSecuritySettings" description="Remove security settings for an address">
+         <parameters>
+            <c:simple-property name="addressMatch" description="an address match" type="string" />
+         </parameters>
+      </operation>
+      <operation name="resetAllMessageCounterHistories" description="Reset all message counters history">
+      </operation>
+      <operation name="resetAllMessageCounters" description="Reset all message counters">
+      </operation>
+      <operation name="rollbackPreparedTransaction" description="Rollback a prepared transaction">
+         <parameters>
+            <c:simple-property name="transactionAsBase64" description="the Base64 representation of a transaction" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="boolean" type="boolean" />
+         </results>
+      </operation>
+      <operation name="sendQueueInfoToQueue" description="sendQueueInfoToQueue">
+         <parameters>
+            <c:simple-property name="p 1" description="parameter 1" type="string" />
+            <c:simple-property name="p 2" description="parameter 2" type="string" />
+         </parameters>
+      </operation>
+
+      <metric property="Version" displayType="detail" units="none" dataType="trait" />
+      <metric property="Clustered" displayType="detail" units="none" dataType="trait" />
+      <metric property="Backup" displayType="detail" units="none" dataType="trait" />
+      <metric property="PersistenceEnabled" displayType="summary" units="none" dataType="trait" />
+      <metric property="PersistDeliveryCountBeforeDelivery" displayType="detail" units="none" dataType="trait" />
+      <metric property="SharedStore" displayType="detail" units="none" dataType="trait" />
+      <metric property="ScheduledThreadPoolMaxSize" displayType="detail" units="none" dataType="trait" />
+      <metric property="ThreadPoolMaxSize" displayType="detail" units="none" dataType="trait" />
+      <metric property="SecurityInvalidationInterval" displayType="detail" units="none" dataType="measurement" />
+      <metric property="ConnectionTTLOverride" displayType="detail" units="none" dataType="measurement" />
+      <metric property="AsyncConnectionExecutionEnabled" displayType="detail" units="none" dataType="trait" />
+      <metric property="InterceptorClassNames" displayType="detail" units="none" dataType="trait" />
+      <metric property="LiveConnectorName" displayType="detail" units="none" dataType="trait" />
+      <metric property="IDCacheSize" displayType="detail" units="none" dataType="measurement" />
+      <metric property="PersistIDCache" displayType="detail" units="none" dataType="trait" />
+      <metric property="BindingsDirectory" displayType="detail" units="none" dataType="trait" />
+      <metric property="JournalDirectory" displayType="summary" units="none" dataType="trait" />
+      <metric property="JournalType" displayType="summary" units="none" dataType="trait" />
+      <metric property="PagingDirectory" displayType="summary" units="none" dataType="trait" />
+      <metric property="JournalSyncTransactional" displayType="detail" units="none" dataType="trait" />
+      <metric property="JournalSyncNonTransactional" displayType="detail" units="none" dataType="trait" />
+      <metric property="JournalFileSize" displayType="summary" units="bytes" dataType="measurement" />
+      <metric property="JournalMinFiles" displayType="detail" units="none" dataType="measurement" />
+      <metric property="CreateBindingsDir" displayType="detail" units="none" dataType="trait" />
+      <metric property="CreateJournalDir" displayType="detail" units="none" dataType="trait" />
+      <metric property="WildcardRoutingEnabled" displayType="detail" units="none" dataType="trait" />
+      <metric property="TransactionTimeout" displayType="detail" dataType="measurement" units="milliseconds" />
+      <metric property="TransactionTimeoutScanPeriod" displayType="detail" units="milliseconds" dataType="measurement" />
+      <metric property="MessageExpiryScanPeriod" displayType="detail" units="milliseconds" dataType="measurement" />
+      <metric property="MessageExpiryThreadPriority" displayType="detail" units="none" dataType="measurement" />
+      <metric property="SecurityEnabled" displayType="detail" units="none" dataType="trait" />
+      <metric property="LargeMessagesDirectory" displayType="summary" units="none" dataType="trait" />
+      <metric property="MessageCounterEnabled" displayType="detail" units="none" dataType="trait" />
+      <metric property="MessageCounterSamplePeriod" displayType="detail" units="none" dataType="measurement" />
+      <metric property="ManagementAddress" displayType="detail" units="none" dataType="trait" />
+      <metric property="ManagementNotificationAddress" displayType="detail" units="none" dataType="trait" />
+      <metric property="FailoverOnServerShutdown" displayType="detail" units="none" dataType="trait" />
+      <metric property="JournalCompactMinFiles" displayType="detail" units="none" dataType="measurement" />
+      <metric property="JournalCompactPercentage" displayType="summary" units="none" dataType="measurement" />
+      <metric property="Started" displayType="summary" units="none" dataType="trait" />
+      <metric property="ConnectionCount" displayType="summary" units="none" dataType="measurement" />
+      <metric property="JournalBufferSize" displayType="summary" units="bytes" dataType="measurement" />
+      <metric property="JournalBufferTimeout" displayType="detail" units="milliseconds" dataType="measurement" />
+      <metric property="JournalMaxIO" displayType="detail" units="none" dataType="measurement" />
+      <metric property="QueueNames" displayType="detail" units="none" dataType="trait" />
+      <metric property="AddressNames" displayType="detail" units="none" dataType="trait" />
+      <metric property="MessageCounterMaxDayCount" displayType="detail" units="none" dataType="measurement" />
+      <metric property="Connectors" displayType="detail" units="none" dataType="trait" />
+      <metric property="ConnectorsAsJSON" displayType="detail" units="none" dataType="trait" />
+      <metric property="DivertNames" displayType="detail" units="none" dataType="trait" />
+      <metric property="BridgeNames" displayType="detail" units="none" dataType="trait" />
+   </service>
+
+   <service name="JMS" discovery="MBeanResourceDiscoveryComponent" class="MBeanResourceComponent" singleton="true">
+
+      &runsin;
+
+      <plugin-configuration>
+         <c:simple-property name="objectName" default="org.hornetq:module=JMS,type=Server" />
+         <c:simple-property name="nameTemplate" default="HornetQ JMS Server" />
+                <!-- The template section is only for manual resource additions, and default parameters and the ones presented to the user. -->
+      </plugin-configuration>
+
+      <operation name="closeConnectionsForAddress" description="Closes all the connections for the given IP Address">
+         <parameters>
+            <c:simple-property name="ipAddress" description="an IP address type" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="boolean" type="boolean" />
+         </results>
+      </operation>
+      <operation name="createConnectionFactory" description="Create a JMS ConnectionFactory">
+         <parameters>
+            <c:simple-property name="name" description="N/A" type="string" />
+            <c:simple-property name="ha" description="N/A" type="boolean" />
+            <c:simple-property name="useDiscovery" description="should we use discovery or a connector configuration" type="boolean" />
+            <c:simple-property name="cfType" description="RegularCF=0, QueueCF=1, TopicCF=2, XACF=3, QueueXACF=4, TopicXACF=5" type="integer" />
+            <c:simple-property name="connectorNames" description="comma-separated list of connectorNames or the discovery group name" type="string" />
+            <c:simple-property name="jndiBindings" description="comma-separated list of JNDI bindings (use '&amp;comma;' to use commas in your jndi name)" type="string" />
+         </parameters>
+      </operation>
+           <!--
+           <operation name="createConnectionFactory" description="Create a JMS ConnectionFactory">
+              <parameters>
+                <c:simple-property name="name" description="N/A" type="string"  />
+                <c:simple-property name="ha" description="N/A" type="boolean"  />
+                <c:simple-property name="useDiscovery" description="should we use discovery or a connector configuration" type="boolean"  />
+                <c:simple-property name="cfType" description="RegularCF=0, QueueCF=1, TopicCF=2, XACF=3, QueueXACF=4, TopicXACF=5" type="integer"  />
+                <c:simple-property name="connectorNames" description="An array of connector or the binding address type (string array)" type="string"  />
+                <c:simple-property name="jndiBindings" description="array JNDI bindings (use '&comma;' if u need to use commas in your jndi name) type (string array)" type="string"  />
+                <c:simple-property name="clientID" description="The clientID configured for the connectionFactory" type="string"  />
+                <c:simple-property name="clientFailureCheckPeriod" description="clientFailureCheckPeriod" type="LONG"  />
+                <c:simple-property name="connectionTTL" description="connectionTTL" type="LONG"  />
+                <c:simple-property name="callTimeout" description="callTimeout" type="LONG"  />
+                <c:simple-property name="minLargeMessageSize" description="minLargeMessageSize" type="integer"  />
+                <c:simple-property name="compressLargeMessages" description="compressLargeMessages" type="boolean"  />
+                <c:simple-property name="consumerWindowSize" description="consumerWindowSize" type="integer"  />
+                <c:simple-property name="consumerMaxRate" description="consumerMaxRate" type="integer"  />
+                <c:simple-property name="confirmationWindowSize" description="confirmationWindowSize" type="integer"  />
+                <c:simple-property name="producerWindowSize" description="producerWindowSize" type="integer"  />
+                <c:simple-property name="producerMaxRate" description="producerMaxRate" type="integer"  />
+                <c:simple-property name="blockOnAcknowledge" description="blockOnAcknowledge" type="boolean"  />
+                <c:simple-property name="blockOnDurableSend" description="blockOnDurableSend" type="boolean"  />
+                <c:simple-property name="blockOnNonDurableSend" description="blockOnNonDurableSend" type="boolean"  />
+                <c:simple-property name="autoGroup" description="autoGroup" type="boolean"  />
+                <c:simple-property name="preAcknowledge" description="preAcknowledge" type="boolean"  />
+                <c:simple-property name="loadBalancingPolicyClassName" description="loadBalancingPolicyClassName (null or blank mean use the default value)" type="string"  />
+                <c:simple-property name="transactionBatchSize" description="transactionBatchSize" type="integer"  />
+                <c:simple-property name="dupsOKBatchSize" description="dupsOKBatchSize" type="integer"  />
+                <c:simple-property name="useGlobalPools" description="useGlobalPools" type="boolean"  />
+                <c:simple-property name="scheduledThreadPoolMaxSize" description="scheduledThreadPoolMaxSize" type="integer"  />
+                <c:simple-property name="threadPoolMaxSize" description="threadPoolMaxSize" type="integer"  />
+                <c:simple-property name="retryInterval" description="retryInterval" type="LONG"  />
+                <c:simple-property name="retryIntervalMultiplier" description="retryIntervalMultiplier" type="string"  />
+                <c:simple-property name="maxRetryInterval" description="maxRetryInterval" type="LONG"  />
+                <c:simple-property name="reconnectAttempts" description="reconnectAttempts" type="integer"  />
+                <c:simple-property name="failoverOnInitialConnection" description="failoverOnInitialConnection" type="boolean"  />
+                <c:simple-property name="groupId" description="groupId" type="string"  />
+              </parameters>
+           </operation>
+           <operation name="createConnectionFactory" description="Create a JMS ConnectionFactory">
+              <parameters>
+                <c:simple-property name="name" description="N/A" type="string"  />
+                <c:simple-property name="ha" description="N/A" type="boolean"  />
+                <c:simple-property name="useDiscovery" description="should we use discovery or a connector configuration" type="boolean"  />
+                <c:simple-property name="cfType" description="RegularCF=0, QueueCF=1, TopicCF=2, XACF=3, QueueXACF=4, TopicXACF=5" type="integer"  />
+                <c:simple-property name="connectorNames" description="comma-separated list of connectorNames or the discovery group name" type="string"  />
+                <c:simple-property name="jndiBindings" description="comma-separated list of JNDI bindings (use '&comma;' if u need to use commas in your jndi name)" type="string"  />
+                <c:simple-property name="clientID" description="The clientID configured for the connectionFactory" type="string"  />
+                <c:simple-property name="clientFailureCheckPeriod" description="clientFailureCheckPeriod" type="LONG"  />
+                <c:simple-property name="connectionTTL" description="connectionTTL" type="LONG"  />
+                <c:simple-property name="callTimeout" description="callTimeout" type="LONG"  />
+                <c:simple-property name="minLargeMessageSize" description="minLargeMessageSize" type="integer"  />
+                <c:simple-property name="compressLargeMessages" description="compressLargeMessages" type="boolean"  />
+                <c:simple-property name="consumerWindowSize" description="consumerWindowSize" type="integer"  />
+                <c:simple-property name="consumerMaxRate" description="consumerMaxRate" type="integer"  />
+                <c:simple-property name="confirmationWindowSize" description="confirmationWindowSize" type="integer"  />
+                <c:simple-property name="producerWindowSize" description="producerWindowSize" type="integer"  />
+                <c:simple-property name="producerMaxRate" description="producerMaxRate" type="integer"  />
+                <c:simple-property name="blockOnAcknowledge" description="blockOnAcknowledge" type="boolean"  />
+                <c:simple-property name="blockOnDurableSend" description="blockOnDurableSend" type="boolean"  />
+                <c:simple-property name="blockOnNonDurableSend" description="blockOnNonDurableSend" type="boolean"  />
+                <c:simple-property name="autoGroup" description="autoGroup" type="boolean"  />
+                <c:simple-property name="preAcknowledge" description="preAcknowledge" type="boolean"  />
+                <c:simple-property name="loadBalancingPolicyClassName" description="loadBalancingPolicyClassName (null or blank mean use the default value)" type="string"  />
+                <c:simple-property name="transactionBatchSize" description="transactionBatchSize" type="integer"  />
+                <c:simple-property name="dupsOKBatchSize" description="dupsOKBatchSize" type="integer"  />
+                <c:simple-property name="useGlobalPools" description="useGlobalPools" type="boolean"  />
+                <c:simple-property name="scheduledThreadPoolMaxSize" description="scheduledThreadPoolMaxSize" type="integer"  />
+                <c:simple-property name="threadPoolMaxSize" description="threadPoolMaxSize" type="integer"  />
+                <c:simple-property name="retryInterval" description="retryInterval" type="LONG"  />
+                <c:simple-property name="retryIntervalMultiplier" description="retryIntervalMultiplier" type="string"  />
+                <c:simple-property name="maxRetryInterval" description="maxRetryInterval" type="LONG"  />
+                <c:simple-property name="reconnectAttempts" description="reconnectAttempts" type="integer"  />
+                <c:simple-property name="failoverOnInitialConnection" description="failoverOnInitialConnection" type="boolean"  />
+                <c:simple-property name="groupId" description="groupId" type="string"  />
+              </parameters>
+           </operation>
+                       -->
+           <!--
+           <operation name="createQueue" description="Create a JMS Queue">
+              <parameters>
+                <c:simple-property name="name" description="Name of the queue to create" type="string"  />
+              </parameters>
+              <results>
+                <c:simple-property name="boolean"  type="boolean" />
+              </results>
+           </operation>
+           <operation name="createQueue" description="Create a JMS Queue">
+              <parameters>
+                <c:simple-property name="name" description="Name of the queue to create" type="string"  />
+                <c:simple-property name="jndiBindings" description="comma-separated list of JNDI bindings (use '&amp;comma;' if you need to use commas in your jndi name)" type="string"  />
+              </parameters>
+              <results>
+                <c:simple-property name="boolean"  type="boolean" />
+              </results>
+           </operation>
+           <operation name="createQueue" description="Create a JMS Queue">
+              <parameters>
+                <c:simple-property name="name" description="Name of the queue to create" type="string"  />
+                <c:simple-property name="jndiBindings" description="comma-separated list of JNDI bindings (use '&amp;comma;' if you need to use commas in your jndi name)" type="string"  />
+                <c:simple-property name="selector" description="the jms selector" type="string"  />
+              </parameters>
+              <results>
+                <c:simple-property name="boolean"  type="boolean" />
+              </results>
+           </operation>
+            -->
+      <operation name="createQueue" description="Create a JMS Queue">
+         <parameters>
+            <c:simple-property name="name" description="Name of the queue to create" type="string" />
+            <c:simple-property name="jndiBindings" description="comma-separated list of JNDI bindings (use '&amp;comma;' if you need to use commas in your jndi name)" type="string" />
+            <c:simple-property name="selector" description="the jms selector" type="string" />
+            <c:simple-property name="durable" description="durability of the queue" type="boolean" />
+         </parameters>
+         <results>
+            <c:simple-property name="boolean" type="boolean" />
+         </results>
+      </operation>
+           <!--
+           <operation name="createTopic" description="Create a JMS Topic">
+              <parameters>
+                <c:simple-property name="name" description="Name of the topic to create" type="string"  />
+              </parameters>
+              <results>
+                <c:simple-property name="boolean"  type="boolean" />
+              </results>
+           </operation>
+            -->
+      <operation name="createTopic" description="Create a JMS Topic">
+         <parameters>
+            <c:simple-property name="name" description="Name of the topic to create" type="string" />
+            <c:simple-property name="jndiBindings" description="comma-separated list of JNDI bindings (use '&amp;comma;' if u need to use commas in your jndi name)" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="boolean" type="boolean" />
+         </results>
+      </operation>
+      <operation name="destroyConnectionFactory" description="Destroy a JMS ConnectionFactory">
+         <parameters>
+            <c:simple-property name="name" description="Name of the ConnectionFactory to destroy" type="string" />
+         </parameters>
+      </operation>
+      <operation name="destroyQueue" description="Destroy a JMS Queue">
+         <parameters>
+            <c:simple-property name="name" description="Name of the queue to destroy" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="boolean" type="boolean" />
+         </results>
+      </operation>
+      <operation name="destroyTopic" description="Destroy a JMS Topic">
+         <parameters>
+            <c:simple-property name="name" description="Name of the topic to destroy" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="boolean" type="boolean" />
+         </results>
+      </operation>
+      <operation name="getLastSentMessageID" description="Returns the last sent message's ID from the given session to an address">
+         <parameters>
+            <c:simple-property name="sessionID" description="session name" type="string" />
+            <c:simple-property name="address" description="address" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="getSessionCreationTime" description="Gets the sessions creation time">
+         <parameters>
+            <c:simple-property name="sessionID" description="session name" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listAllConsumersAsJSON" description="List all JMS consumers associated to a JMS Connection">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listConnectionIDs" description="List all the connection IDs">
+         <results>
+            <c:simple-property name="(string array)" type="string" />
+         </results>
+      </operation>
+      <operation name="listConnectionsAsJSON" description="List all JMS connections">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listConsumersAsJSON" description="List all JMS consumers associated to a JMS Connection">
+         <parameters>
+            <c:simple-property name="connectionID" description="a connection ID" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listPreparedTransactionDetailsAsHTML" description="List all the prepared transaction, sorted by date, oldest first, with details, in HTML format">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listPreparedTransactionDetailsAsJSON" description="List all the prepared transaction, sorted by date, oldest first, with details, in JSON format">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listRemoteAddresses" description="List the client addresses">
+         <results>
+            <c:simple-property name="(string array)" type="string" />
+         </results>
+      </operation>
+           <!--
+           <operation name="listRemoteAddresses" description="List the client addresses which match the given IP Address">
+              <parameters>
+                <c:simple-property name="ipAddress" description="an IP address" type="string"  />
+              </parameters>
+              <results>
+                <c:simple-property name="(string array)"  type="string" />
+              </results>
+           </operation>
+            -->
+      <operation name="listSessions" description="List the sessions for the given connectionID">
+         <parameters>
+            <c:simple-property name="connectionID" description="a connection ID" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="(string array)" type="string" />
+         </results>
+      </operation>
+      <operation name="listSessionsAsJSON" description="List the sessions for the given connectionID">
+         <parameters>
+            <c:simple-property name="connectionID" description="a connection ID" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listTargetDestinations" description="Lists all addresses to which the designated session has sent messages">
+         <parameters>
+            <c:simple-property name="sessionID" description="a session ID" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="(string array)" type="string" />
+         </results>
+      </operation>
+
+      <metric property="Version" displayType="summary" units="none" dataType="trait" />
+      <metric property="Started" displayType="summary" units="none" dataType="trait" />
+      <metric property="QueueNames" displayType="detail" units="none" dataType="trait" />
+      <metric property="TopicNames" displayType="detail" units="none" dataType="trait" />
+      <metric property="ConnectionFactoryNames" displayType="detail" units="none" dataType="trait" />
+   </service>
+
+
+   <service name="ConnectionFactory" discovery="MBeanResourceDiscoveryComponent" class="MBeanResourceComponent" singleton="false">
+
+      &runsin;
+
+      <plugin-configuration>
+         <c:simple-property name="objectName" default="org.hornetq:module=JMS,name=%name%,type=ConnectionFactory" />
+         <c:simple-property name="nameTemplate" default="HornetQ CF {name}" />
+         <c:simple-property name="descriptionTemplate" default="HornetQ Connection Factory {name}" />
+                <!-- The template section is only for manual resource additions, and default parameters and the ones presented to the user. -->
+      </plugin-configuration>
+
+      <operation name="addJNDI" description="Adds the factory to another JNDI binding">
+         <parameters>
+            <c:simple-property name="jndiBinding" description="the name of the binding for JNDI" type="string" />
+         </parameters>
+      </operation>
+
+      <metric property="Name" displayType="detail" units="none" dataType="trait" />
+      <metric property="ScheduledThreadPoolMaxSize" displayType="detail" units="none" dataType="measurement" />
+      <metric property="ThreadPoolMaxSize" displayType="summary" units="none" dataType="measurement" />
+      <metric property="ConnectionTTL" displayType="detail" units="milliseconds" dataType="measurement" />
+      <metric property="MaxRetryInterval" displayType="detail" units="milliseconds" dataType="measurement" />
+      <metric property="HA" displayType="summary" units="none" dataType="trait" />
+      <metric property="RetryInterval" displayType="summary" units="milliseconds" dataType="trait" />
+      <metric property="RetryIntervalMultiplier" displayType="detail" units="none" dataType="trait" />
+      <metric property="ReconnectAttempts" displayType="detail" units="none" dataType="measurement" />
+      <metric property="ConfirmationWindowSize" displayType="detail" units="none" dataType="measurement" />
+      <metric property="ClientFailureCheckPeriod" displayType="detail" units="none" dataType="measurement" />
+      <metric property="MinLargeMessageSize" displayType="detail" units="none" dataType="measurement" />
+      <metric property="CallTimeout" displayType="detail" units="milliseconds" dataType="measurement" />
+      <metric property="ClientID" displayType="detail" units="none" dataType="trait" />
+      <metric property="CacheLargeMessagesClient" displayType="detail" units="none" dataType="trait" />
+      <metric property="CompressLargeMessages" displayType="detail" units="none" dataType="trait" />
+
+      <metric property="ConsumerWindowSize" displayType="detail" units="none" dataType="measurement" />
+      <metric property="ConsumerMaxRate" displayType="detail" units="none" dataType="measurement" />
+      <metric property="ProducerWindowSize" displayType="detail" units="none" dataType="measurement" />
+      <metric property="ProducerMaxRate" displayType="detail" units="none" dataType="measurement" />
+      <metric property="BlockOnAcknowledge" displayType="detail" units="none" dataType="trait" />
+      <metric property="BlockOnDurableSend" displayType="detail" units="none" dataType="trait" />
+      <metric property="BlockOnNonDurableSend" displayType="detail" units="none" dataType="trait" />
+      <metric property="AutoGroup" displayType="detail" units="none" dataType="trait" />
+      <metric property="PreAcknowledge" displayType="detail" units="none" dataType="trait" />
+      <metric property="TransactionBatchSize" displayType="detail" units="none" dataType="trait" />
+      <metric property="DupsOKBatchSize" displayType="detail" units="none" dataType="trait" />
+      <metric property="UseGlobalPools" displayType="detail" units="none" dataType="trait" />
+      <metric property="FailoverOnInitialConnection" displayType="detail" units="none" dataType="trait" />
+      <metric property="GroupID" displayType="detail" units="none" dataType="trait" />
+      <metric property="FactoryType" displayType="detail" units="none" dataType="measurement" />
+      <metric property="ConnectionLoadBalancingPolicyClassName" displayType="detail" units="none" dataType="trait" />
+      <metric property="InitialMessagePacketSize" displayType="detail" units="bytes" dataType="trait" />
+      <metric property="JNDIBindings" displayType="detail" units="none" dataType="trait" />
+   </service>
+
+
+   <service name="Acceptor" discovery="MBeanResourceDiscoveryComponent" class="MBeanResourceComponent" singleton="false">
+
+      &runsin;
+
+      <plugin-configuration>
+         <c:simple-property name="objectName" default="org.hornetq:module=%module%,name=%name%,type=Acceptor" />
+         <c:simple-property name="nameTemplate" default="HornetQ Acceptor {name}" />
+         <c:simple-property name="descriptionTemplate" default="HornetQ Acceptor {name} for module {module}" />
+                <!-- The template section is only for manual resource additions, and default parameters and the ones presented to the user. -->
+      </plugin-configuration>
+
+      <operation name="start" description="Starts the acceptor">
+      </operation>
+      <operation name="stop" description="Stops the acceptor">
+      </operation>
+
+      <metric property="Name" displayType="detail" units="none" dataType="trait" />
+      <metric property="Parameters" displayType="detail" units="none" dataType="trait" />
+      <metric property="FactoryClassName" displayType="detail" units="none" dataType="trait" />
+      <metric property="Started" displayType="summary" units="none" dataType="trait" />
+   </service>
+
+
+   <service name="Address" discovery="MBeanResourceDiscoveryComponent" class="MBeanResourceComponent" singleton="false">
+
+      &runsin;
+
+      <plugin-configuration>
+         <c:simple-property name="objectName" default="org.hornetq:module=%module%,name=%name%,type=Address" />
+         <c:simple-property name="nameTemplate" default="HornetQ Address {name}" />
+         <c:simple-property name="descriptionTemplate" default="HornetQ Address {name} for {module} module" />
+                <!-- The template section is only for manual resource additions, and default parameters and the ones presented to the user. -->
+      </plugin-configuration>
+
+
+      <metric property="Address" displayType="summary" units="none" dataType="trait" />
+      <metric property="QueueNames" displayType="detail" units="none" dataType="trait" />
+      <metric property="Roles" displayType="detail" units="none" dataType="trait" />
+      <metric property="RolesAsJSON" displayType="detail" units="none" dataType="trait" />
+      <metric property="NumberOfPages" displayType="summary" units="none" dataType="measurement" />
+      <metric property="Paging" displayType="detail" units="none" dataType="trait" />
+      <metric property="BindingNames" displayType="detail" units="none" dataType="trait" />
+      <metric property="NumberOfBytesPerPage" displayType="detail" units="bytes" dataType="measurement" />
+   </service>
+
+
+
+   <service name="Queue" discovery="MBeanResourceDiscoveryComponent" class="MBeanResourceComponent" singleton="false">
+
+      &runsin;
+
+      <plugin-configuration>
+         <c:simple-property name="objectName" default="org.hornetq:module=%module%,name=%name%,address=%address%,type=Queue" />
+         <c:simple-property name="nameTemplate" default="HornetQ Queue {name}" />
+         <c:simple-property name="descriptionTemplate" default="HornetQ Queue {name} for {module} module, address {address}" />
+                <!-- The template section is only for manual resource additions, and default parameters and the ones presented to the user. -->
+      </plugin-configuration>
+
+      <operation name="addJNDI" description="Adds the queue to another JNDI binding">
+         <parameters>
+            <c:simple-property name="jndiBinding" description="the name of the binding for JNDI" type="string" />
+         </parameters>
+      </operation>
+      <operation name="changeMessagePriority" description="Change the priority of the message corresponding to the given messageID">
+         <parameters>
+            <c:simple-property name="messageID" description="A message ID" type="string" />
+            <c:simple-property name="newPriority" description="the new priority (between 0 and 9)" type="integer" />
+         </parameters>
+         <results>
+            <c:simple-property name="boolean" type="boolean" />
+         </results>
+      </operation>
+      <operation name="changeMessagesPriority" description="Change the priority of the messages corresponding to the given filter">
+         <parameters>
+            <c:simple-property name="filter" description="A message filter" type="string" />
+            <c:simple-property name="newPriority" description="the new priority (between 0 and 9)" type="integer" />
+         </parameters>
+         <results>
+            <c:simple-property name="int" type="integer" />
+         </results>
+      </operation>
+      <operation name="countMessages" description="Returns the number of the messages in the queue matching the given filter">
+         <parameters>
+            <c:simple-property name="filter" description="A JMS message filter (can be empty)" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="count" type="long" />
+         </results>
+      </operation>
+      <operation name="expireMessage" description="Expire the message corresponding to the given messageID">
+         <parameters>
+            <c:simple-property name="messageID" description="A message ID" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="result" type="boolean" />
+         </results>
+      </operation>
+      <operation name="expireMessages" description="Expire the messages corresponding to the given filter (and returns the number of expired messages)">
+         <parameters>
+            <c:simple-property name="filter" description="A message filter (can be empty)" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="count" type="integer" />
+         </results>
+      </operation>
+      <operation name="listConsumersAsJSON" description="List all the existent consumers on the Queue">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listMessageCounter" description="List the message counters">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listMessageCounterAsHTML" description="List the message counters as HTML">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listMessageCounterHistory" description="List the message counters history">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listMessageCounterHistoryAsHTML" description="List the message counters history as HTML">
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="listMessages" description="List all messages in the queue which matches the filter">
+         <parameters>
+            <c:simple-property name="filter" description="A JMS Message filter" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="[Ljava.util.Map;" type="string" />
+         </results>
+      </operation>
+      <operation name="listMessagesAsJSON" description="List all messages in the queue which matches the filter and return them using JSON">
+         <parameters>
+            <c:simple-property name="filter" description="A JMS Message filter (can be empty)" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="parameter" type="string" />
+         </results>
+      </operation>
+      <operation name="moveMessage" description="Move the message corresponding to the given messageID to another queue, ignoring duplicates (rejectDuplicates=false on this case)">
+         <parameters>
+            <c:simple-property name="messageID" description="A message ID" type="string" />
+            <c:simple-property name="otherQueueName" description="The name of the queue to move the message to" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="success" type="boolean" />
+         </results>
+      </operation>
+            <!--
+           <operation name="moveMessage" description="Move the message corresponding to the given messageID to another queue">
+              <parameters>
+                <c:simple-property name="messageID" description="A message ID" type="string"  />
+                <c:simple-property name="otherQueueName" description="The name of the queue to move the message to" type="string"  />
+                <c:simple-property name="rejectDuplicates" description="Reject messages identified as duplicate by the duplicate message" type="boolean"  />
+              </parameters>
+              <results>
+                <c:simple-property name="boolean"  type="boolean" />
+              </results>
+           </operation>
+           <operation name="moveMessages" description="Move the messages corresponding to the given filter (and returns the number of moved messages). rejectDuplicates=false on this case">
+              <parameters>
+                <c:simple-property name="filter" description="A message filter (can be empty)" type="string"  />
+                <c:simple-property name="otherQueueName" description="The name of the queue to move the messages to" type="string"  />
+              </parameters>
+              <results>
+                <c:simple-property name="int"  type="integer" />
+              </results>
+           </operation>
+            -->
+      <operation name="moveMessages" description="Move the messages corresponding to the given filter (and returns the number of moved messages)">
+         <parameters>
+            <c:simple-property name="filter" description="A message filter (can be empty)" type="string" />
+            <c:simple-property name="otherQueueName" description="The name of the queue to move the messages to" type="string" />
+            <c:simple-property name="rejectDuplicates" description="Reject messages identified as duplicate by the duplicate message" type="boolean" />
+         </parameters>
+         <results>
+            <c:simple-property name="count" type="integer" />
+         </results>
+      </operation>
+      <operation name="pause" description="Pause the queue.">
+      </operation>
+      <operation name="removeJNDI" description="Adds the queue to another JNDI binding">
+         <parameters>
+            <c:simple-property name="jndiBinding" description="the name of the binding for JNDI" type="string" />
+         </parameters>
+      </operation>
+      <operation name="removeMessage" description="Remove the message corresponding to the given messageID">
+         <parameters>
+            <c:simple-property name="messageID" description="A message ID" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="success" type="boolean" />
+         </results>
+      </operation>
+      <operation name="removeMessages" description="Remove the messages corresponding to the given filter (and returns the number of removed messages)">
+         <parameters>
+            <c:simple-property name="filter" description="A message filter (can be empty)" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="count" type="integer" />
+         </results>
+      </operation>
+      <operation name="resetMessageCounter" description="Reset the message counters">
+      </operation>
+      <operation name="resume" description="Resume the queue.">
+      </operation>
+      <operation name="sendMessageToDeadLetterAddress" description="Send the message corresponding to the given messageID to this queue's Dead Letter Address">
+         <parameters>
+            <c:simple-property name="messageID" description="A message ID" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="boolean" type="boolean" />
+         </results>
+      </operation>
+      <operation name="sendMessagesToDeadLetterAddress" description="Send the messages corresponding to the given filter to this queue's Dead Letter Address">
+         <parameters>
+            <c:simple-property name="filter" description="A message filter (can be empty)" type="string" />
+         </parameters>
+         <results>
+            <c:simple-property name="count" type="integer" />
+         </results>
+      </operation>
+
+      <metric property="DeadLetterAddress" displayType="summary" units="none" dataType="trait" />
+      <metric property="ExpiryAddress" displayType="summary" units="none" dataType="trait" />
+      <metric property="Selector" displayType="summary" units="none" dataType="trait" />
+      <metric property="Paused" displayType="summary" units="none" dataType="trait" />
+      <metric property="JNDIBindings" displayType="detail" units="none" dataType="trait" />
+      <metric property="Address" displayType="summary" units="none" dataType="trait" />
+      <metric property="Name" displayType="detail" units="none" dataType="trait" />
+      <metric property="Temporary" displayType="detail" units="none" dataType="trait" />
+
+      <metric property="ConsumerCount" displayType="summary" units="none" dataType="measurement" />
+      <metric property="ScheduledCount" displayType="summary" units="none" dataType="measurement" />
+      <metric property="MessageCount" displayType="summary" units="none" dataType="measurement" />
+      <metric property="DeliveringCount" displayType="summary" units="none" dataType="measurement" />
+      <metric property="MessagesAdded" displayType="summary" measurementType="trendsup" units="none" dataType="measurement" />
+
+
+   </service>
+
+</plugin>
+

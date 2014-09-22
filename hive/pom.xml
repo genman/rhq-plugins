@@ -1,0 +1,159 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>com.apple.iad</groupId>
+      <artifactId>iad-plugins-parent</artifactId>
+      <version>5.0.5-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+   </parent>
+
+   <groupId>com.apple.iad</groupId>
+   <artifactId>rhq-hive-plugin</artifactId>
+   <packaging>jar</packaging>
+
+   <name>Apple iAd RHQ Hive Plugin</name>
+   <description>Monitor Hive Server</description>
+
+   <!-- Test depends on connection MySql and Hadoop -->
+   <properties>
+      <skipTests>true</skipTests>
+   </properties>
+
+   <build>
+      <plugins>
+         <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+               <execution>
+                  <phase>process-resources</phase>
+                  <goals>
+                     <goal>copy-dependencies</goal>
+                  </goals>
+                  <configuration>
+                     <outputDirectory>${project.build.outputDirectory}/lib</outputDirectory>
+                     <includeScope>runtime</includeScope>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+
+         <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+            <useSystemClassLoader>true</useSystemClassLoader>
+            <systemPropertyVariables>
+                <org.hyperic.sigar.path>${basedir}/target/itest/lib</org.hyperic.sigar.path>
+            </systemPropertyVariables>
+            </configuration>
+         </plugin>
+      </plugins>
+
+   </build>
+
+   <profiles>
+      <profile>
+         <id>hive-test</id>
+         <activation>
+            <activeByDefault>false</activeByDefault>
+         </activation>
+         <build>
+            <plugins>
+               <plugin>
+                  <artifactId>maven-surefire-plugin</artifactId>
+                  <configuration>
+                     <systemProperties>
+                        <property>
+                           <name>hadoop.connectorAddress</name>
+                           <value>${hadoop.connectorAddress}</value>
+                        </property>
+                        <property>
+                           <name>hadoop.principal</name>
+                           <value>${hadoop.principal}</value>
+                        </property>
+                        <property>
+                           <name>hadoop.credentials</name>
+                           <value>${hadoop.credentials}</value>
+                        </property>
+                     </systemProperties>
+                  </configuration>
+               </plugin>
+            </plugins>
+         </build>
+      </profile>
+   </profiles>
+
+   <dependencies>
+      <dependency>
+         <groupId>com.apple.iad</groupId>
+         <artifactId>rhq-plugin-testing</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>com.apple.iad</groupId>
+         <artifactId>rhq-hadoop-plugin</artifactId>
+         <version>${project.version}</version>
+         <scope>provided</scope>
+      </dependency>
+            <!-- Hive -->
+      <dependency>
+         <groupId>mysql</groupId>
+         <artifactId>mysql-connector-java</artifactId>
+         <version>${mysql.version}</version>
+         <scope>provided</scope> <!-- loaded through ClassLoaderFacet -->
+      </dependency>
+      <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-core</artifactId>
+         <version>${hadoop.core.version}</version>
+         <scope>provided</scope> <!-- loaded through ClassLoaderFacet -->
+      </dependency>
+      <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-hdfs</artifactId>
+         <version>${hadoop.version}</version>
+         <scope>provided</scope> <!-- loaded through ClassLoaderFacet -->
+      </dependency>
+      <dependency>
+         <groupId>org.apache.hadoop</groupId>
+         <artifactId>hadoop-common</artifactId>
+         <version>${hadoop.version}</version>
+         <scope>provided</scope> <!-- loaded through ClassLoaderFacet -->
+      </dependency>
+      <dependency>
+         <groupId>org.apache.hadoop.thirdparty.guava</groupId>
+         <artifactId>guava</artifactId>
+         <version>r09-jarjar</version>
+         <scope>provided</scope> <!-- loaded through ClassLoaderFacet -->
+      </dependency>
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-jmx-plugin</artifactId>
+         <version>${rhq.version}</version>
+         <scope>provided</scope>
+      </dependency>
+            <!-- Too slow, going with direct to MySQL
+            <dependency>
+                <groupId>org.apache.hadoop.hive</groupId>
+                <artifactId>hive-jdbc</artifactId>
+                <version>${hive.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop.hive</groupId>
+                <artifactId>hive-metastore</artifactId>
+                <version>${hive.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop.hive</groupId>
+                <artifactId>hive-service</artifactId>
+                <version>${hive.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.hadoop.hive</groupId>
+                <artifactId>hive-serde</artifactId>
+                <version>${hive.version}</version>
+            </dependency>
+            -->
+            <!-- Hadoop -->
+   </dependencies>
+</project>
