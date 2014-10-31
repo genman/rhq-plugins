@@ -1,4 +1,4 @@
-rhq-server
+RHQ Agent Plugins
 ==================
 
 RHQ agent plugins developed by iAd.
@@ -6,6 +6,8 @@ RHQ agent plugins developed by iAd.
 These are designed to work with the RHQ project: https://github.com/rhq-project/rhq
 
 Detailed documentation is within the plugin descriptor, but here is a summary of the plugins
+
+# Base plugins
 
 ## testing
 
@@ -54,6 +56,8 @@ c=com.apple.iad.rhq.snmp.PluginGen
 mvn exec:java -Dexec.mainClass=$c -Dexec.args="NS-MIB-smiv1.mib" > rhq-plugin.xml
 
 See netscaler plugin for an example.
+
+# Specific plugins
 
 ## hadoop
 
@@ -141,7 +145,6 @@ basic event severity filtering.
 
 Monitors Splunk, for forwarders and servers. Gathers generic statistics using the Splunk library
 as well as 'tailing' log files.
-
 
 ## tten
 
