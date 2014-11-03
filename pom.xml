@@ -568,9 +568,22 @@
       <!-- snmp -->
       <module>snmptrapd</module>
       <module>splunk</module>
+      <!-- requires ttjdbc6 library
       <module>tten</module>
+      -->
       <module>uptime</module>
    </modules>
+
+  <repositories>
+    <repository>
+      <id>jboss-public-repo-group</id>
+      <name>JBoss Public Repository Group</name>
+      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 
 </project>
 

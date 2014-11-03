@@ -25,6 +25,7 @@ import org.rhq.core.pluginapi.operation.OperationFacet;
 import org.rhq.core.pluginapi.operation.OperationResult;
 import org.snmp4j.CommunityTarget;
 import org.snmp4j.PDU;
+import org.snmp4j.PDUv1;
 import org.snmp4j.ScopedPDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.Target;
@@ -445,6 +446,18 @@ public class SnmpComponent implements SnmpComponentHolder, PDUFactory, Measureme
     @Override
     public SnmpComponent getSnmpComponent() {
         return this;
+    }
+
+    @Override
+    public PDU createPDU(MessageProcessingModel mpm) {
+        switch (mpm.getID()) {
+        case MessageProcessingModel.MPv3:
+            return new ScopedPDU();
+        case MessageProcessingModel.MPv1:
+            return new PDUv1();
+        default:
+            return new PDU();
+        }
     }
 
 }

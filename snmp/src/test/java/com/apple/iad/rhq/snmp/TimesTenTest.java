@@ -19,7 +19,7 @@ public class TimesTenTest {
 
     private static final String TIMES_TEN_MIB_TXT = "/TimesTen-MIB.txt";
 
-    @Test
+    @Test(enabled=false)
     public void test() throws IOException {
         URL url = getClass().getResource(TIMES_TEN_MIB_TXT);
         MibIndex index = MibIndexCache.getIndex();
